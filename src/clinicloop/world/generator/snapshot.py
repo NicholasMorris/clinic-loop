@@ -30,34 +30,34 @@ def write_world_snapshot(
     path.parent.mkdir(parents=True, exist_ok=True)
 
     # Build the snapshot with full population data
-    snapshot = {
+    snapshot: dict[str, object] = {
         "schema_version": "1",
         "seed": world.seed,
         "population_size": world.population_size,
         "span_days": world.span_days,
         "patients": sorted(
             [_serialize_entity(p) for p in world.patients],
-            key=lambda x: x["patient_id"],
+            key=lambda x: str(x["patient_id"]),
         ),
         "questionnaires": sorted(
             [_serialize_entity(q) for q in world.questionnaires],
-            key=lambda x: x["questionnaire_id"],
+            key=lambda x: str(x["questionnaire_id"]),
         ),
         "consults": sorted(
             [_serialize_entity(c) for c in world.consults],
-            key=lambda x: x["consult_id"],
+            key=lambda x: str(x["consult_id"]),
         ),
         "prescriptions": sorted(
             [_serialize_entity(p) for p in world.prescriptions],
-            key=lambda x: x["prescription_id"],
+            key=lambda x: str(x["prescription_id"]),
         ),
         "orders": sorted(
             [_serialize_entity(o) for o in world.orders],
-            key=lambda x: x["order_id"],
+            key=lambda x: str(x["order_id"]),
         ),
         "messages": sorted(
             [_serialize_entity(m) for m in world.messages],
-            key=lambda x: x["message_id"],
+            key=lambda x: str(x["message_id"]),
         ),
     }
 
@@ -119,7 +119,7 @@ def read_world_snapshot(path: Path | str) -> World:
     )
 
 
-def _serialize_entity(entity) -> dict:
+def _serialize_entity(entity: Patient | Questionnaire | Consult | Prescription | Order | Message) -> dict[str, object]:
     """Convert a pydantic entity to a serializable dict.
 
     Args:

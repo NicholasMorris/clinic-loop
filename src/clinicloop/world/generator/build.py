@@ -1,7 +1,6 @@
 """World builder for SimClinic."""
 
 from typing import NamedTuple
-from datetime import datetime, timedelta
 
 import numpy as np
 
@@ -137,7 +136,9 @@ def generate_world(
     messages = []
     message_count = max(1, int(population_size * 0.5))
     for i in range(message_count):
-        message = _generate_message(message_rng, i, patients[i % len(patients)].patient_id, span_days)
+        message = _generate_message(
+            message_rng, i, patients[i % len(patients)].patient_id, span_days
+        )
         messages.append(message)
 
     return World(
@@ -172,35 +173,36 @@ def _generate_patient(rng: np.random.Generator, index: int) -> Patient:
     full_name = f"{given_name} {family_name}"
 
     # Generate date of birth (adult only)
-    year = rng.integers(PATIENT_DOB_YEAR_MIN, PATIENT_DOB_YEAR_MAX + 1)
-    month = rng.integers(1, 13)
-    day = rng.integers(1, 29)  # Use safe day to avoid invalid dates
+    year = int(rng.integers(PATIENT_DOB_YEAR_MIN, PATIENT_DOB_YEAR_MAX + 1))
+    month = int(rng.integers(1, 13))
+    day = int(rng.integers(1, 29))  # Use safe day to avoid invalid dates
     date_of_birth = f"{year:04d}-{month:02d}-{day:02d}"
 
     # Generate address
     street_name = rng.choice(FICTIONAL_STREETS)
-    street_number = rng.integers(1, 1000)
+    street_number = int(rng.integers(1, 1000))
     street_address = f"{street_number} {street_name}"
     postcode = rng.choice(FICTIONAL_POSTCODES)
 
     # Generate phone number
-    phone_suffix = rng.integers(0, 10000000)
+    phone_suffix = int(rng.integers(0, 10000000))
     phone_number = f"{PHONE_AREA_CODE_FICTIONAL}{phone_suffix:07d}"
 
     # Generate email
-    local_length = rng.integers(5, 15)
-    local_part = "".join(rng.choice(list(EMAIL_LOCAL_CHARS)) for _ in range(local_length))
+    local_length = int(rng.integers(5, 15))
+    local_chars = list(EMAIL_LOCAL_CHARS)
+    local_part = "".join(str(rng.choice(local_chars)) for _ in range(local_length))
     email = f"{local_part}@{EMAIL_DOMAIN_FICTIONAL}"
 
     # Generate health identifier
-    health_id_number = rng.integers(min(HEALTH_ID_FICTIONAL_RANGE), max(HEALTH_ID_FICTIONAL_RANGE))
+    health_id_number = int(rng.integers(min(HEALTH_ID_FICTIONAL_RANGE), max(HEALTH_ID_FICTIONAL_RANGE)))
     health_identifier = f"{HEALTH_ID_PREFIX_FICTIONAL}{health_id_number:08d}"
 
     # Generate payment instrument (small share share same instrument)
     # Approximately 10% share instruments
     if rng.random() < 0.1 and index > 0:
         # Reuse an instrument from earlier patients
-        instrument_number = rng.integers(1, index // 10 + 2)
+        instrument_number = int(rng.integers(1, index // 10 + 2))
     else:
         # Unique instrument
         instrument_number = index + 1
@@ -210,7 +212,7 @@ def _generate_patient(rng: np.random.Generator, index: int) -> Patient:
 
     return Patient(
         patient_id=patient_id,
-        market=market,
+        market=market,  # type: ignore
         full_name=full_name,
         date_of_birth=date_of_birth,
         street_address=street_address,
@@ -245,16 +247,16 @@ def _generate_questionnaire(
 
     # Spread submissions over span_days with plausible daily pattern
     # More submissions on weekdays (Mon-Fri)
-    day = rng.integers(0, span_days)
+    day = int(rng.integers(0, span_days))
     is_weekday = (day % 7) < 5  # Mon-Fri
 
     # Busier pattern on weekdays
     if is_weekday:
-        hour = rng.integers(8, 18)  # Business hours
+        hour = int(rng.integers(8, 18))  # Business hours
     else:
-        hour = rng.integers(0, 24)  # Any hour on weekends
+        hour = int(rng.integers(0, 24))  # Any hour on weekends
 
-    submitted_at_minute = day * 24 * 60 + hour * 60 + rng.integers(0, 60)
+    submitted_at_minute = day * 24 * 60 + hour * 60 + int(rng.integers(0, 60))
 
     # Generate answers
     reason_templates = [
@@ -313,10 +315,10 @@ def _generate_consult(
     questionnaire_day = questionnaire_minute // (24 * 60)
     remaining_days = max(1, span_days - questionnaire_day)
     days_to_schedule = min(7, remaining_days)
-    days_after = rng.integers(1, max(2, days_to_schedule)) if days_to_schedule > 0 else 1
+    days_after = int(rng.integers(1, max(2, days_to_schedule))) if days_to_schedule > 0 else 1
     scheduled_at_minute = questionnaire_minute + days_after * 24 * 60
 
-    duration_minutes = rng.integers(10, 31)
+    duration_minutes = int(rng.integers(10, 31))
 
     return Consult(
         consult_id=consult_id,
@@ -351,7 +353,7 @@ def _generate_prescription(
         A Prescription entity.
     """
     prescription_id = f"RX{index + 1:06d}"
-    issued_at_minute = consult_minute + rng.integers(5, 60)
+    issued_at_minute = consult_minute + int(rng.integers(5, 60))
 
     return Prescription(
         prescription_id=prescription_id,
@@ -385,10 +387,10 @@ def _generate_order(
         An Order entity.
     """
     order_id = f"O{index + 1:06d}"
-    created_at_minute = prescription_minute + rng.integers(10, 120)
+    created_at_minute = prescription_minute + int(rng.integers(10, 120))
 
     # Generate price
-    plan_price_cents = rng.integers(1000, 50000)
+    plan_price_cents = int(rng.integers(1000, 50000))
 
     # Calculate shipping based on market
     if market == "AU":
@@ -433,11 +435,13 @@ def _generate_message(
     message_id = f"M{index + 1:06d}"
 
     # Spread messages across days
-    day = rng.integers(0, span_days)
-    hour = rng.integers(0, 24)
-    received_at_minute = day * 24 * 60 + hour * 60 + rng.integers(0, 60)
+    day = int(rng.integers(0, span_days))
+    hour = int(rng.integers(0, 24))
+    received_at_minute = day * 24 * 60 + hour * 60 + int(rng.integers(0, 60))
 
-    channel = rng.choice(["chat", "email"])
+    channel_options: list[str] = ["chat", "email"]
+    channel = rng.choice(channel_options)
+    assert isinstance(channel, str)
 
     # Generate message body from templates
     message_templates = [
@@ -452,7 +456,7 @@ def _generate_message(
     return Message(
         message_id=message_id,
         patient_id=patient_id,
-        channel=channel,
+        channel=channel,  # type: ignore[arg-type]
         received_at_minute=received_at_minute,
         body=body,
         synthetic=True,
