@@ -40,7 +40,7 @@ def main() -> None:
         use_container_width=True,
         on_select="rerun",
         selection_mode="single_row",
-    ) # type: ignore
+    )  # type: ignore
 
     if not selected or not selected.get("selection", {}).get("rows"):
         return
