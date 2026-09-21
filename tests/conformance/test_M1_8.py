@@ -6,4 +6,8 @@ import pytest
 # The individual tests are in tests/world/cohorts/ and tests/world/corpus/
 # This file serves as the conformance registration point
 
-pytestmark = pytest.mark.conformance_M1_8
+pytestmark = [
+    pytest.mark.conformance_M1_8,
+    pytest.mark.checklist_id("C0"),
+    pytest.mark.checklist_id("R6"),
+]
