@@ -11,6 +11,10 @@ def main() -> None:
     st.set_page_config(page_title="Review Console", layout="wide")
     st.title("Review Console")
 
+    flash = st.session_state.pop("flash", None)
+    if flash:
+        st.success(flash)
+
     # Fetch pending items
     listing = list_pending()
 
@@ -22,32 +26,24 @@ def main() -> None:
         st.info("No pending items awaiting review.")
         return
 
-    # Display pending items in a dataframe
     st.subheader("Pending Items")
+    st.dataframe(
+        [
+            {
+                "Agent": item.agent,
+                "Case ID": item.case_id,
+                "Node": item.node,
+                "Interrupted At": item.interrupted_at,
+            }
+            for item in listing.items
+        ],
+        width="stretch",
+        hide_index=True,
+    )
 
-    items_data = [
-        {
-            "Agent": item.agent,
-            "Case ID": item.case_id,
-            "Node": item.node,
-            "Interrupted At": item.interrupted_at,
-        }
-        for item in listing.items
-    ]
-
-    selected = st.dataframe(
-        items_data,
-        use_container_width=True,
-        on_select="rerun",
-        selection_mode="single_row",
-    )  # type: ignore
-
-    if not selected or not selected.get("selection", {}).get("rows"):
-        return
-
-    # Get the selected item
-    selected_idx = selected["selection"]["rows"][0]
-    item = listing.items[selected_idx]
+    labels = [f"{item.agent}/{item.case_id}" for item in listing.items]
+    choice = st.selectbox("Item to review", labels, key="selected_item")
+    item = listing.items[labels.index(choice)]
 
     # Display item details
     st.subheader(f"Review Item: {item.agent}/{item.case_id}")
@@ -102,7 +98,7 @@ def main() -> None:
                 edited_text=edited_text,
                 reason=reason,
             )
-            st.success("Decision applied successfully.")
+            st.session_state["flash"] = f"Decision recorded for {item.agent}/{item.case_id}."
             st.rerun()
         except DecisionAlreadyRecorded:
             st.error("A decision has already been recorded for this item.")
