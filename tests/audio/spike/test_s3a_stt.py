@@ -301,9 +301,9 @@ class TestSttAdrCitesNumbersFromReport:
             adr_content = f.read()
 
         # Check status is Accepted
-        assert re.search(
-            r"[Ss]tatus.*Accepted", adr_content, re.DOTALL
-        ), "ADR status should be Accepted"
+        assert re.search(r"[Ss]tatus.*Accepted", adr_content, re.DOTALL), (
+            "ADR status should be Accepted"
+        )
 
         # Check that at least one cited value appears in the report
         found_rtf = False
