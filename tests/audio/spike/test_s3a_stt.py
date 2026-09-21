@@ -152,66 +152,58 @@ class TestRealTimeFactorCalculation:
             assert abs(actual_rtf - expected_rtf) < 0.001
 
 
+def _write_tone(path: Path, seconds: float = 0.5, rate: int = 24000) -> Path:
+    """Write a short synthetic mono 16-bit tone so codec tests need no real clips."""
+    import math
+    import struct
+    import wave
+
+    frames = b"".join(
+        struct.pack("<h", int(8000 * math.sin(2 * math.pi * 440 * i / rate)))
+        for i in range(int(seconds * rate))
+    )
+    with wave.open(str(path), "wb") as handle:
+        handle.setnchannels(1)
+        handle.setsampwidth(2)
+        handle.setframerate(rate)
+        handle.writeframes(frames)
+    return path
+
+
 class TestMulawCodec:
     """AC5: Mu-law encoding produces 8000 Hz output, verified via ffmpeg argument list."""
 
-    def test_mulaw_pass_is_eight_kilohertz(self) -> None:
-        """Test that mu-law conversion produces 8000 Hz audio."""
-        # In red commit, to_mulaw raises NotImplementedError
-        # We need to test that when it works, the output is 8000 Hz
-        input_path = Path("runs/s2_tts/samples/clip_001.wav")
-        output_path = Path("/tmp/test_mulaw.wav")
+    def test_mulaw_pass_is_eight_kilohertz(self, tmp_path: Path) -> None:
+        """A real ffmpeg round trip reads back at 8000 Hz."""
+        source = _write_tone(tmp_path / "tone.wav")
+        output = tmp_path / "tone_mulaw.wav"
+        to_mulaw(source, output)
+        probe = subprocess.run(
+            [
+                "ffprobe",
+                "-v",
+                "error",
+                "-show_entries",
+                "stream=sample_rate",
+                "-of",
+                "default=noprint_wrappers=1:nokey=1",
+                str(output),
+            ],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        assert int(probe.stdout.strip()) == 8000
 
-        try:
-            to_mulaw(input_path, output_path)
-
-            # Verify output sample rate via ffmpeg probe
-            # This would call ffmpeg in the real implementation
-            result = subprocess.run(
-                [
-                    "ffprobe",
-                    "-v",
-                    "error",
-                    "-show_entries",
-                    "stream=sample_rate",
-                    "-of",
-                    "default=noprint_wrappers=1:nokey=1:nokey=1",
-                    str(output_path),
-                ],
-                capture_output=True,
-                text=True,
-            )
-            if result.returncode == 0:
-                sample_rate = int(result.stdout.strip())
-                assert sample_rate == 8000
-            else:
-                pytest.skip("ffprobe not available or file not created")
-        except NotImplementedError:
-            # Expected in red commit
-            pass
-        finally:
-            if output_path.exists():
-                output_path.unlink()
-
-    def test_mulaw_ffmpeg_argument_list(self) -> None:
-        """Test that ffmpeg invocation includes 8000 Hz and mu-law codec."""
-        with patch("subprocess.run") as mock_run:
+    def test_mulaw_ffmpeg_argument_list(self, tmp_path: Path) -> None:
+        """The ffmpeg argument list carries the 8000 Hz rate and the mu-law codec."""
+        source = _write_tone(tmp_path / "tone.wav")
+        with patch("clinicloop.audio.stt_spike.codec.subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(returncode=0)
-
-            input_path = Path("runs/s2_tts/samples/clip_001.wav")
-            output_path = Path("/tmp/test.wav")
-
-            try:
-                to_mulaw(input_path, output_path)
-            except NotImplementedError:
-                # Expected in red commit; skip the assertion
-                pytest.skip("to_mulaw not yet implemented")
-
-            # Verify the ffmpeg call was made with correct parameters
-            if mock_run.called:
-                call_args = str(mock_run.call_args)
-                assert "8000" in call_args or "arate=8000" in call_args
-                assert "mulaw" in call_args or "pcm_mulaw" in call_args
+            to_mulaw(source, tmp_path / "out.wav")
+        command = mock_run.call_args.args[0]
+        assert "pcm_mulaw" in command
+        assert command[command.index("-ar") + 1] == "8000"
 
 
 class TestSpikesRunOfflineFromLocalWeights:
