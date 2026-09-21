@@ -1,0 +1,12 @@
+# Pre-commit hooks configuration
+# See https://pre-commit.com/ for more details
+
+repos:
+  - repo: local
+    hooks:
+      - id: naming-lint
+        name: Naming lint (I6, R7)
+        entry: python -m clinicloop.naminglint.lint
+        language: system
+        types: [text]
+        stages: [commit]

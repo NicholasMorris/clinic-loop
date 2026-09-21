@@ -1,0 +1,5 @@
+# Placeholder hash file. In production, populated by: python -m clinicloop.naminglint.hash_names
+# These hashes represent forbidden names from config, never stored in plaintext in the repo.
+# Empty line means no forbidden names are configured (rare).
+000000000000000000000000000000000000000000000000000000000000000a
+000000000000000000000000000000000000000000000000000000000000000b
