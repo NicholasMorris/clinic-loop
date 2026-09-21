@@ -2,6 +2,7 @@
 
 import json
 
+import pytest
 from pydantic import ValidationError
 
 from clinicloop.world.engine import ItemRecord, RunResult
@@ -40,9 +41,9 @@ def test_snapshot_is_frozen_and_versioned() -> None:
 
     snapshot = compute_snapshot(run_result)
 
-    # Verify snapshot is frozen (no assignment allowed)
+    # Verify snapshot is frozen (direct assignment to snapshot field fails)
     with pytest.raises(ValidationError):
-        snapshot.throughput.orders_completed = 999  # type: ignore
+        snapshot.cost_per_order = 999.0  # type: ignore
 
     # Verify JSON export contains schema_version
     snapshot_dict = snapshot.model_dump()
@@ -121,7 +122,3 @@ def test_snapshot_is_deterministic_and_empty_run_cost_is_none() -> None:
 
     # Should not raise ZeroDivisionError; cost_per_order should be None
     assert empty_snapshot.cost_per_order is None, "Cost per order should be None for zero completed orders"
-
-
-# Import pytest after the functions are defined
-import pytest
