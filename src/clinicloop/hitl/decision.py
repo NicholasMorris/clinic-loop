@@ -3,7 +3,7 @@
 from datetime import datetime
 from typing import Literal, Optional
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ValidationInfo, field_validator
 
 
 class HumanDecision(BaseModel):
@@ -23,6 +23,9 @@ class HumanDecision(BaseModel):
 
     @field_validator("edited_text")
     @classmethod
-    def edited_text_required_for_edit(cls, v: Optional[str], info):
+    def edited_text_required_for_edit(cls, v: Optional[str], info: ValidationInfo) -> Optional[str]:
         """Validate that edited_text is provided when action is edit."""
-        raise NotImplementedError("edited_text validator not yet implemented")
+        action = info.data.get("action")
+        if action == "edit" and not v:
+            raise ValueError("edited_text is required when action is 'edit'")
+        return v

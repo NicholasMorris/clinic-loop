@@ -16,11 +16,6 @@ def test_question_loop_collects_two_answers() -> None:
     ]
     thread_id = "thread-001"
 
-    # Simulate collecting answers
-    # In a real scenario, the dynamic interrupt would surface these questions
-    # For the test, we simulate user providing answers
-    answers_provided = ["Alice", "blue"]
-
     # The question_loop should return answers in the order asked
     result = question_loop(questions, thread_id)
 
