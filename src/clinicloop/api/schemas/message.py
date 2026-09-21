@@ -1,5 +1,7 @@
 """Pydantic schemas for message endpoints."""
 
+from typing import Literal
+
 from pydantic import BaseModel
 
 
@@ -10,11 +12,13 @@ class MessageCreate(BaseModel):
         patient_id: Patient identifier.
         channel: Communication channel (chat or email).
         body: Message text.
+        jurisdiction: Optional jurisdiction code (au, uk, nz).
     """
 
     patient_id: str
     channel: str
     body: str
+    jurisdiction: str | None = None
 
 
 class MessageRead(BaseModel):
@@ -35,3 +39,19 @@ class MessageRead(BaseModel):
     received_at_minute: int
     body: str
     synthetic: bool
+
+
+class MessageCreated(MessageRead):
+    """Response schema for created messages.
+
+    Extends MessageRead with guard verdict information.
+
+    Attributes:
+        text_sha256: SHA256 hash of the message body that was checked.
+        jurisdiction: The jurisdiction the check was performed against.
+        jurisdiction_source: Source of the jurisdiction ("request" or "default_au").
+    """
+
+    text_sha256: str
+    jurisdiction: str
+    jurisdiction_source: Literal["request", "default_au"]

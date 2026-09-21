@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from clinicloop.world.generator.build import World
 from clinicloop.world.generator.snapshot import read_world_snapshot
 
+from .guard_boundary import register_guard_handler
 from .routes import consults, messages, orders, patients
 
 
@@ -73,6 +74,9 @@ def create_app(snapshot_path: Path | str, host: str = "127.0.0.1") -> FastAPI:
             The World instance.
         """
         return world
+
+    # Register guard exception handler
+    register_guard_handler(app)
 
     # Register routes
     app.include_router(patients.router)
