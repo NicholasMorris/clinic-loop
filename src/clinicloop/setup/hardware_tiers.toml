@@ -1,0 +1,34 @@
+# Hardware tier configuration for LLM model selection.
+# These are assumed starter values; S1 verifies revision and quantisation.
+
+[[tier]]
+label = "64GB+"
+min_gib = 64
+repo_id = "unsloth/Qwen3-30B-A3B-Instruct-2507-GGUF"
+quantisation = "Q4_K_M"
+fallback_repo_id = "unsloth/Mistral-Small-3.2-24B-Instruct-2506-GGUF"
+provenance = "assumed"
+
+[[tier]]
+label = "48GB"
+min_gib = 48
+repo_id = "unsloth/Qwen3-30B-A3B-Instruct-2507-GGUF"
+quantisation = "Q4_K_M"
+fallback_repo_id = "unsloth/Mistral-Small-3.2-24B-Instruct-2506-GGUF"
+provenance = "assumed"
+
+[[tier]]
+label = "32GB"
+min_gib = 32
+repo_id = "Qwen/Qwen3-14B-GGUF"
+quantisation = "Q4_K_M"
+fallback_repo_id = "Qwen/Qwen3-14B-GGUF"
+provenance = "assumed"
+
+[[tier]]
+label = "16GB"
+min_gib = 16
+repo_id = "Qwen/Qwen3-8B-GGUF"
+quantisation = "Q4_K_M"
+fallback_repo_id = "Qwen/Qwen3-8B-GGUF"
+provenance = "assumed"
