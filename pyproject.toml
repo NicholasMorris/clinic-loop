@@ -24,6 +24,11 @@ api = [
     "httpx",
     "pydantic",
 ]
+docs = [
+    "mkdocs",
+    "mkdocs-material",
+    "mkdocs-awesome-nav",
+]
 agents = [
     "langgraph",
     "langgraph-checkpoint-sqlite",
@@ -37,11 +42,6 @@ audio = [
     "silero-vad",
     "speechbrain",
 ]
-docs = [
-    "mkdocs",
-    "mkdocs-material",
-    "mkdocs-awesome-nav",
-]
 dev = [
     "pytest",
     "pytest-socket",
@@ -50,6 +50,7 @@ dev = [
     "types-PyYAML",
     "towncrier",
     "packaging",
+    "httpx",
 ]
 
 [project.scripts]
