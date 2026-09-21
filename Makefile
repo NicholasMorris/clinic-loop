@@ -1,26 +1,33 @@
+# Scaffolder-owned. Later issues add checks as files under checks/, never as edits here.
+
+# Every tool runs through uv with the dev extra so a fresh checkout works. The lockfile is
+# honoured as written (--locked). Override RUN to substitute the launcher.
+RUN ?= uv run --locked --extra dev
+
 .PHONY: ci
 ci:
-	uv run ruff check .
-	uv run ruff format --check .
-	uv run mypy src tests
-	uv run pytest -q -m "not local_model"
+	$(RUN) ruff check .
+	$(RUN) ruff format --check .
+	$(RUN) mypy
+	$(RUN) pytest -q -m "not local_model"
+	@export LC_ALL=C; \
 	for check in checks/*.sh; do \
-		if [ -x "$$check" ]; then \
-			"$$check" || exit $$?; \
-		fi \
+		[ -x "$$check" ] || continue; \
+		echo "checks: $$check"; \
+		"$$check" || exit $$?; \
 	done
 
 .PHONY: doctor
 doctor:
-	python -m clinicloop.setup.doctor
+	uv run python -m clinicloop.setup.doctor
 
 .PHONY: setup
 setup:
-	python -m clinicloop.setup.install
+	uv run python -m clinicloop.setup.install
 
 .PHONY: help
 help:
 	@echo "Available targets:"
-	@echo "  ci       - Run linting, type checking, and tests"
-	@echo "  doctor   - Check system configuration"
-	@echo "  setup    - Install dependencies and setup"
+	@echo "  ci      - ruff, mypy, pytest, then every executable checks/*.sh in lexical order"
+	@echo "  doctor  - check system configuration"
+	@echo "  setup   - install dependencies and set up the machine"

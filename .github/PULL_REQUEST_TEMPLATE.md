@@ -1,24 +1,29 @@
-# Pull Request
+## Issue
 
-## Red commit SHA
-<!-- Provide the SHA of the first commit with failing tests -->
-Commit: `<paste-red-commit-sha>`
+Closes #<issue-number>
 
-## Changes
-<!-- List file globs changed in this PR -->
-- `<file-glob-1>`
-- `<file-glob-2>`
+## Red-commit SHA
+
+<!-- The first commit on the branch: failing tests and stubs only. -->
+`<red-commit-sha>`
+
+## Files globs
+
+<!-- The write-allowed globs from the issue that this change touches. -->
+- `<glob>`
+
+## Docs and fragment
+
+<!-- Both are required unless the no-changelog label is applied. -->
+- Documentation page edited under `docs/`: `docs/<page>.md`
+- Changelog fragment: `changes/<issue-number>.<type>.md` (type: feat, fix, docs, chore or test)
 
 ## Checklist
-- [ ] Tests pass: `make ci`
-- [ ] Changelog fragment added: `changes/<issue-number>.<type>.md`
-- [ ] Documentation updated: one of `docs/*` files modified
-- [ ] Naming lint passes (no operator/clinic names, no prohibited terms)
+
+- [ ] `make ci` passes
+- [ ] Tests were committed red before the implementation
+- [ ] Synthetic data only
 
 ## Description
-<!-- Describe the changes made in this PR -->
 
-## Documentation and Changelog
-<!-- Confirm that both are updated -->
-- Documentation: `docs/...`
-- Changelog: `changes/<issue-number>.<type>.md` (types: feat, fix, docs, chore, test)
+<!-- What changed and why. -->

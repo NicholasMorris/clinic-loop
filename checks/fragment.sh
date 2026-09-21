@@ -1,19 +1,20 @@
 #!/bin/bash
-# Check that each PR includes a changelog fragment and documentation update.
-# Usage: checks/fragment.sh [--labels LABELS] <diff-file1> [<diff-file2> ...]
+# P4 mechanism: every change ships a changelog fragment and a documentation edit.
 #
-# Exit codes:
-#   0: All requirements met
-#   1: Fragment or docs requirement not met
-#   0: No files provided (skipped during make ci)
+# Usage: checks/fragment.sh [--labels LABEL[,LABEL...]] [PATH ...]
+#
+# PATH arguments are the names changed against the merge base. Labels are separated by commas
+# or whitespace. With no PATH arguments (as when make ci discovers this script) the check is
+# skipped, because no diff list was supplied.
+#
+# Exit status: 0 when both requirements are met, the no-changelog label is present, or the
+# check is skipped; 1 when a requirement is unmet, naming each unmet requirement.
 
-LABELS=""
-
-# Parse optional labels argument
+labels=""
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --labels)
-            LABELS="$2"
+            labels="${2:-}"
             shift 2
             ;;
         *)
@@ -22,51 +23,37 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-DIFF_FILES=("$@")
-
-# If no files provided, skip (this is called without args during make ci)
-if [[ ${#DIFF_FILES[@]} -eq 0 ]]; then
+if [[ $# -eq 0 ]]; then
+    echo "fragment check skipped: no changed-file list supplied"
     exit 0
 fi
 
-# Check for no-changelog label
-if [[ "$LABELS" == *"no-changelog"* ]]; then
-    exit 0
-fi
-
-# Check for changelog fragment
-HAS_FRAGMENT=0
-for file in "${DIFF_FILES[@]}"; do
-    if [[ "$file" =~ ^changes/[0-9]+\.(feat|fix|docs|chore|test)\.md$ ]]; then
-        HAS_FRAGMENT=1
-        break
+for label in ${labels//,/ }; do
+    if [[ "$label" == "no-changelog" ]]; then
+        echo "fragment check waived by the no-changelog label"
+        exit 0
     fi
 done
 
-# Check for docs
-HAS_DOCS=0
-for file in "${DIFF_FILES[@]}"; do
-    if [[ "$file" =~ ^docs/ ]]; then
-        HAS_DOCS=1
-        break
+has_fragment=0
+has_docs=0
+for path in "$@"; do
+    if [[ "$path" =~ ^changes/[0-9]+\.(feat|fix|docs|chore|test)\.md$ ]]; then
+        has_fragment=1
+    fi
+    if [[ "$path" == docs/* ]]; then
+        has_docs=1
     fi
 done
 
-# Report missing requirements
-MISSING=()
-if [[ $HAS_FRAGMENT -eq 0 ]]; then
-    MISSING+=("changelog fragment (changes/<issue>.<type>.md)")
+status=0
+if [[ $has_fragment -eq 0 ]]; then
+    echo "unmet requirement: changelog fragment named changes/<issue-number>.<type>.md" \
+        "(type is one of feat, fix, docs, chore, test)"
+    status=1
 fi
-if [[ $HAS_DOCS -eq 0 ]]; then
-    MISSING+=("documentation update (docs/*)")
+if [[ $has_docs -eq 0 ]]; then
+    echo "unmet requirement: documentation edit under docs/"
+    status=1
 fi
-
-if [[ ${#MISSING[@]} -gt 0 ]]; then
-    echo "Missing required changes:"
-    for item in "${MISSING[@]}"; do
-        echo "  - $item"
-    done
-    exit 1
-fi
-
-exit 0
+exit $status
