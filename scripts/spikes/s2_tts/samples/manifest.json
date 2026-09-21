@@ -1,0 +1,31 @@
+{
+  "entries": [
+    {
+      "clip_id": "clip_001",
+      "path": "runs/s2_tts/samples/clip_001.wav",
+      "sha256": "78d426be7c09a0171b036d77503e884de3fa1a13b75cd7d6bc503c5733c04f29",
+      "speaker_count": 2,
+      "duration_s": 27.87,
+      "is_synthetic": true,
+      "produced_by": "vibevoice/VibeVoice-1.5B-hf"
+    },
+    {
+      "clip_id": "clip_002",
+      "path": "runs/s2_tts/samples/clip_002.wav",
+      "sha256": "cee8b11a4f8197ddfd507ff2b4c58c456547181a301fe0b53715c0f57b460f8d",
+      "speaker_count": 2,
+      "duration_s": 21.6,
+      "is_synthetic": true,
+      "produced_by": "vibevoice/VibeVoice-1.5B-hf"
+    },
+    {
+      "clip_id": "clip_003",
+      "path": "runs/s2_tts/samples/clip_003.wav",
+      "sha256": "1f89ec4dd69657bbfc7016201c7a8e72b0b837d2dfc05cc1d6f90449f6510eaa",
+      "speaker_count": 2,
+      "duration_s": 22.53,
+      "is_synthetic": true,
+      "produced_by": "vibevoice/VibeVoice-1.5B-hf"
+    }
+  ]
+}

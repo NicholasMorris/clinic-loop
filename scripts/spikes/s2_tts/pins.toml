@@ -2,4 +2,9 @@
 # These are recorded to ensure reproducible, offline measurement runs.
 
 [pins]
-# Fork commit and transformers version to be filled in by measurement run
+# Native transformers implementation (no fork)
+fork_commit = "native"
+transformers_version = "5.17.0"
+torch_version = "2.14.0"
+diffusers_version = "0.40.0"
+model_id = "vibevoice/VibeVoice-1.5B-hf"

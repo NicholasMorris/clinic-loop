@@ -1,0 +1,12 @@
+{
+  "real_time_factor": 1.055,
+  "peak_rss_bytes": 7210778624,
+  "disclaimer_offset_s": 0.0,
+  "disclaimer_duration_s": 0.0,
+  "disclaimer_occurrences_per_generation": 0,
+  "disclaimer_excludable": true,
+  "three_minute_render_seconds": 189.9,
+  "corpus_size": 40,
+  "per_turn_samples": 6,
+  "measured_sample_duration_s": 72.0
+}
