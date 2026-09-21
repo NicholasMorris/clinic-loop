@@ -1,10 +1,10 @@
 """Configuration loader for models.toml."""
 
+import tomllib
 from pathlib import Path
 from typing import Any, Literal
 from urllib.parse import urlparse
 
-import tomllib
 from pydantic import BaseModel, field_validator
 
 
