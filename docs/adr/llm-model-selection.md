@@ -32,7 +32,7 @@ Models measured serially with a warm-up call, one run of 30 cases each. A 28 ver
 
 ## Decision
 
-### Primary: qwen3-30b-a3b-instruct-2507
+### Interim Primary: qwen3-30b-a3b-instruct-2507
 
 - **Model ID:** qwen3-30b-a3b-instruct-2507
 - **Family:** qwen
