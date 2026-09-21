@@ -17,6 +17,7 @@ ORDINARY_IGNORES = {
     ".coverage",
     "htmlcov/",
     "dist/",
+    "build/",
     "site/",
     ".DS_Store",
 }
