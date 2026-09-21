@@ -1,0 +1,24 @@
+# SLA wait time targets for SimClinic queues
+# All values are assumed starter values; they must be measured or validated before deployment.
+# A breach is an item whose wait (started_at - enqueued_at, or for still-waiting items duration - enqueued_at)
+# exceeds this queue's target.
+
+[intake]
+target_minutes = 60
+assumed = true
+description = "Target wait time before service starts in intake queue"
+
+[prescriber_review]
+target_minutes = 240
+assumed = true
+description = "Target wait time before service starts in prescriber review queue"
+
+[pharmacy_fulfilment]
+target_minutes = 480
+assumed = true
+description = "Target wait time before service starts in pharmacy fulfilment queue"
+
+[support_inbox]
+target_minutes = 120
+assumed = true
+description = "Target wait time before service starts in support inbox queue"
