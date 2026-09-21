@@ -1,0 +1,53 @@
+# LM Studio local model configuration.
+# All rows use loopback addresses only (127.0.0.1, ::1, or localhost).
+# Server rows are pinned to exact HuggingFace repo IDs, revisions, and quantisations.
+# The fake row requires no server fields and is used for offline testing.
+
+[primary]
+kind = "server"
+repo_id = "unsloth/Qwen3-30B-A3B-Instruct-2507-GGUF"
+revision = "08e959edff2999d5b6a5de8e4f2b5c8c6a8e0c1f"
+quant = "Q4_K_M"
+family = "qwen"
+base_url = "http://127.0.0.1:1234/v1"
+structured_method = "tools"
+parallel_tool_calls = true
+reasoning_handling = "enabled"
+context_window = 8000
+temperature = 0.7
+seed = 42
+
+[judge]
+kind = "server"
+repo_id = "gpt-oss-20b"
+revision = "abcd1234567890ef"
+quant = "Q4_K_M"
+family = "gpt_oss"
+base_url = "http://127.0.0.1:1234/v1"
+structured_method = "tools"
+parallel_tool_calls = true
+reasoning_handling = "enabled"
+context_window = 8000
+temperature = 0.7
+seed = 42
+
+[fallback]
+kind = "server"
+repo_id = "Qwen/Qwen3-14B-GGUF"
+revision = "ef1234567890abcd"
+quant = "Q4_K_M"
+family = "qwen"
+base_url = "http://127.0.0.1:1234/v1"
+structured_method = "json_schema"
+parallel_tool_calls = false
+reasoning_handling = "disabled"
+context_window = 4000
+temperature = 0.7
+seed = 42
+
+[fake]
+kind = "fake"
+family = "fake"
+structured_method = "tools"
+temperature = 0.7
+seed = 42
