@@ -29,6 +29,6 @@ hourly_cost = 32.0
 assumed = true
 assumption_note = "Based on support agent response time: 3-8 minutes per message"
 service_time_family = "exponential"
-mean_service_minutes = 5
+mean_service_minutes = 10
 staffing_level = 1
 hourly_cost = 30.0

@@ -55,6 +55,7 @@ def test_median_wait_matches_hand_computed_values() -> None:
             "pharmacy_fulfilment": 1,
             "support_inbox": 1,
         },
+        agent_toggles={"triage": True, "consult_scribe": True, "integrity": True},
         run_hash="test_hash_odd",
     )
 
@@ -122,6 +123,7 @@ def test_median_wait_matches_hand_computed_values() -> None:
             "pharmacy_fulfilment": 1,
             "support_inbox": 1,
         },
+        agent_toggles={"triage": True, "consult_scribe": True, "integrity": True},
         run_hash="test_hash_even",
     )
 

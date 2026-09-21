@@ -46,6 +46,7 @@ def test_run_snapshot_path_and_round_trip(tmp_path: Path) -> None:
             "pharmacy_fulfilment": 1,
             "support_inbox": 1,
         },
+        agent_toggles={"triage": True, "consult_scribe": True, "integrity": True},
         run_hash="test_hash_file",
     )
 

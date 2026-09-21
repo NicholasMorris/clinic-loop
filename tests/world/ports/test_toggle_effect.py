@@ -27,15 +27,13 @@ def test_disabling_fake_triage_port_increases_queue_depth_and_wait() -> None:
         span_days=span_days,
     )
 
-    # Run WITH triage agent enabled
-    engine_with_agent = Engine(world, regime_key="au")
-    # TODO: Pass agent_toggles={"triage": True} when engine supports it
+    # Run WITH triage agent enabled (default is ON)
+    engine_with_agent = Engine(world, regime_key="au", agent_toggles={"triage": True})
     result_with = engine_with_agent.run(duration)
     snapshot_with = compute_snapshot(result_with)
 
     # Run WITHOUT triage agent
-    engine_without_agent = Engine(world, regime_key="au")
-    # TODO: Pass agent_toggles={"triage": False} when engine supports it
+    engine_without_agent = Engine(world, regime_key="au", agent_toggles={"triage": False})
     result_without = engine_without_agent.run(duration)
     snapshot_without = compute_snapshot(result_without)
 

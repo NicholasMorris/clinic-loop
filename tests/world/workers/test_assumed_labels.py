@@ -39,7 +39,7 @@ def test_staffing_config_is_labelled_assumed_and_required(tmp_path: Path) -> Non
     assert default_config["intake"].mean_service_minutes == 2
     assert default_config["prescriber_review"].mean_service_minutes == 8
     assert default_config["pharmacy_fulfilment"].mean_service_minutes == 4
-    assert default_config["support_inbox"].mean_service_minutes == 5
+    assert default_config["support_inbox"].mean_service_minutes == 10
 
     # Create a modified config file with mean_service_minutes removed from intake pool
     modified_toml_content = """\
