@@ -60,11 +60,15 @@ def load_i6_words(repo_root: Path) -> set[str]:
     return set(i6_words_file.read_text().strip().split("\n"))
 
 
-def report_results(results: list[tuple[str | int, int | str, str]], payload_mode: bool) -> int:
+def report_results(
+    results: list[tuple] | list[tuple[str, int, str]],  # type: ignore[type-arg]
+    payload_mode: bool,
+) -> int:
     """Report lint results and return exit code.
 
     Args:
-        results: List of (file_path/line_num, line_num/rule_id, rule_id) tuples.
+        results: List of tuples. For tree: (file_path, line_num, rule_id).
+                 For payload: (line_num, rule_id).
         payload_mode: True if scanning a payload, False if scanning tree.
 
     Returns:
@@ -74,8 +78,8 @@ def report_results(results: list[tuple[str | int, int | str, str]], payload_mode
         return 0
 
     # Group by type for reporting
-    r7_hits = [r for r in results if r[2] == "R7"]
-    i6_hits = [r for r in results if r[2] == "I6"]
+    r7_hits = [r for r in results if r[-2] == "R7" or (payload_mode and r[1] == "R7")]
+    i6_hits = [r for r in results if r[-2] == "I6" or (payload_mode and r[1] == "I6")]
 
     # Report violations
     print(f"error: Naming lint found {len(results)} violation(s):", file=sys.stderr)
@@ -137,12 +141,12 @@ def main() -> None:
             print(f"error: Failed to read payload file: {e}", file=sys.stderr)
             sys.exit(2)
 
-        results = scan_payload(content, denylist, i6_words)
-        exit_code = report_results(results, payload_mode=True)
+        payload_results = scan_payload(content, denylist, i6_words)
+        exit_code = report_results(payload_results, payload_mode=True)
     else:
         # Scan tree
-        results = scan_tree(repo_root, denylist, i6_words)
-        exit_code = report_results(results, payload_mode=False)
+        tree_results = scan_tree(repo_root, denylist, i6_words)
+        exit_code = report_results(tree_results, payload_mode=False)
 
     sys.exit(exit_code)
 

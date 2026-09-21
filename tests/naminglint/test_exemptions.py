@@ -46,7 +46,7 @@ def test_exempt_paths_are_skipped(tmp_path: Path) -> None:
     hash_file.write_text("\n".join(sorted(name_hashes)))
     denylist = load_denylist(hash_file)
 
-    i6_words = set()
+    i6_words: set[str] = set()
 
     # Plant the fixture name in an exempt path (compliance rules)
     exempt_rule_file = tmp_path / "src" / "clinicloop" / "compliance" / "rules" / "au.yaml"
