@@ -1,5 +1,6 @@
 """Test corpus shape: all families present, floor met, unique case ids."""
 
+from pathlib import Path
 from typing import Any
 
 from clinicloop.evals.guard import FAMILIES, MIN_PER_FAMILY, load_cases
@@ -69,7 +70,12 @@ def test_each_family_has_block_and_allow_floor_and_rule_ids_are_spread() -> None
 
 def test_corpus_text_avoids_forbidden_words() -> None:
     """Fixture text must not contain the lint's forbidden words."""
+    from clinicloop.naminglint.lint import load_i6_words
+
+    repo_root = Path(__file__).resolve().parents[3]
+    words = load_i6_words(repo_root)
+    assert words, "the lint's forbidden word list must not be empty"
     for case in load_cases():
         text = " ".join(m.text for m in case.thread).lower()
-        for word in ("fraud", "abuse", "drug seeker"):
-            assert word not in text, f"{case.case_id} contains {word!r}"
+        for word in words:
+            assert word not in text, f"{case.case_id} contains a forbidden word"
