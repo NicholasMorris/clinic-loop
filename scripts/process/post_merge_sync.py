@@ -32,7 +32,25 @@ def check_sync(payload: dict) -> int:
     Returns:
         0 if synced and clean, 1 if divergent or dirty, 2 if stub
     """
-    raise NotImplementedError("post_merge_sync not yet implemented")
+    local_head_sha = payload.get("local_head_sha")
+    remote_head_sha = payload.get("remote_head_sha")
+    working_tree_dirty = payload.get("working_tree_dirty", False)
+
+    # Check if HEAD is divergent
+    if local_head_sha != remote_head_sha:
+        print(
+            f"ERROR: divergent HEAD. Local: {local_head_sha}, Remote: {remote_head_sha}",
+            file=sys.stdout,
+        )
+        return 1
+
+    # Check if working tree is dirty
+    if working_tree_dirty:
+        print("ERROR: working tree is dirty", file=sys.stdout)
+        return 1
+
+    # All checks passed
+    return 0
 
 
 if __name__ == "__main__":

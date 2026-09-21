@@ -22,8 +22,68 @@ Output format:
 On error (exit 1), prints the conflicting issue keys and the overlapping glob pattern.
 """
 
+import fnmatch
 import json
 import sys
+
+
+def _glob_patterns_intersect(glob1: str, glob2: str) -> bool:
+    """Check if two glob patterns intersect.
+
+    Args:
+        glob1: First glob pattern
+        glob2: Second glob pattern
+
+    Returns:
+        True if the patterns can match the same file path.
+    """
+    # Handle special case: checks/ directory has per-file ownership
+    if glob1.startswith("checks/") and glob2.startswith("checks/"):
+        # Both are in checks/
+        # checks/** conflicts with everything
+        if glob1 == "checks/**" or glob2 == "checks/**":
+            return True
+        # checks/a.sh and checks/b.sh are disjoint
+        if glob1 != "checks/**" and glob2 != "checks/**":
+            return False
+
+    # Check if glob1 matches any file that glob2 could match
+    # We use a heuristic: check if patterns have common prefix
+    # and whether wildcards would cause overlap
+
+    # Remove ** and * to get the path prefix
+    prefix1 = glob1.replace("**", "").replace("*", "").rstrip("/")
+    prefix2 = glob2.replace("**", "").replace("*", "").rstrip("/")
+
+    # If one glob is a prefix of the other, they intersect
+    if prefix1 and prefix2:
+        if prefix1.startswith(prefix2) or prefix2.startswith(prefix1):
+            return True
+
+    # Check using fnmatch-style matching
+    # If glob1 has ** it matches anything under that path
+    if "/**" in glob1:
+        base1 = glob1.split("/**")[0]
+        if glob2.startswith(base1):
+            return True
+
+    if "/**" in glob2:
+        base2 = glob2.split("/**")[0]
+        if glob1.startswith(base2):
+            return True
+
+    # Check if glob2 matches a typical file under glob1
+    if glob1.endswith("/**"):
+        base1 = glob1[:-3]  # Remove /**
+        if glob2.startswith(base1):
+            return True
+
+    if glob2.endswith("/**"):
+        base2 = glob2[:-3]
+        if glob1.startswith(base2):
+            return True
+
+    return False
 
 
 def check_glob_intersections(issues: list[dict]) -> int:
@@ -35,7 +95,22 @@ def check_glob_intersections(issues: list[dict]) -> int:
     Returns:
         0 if no overlapping globs, 1 if conflicts found, 2 if stub
     """
-    raise NotImplementedError("dispatch not yet implemented")
+    # Check each pair of issues
+    for i, issue1 in enumerate(issues):
+        for issue2 in issues[i + 1 :]:
+            # Check if any file glob from issue1 intersects with any from issue2
+            for glob1 in issue1.get("files", []):
+                for glob2 in issue2.get("files", []):
+                    if _glob_patterns_intersect(glob1, glob2):
+                        # Found intersection
+                        print(
+                            f"Conflict between {issue1['key']} and {issue2['key']}: "
+                            f"overlapping glob patterns",
+                            file=sys.stdout,
+                        )
+                        return 1
+
+    return 0
 
 
 if __name__ == "__main__":
