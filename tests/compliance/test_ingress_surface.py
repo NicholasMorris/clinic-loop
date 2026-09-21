@@ -19,9 +19,10 @@ def test_public_surface_matches_allowlist_and_returns_no_raw_identifiers() -> No
     assert set(ingress.__all__) == EXPECTED_SURFACE
 
     # Create a fixture record with identifiers
+    # Use a valid Medicare number (1111111113 has valid checksum)
     fixture_record = {
         "patient_id": "P123",
-        "medicare": "3123456789",
+        "medicare": "1111111113",  # Valid Medicare checksum
         "email": "john.doe@example.com",
         "phone": "0412345678",
         "dob": "15121990",
@@ -35,7 +36,7 @@ def test_public_surface_matches_allowlist_and_returns_no_raw_identifiers() -> No
 
     # Check that no substring of length 4 or more from any identifier appears in output
     identifiers = [
-        "3123456789",  # medicare
+        "1111111113",  # medicare (valid checksum)
         "0412345678",  # phone
         "15121990",    # dob
         "john",        # email local

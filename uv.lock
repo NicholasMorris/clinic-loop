@@ -231,6 +231,9 @@ wheels = [
 name = "clinicloop"
 version = "0.1.0"
 source = { editable = "." }
+dependencies = [
+    { name = "pyyaml" },
+]
 
 [package.optional-dependencies]
 agents = [
@@ -291,6 +294,7 @@ requires-dist = [
     { name = "pydantic", marker = "extra == 'sim'" },
     { name = "pytest", marker = "extra == 'dev'" },
     { name = "pytest-socket", marker = "extra == 'dev'" },
+    { name = "pyyaml" },
     { name = "ruff", marker = "extra == 'dev'" },
     { name = "silero-vad", marker = "extra == 'audio'" },
     { name = "soundfile", marker = "extra == 'audio'" },

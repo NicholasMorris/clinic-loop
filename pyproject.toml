@@ -7,6 +7,9 @@ name = "clinicloop"
 version = "0.1.0"
 description = "Clinical workflow automation with LangGraph agents, synthetic audio, and integrity signals."
 requires-python = ">=3.12,<3.13"
+dependencies = [
+    "pyyaml",
+]
 
 # The manifest names libraries only. Versions are resolved and recorded in uv.lock.
 [project.optional-dependencies]
