@@ -13,6 +13,8 @@ from fastapi.testclient import TestClient
 from clinicloop.api.app import create_app
 from clinicloop.world.generator.snapshot import write_world_snapshot
 
+pytestmark = pytest.mark.checklist_id("C0", "L1")
+
 
 @pytest.fixture
 def world_snapshot(tmp_path: Path) -> Path:
