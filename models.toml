@@ -1,12 +1,16 @@
 # LM Studio local model configuration.
 # All rows use loopback addresses only (127.0.0.1, ::1, or localhost).
 # Server rows are pinned to exact HuggingFace repo IDs, revisions, and quantisations.
+# The rows match the model-selection ADR (docs/adr/llm-model-selection.md): primary qwen,
+# judge gemma, fallback gpt_oss. Each revision is the repo head commit fetched from the
+# Hugging Face API on 2026-09-22; every repo was last modified before the local download
+# (2025-07-31, 2026-07-23, 2026-03-19), so the head equals what LM Studio fetched.
 # The fake row requires no server fields and is used for offline testing.
 
 [primary]
 kind = "server"
 repo_id = "unsloth/Qwen3-30B-A3B-Instruct-2507-GGUF"
-revision = "08e959edff2999d5b6a5de8e4f2b5c8c6a8e0c1f"
+revision = "eea7b2be5805a5f151f8847ede8e5f9a9284bf77"
 quant = "Q4_K_M"
 family = "qwen"
 base_url = "http://127.0.0.1:1234/v1"
@@ -19,10 +23,10 @@ seed = 42
 
 [judge]
 kind = "server"
-repo_id = "gpt-oss-20b"
-revision = "abcd1234567890ef"
-quant = "Q4_K_M"
-family = "gpt_oss"
+repo_id = "lmstudio-community/gemma-4-E4B-it-MLX-4bit"
+revision = "ce713a0013bb7090305edfb8e3773a07ccae35c1"
+quant = "4bit"
+family = "gemma"
 base_url = "http://127.0.0.1:1234/v1"
 structured_method = "tools"
 parallel_tool_calls = true
@@ -33,15 +37,15 @@ seed = 42
 
 [fallback]
 kind = "server"
-repo_id = "Qwen/Qwen3-14B-GGUF"
-revision = "ef1234567890abcd"
-quant = "Q4_K_M"
-family = "qwen"
+repo_id = "mlx-community/gpt-oss-20b-MXFP4-Q8"
+revision = "773a7da77e569019bb0fd17a554b263738d669a3"
+quant = "MXFP4-Q8"
+family = "gpt_oss"
 base_url = "http://127.0.0.1:1234/v1"
-structured_method = "json_schema"
-parallel_tool_calls = false
-reasoning_handling = "disabled"
-context_window = 4000
+structured_method = "tools"
+parallel_tool_calls = true
+reasoning_handling = "enabled"
+context_window = 8000
 temperature = 0.7
 seed = 42
 

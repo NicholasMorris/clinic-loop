@@ -18,7 +18,7 @@ The configuration file is a TOML file with a table for each role:
 [primary]
 kind = "server"
 repo_id = "unsloth/Qwen3-30B-A3B-Instruct-2507-GGUF"
-revision = "08e959edff2999d5b6a5de8e4f2b5c8c6a8e0c1f"
+revision = "eea7b2be5805a5f151f8847ede8e5f9a9284bf77"
 quant = "Q4_K_M"
 family = "qwen"
 base_url = "http://127.0.0.1:1234/v1"
@@ -53,7 +53,7 @@ Each server row represents a model loaded by LM Studio. Required fields:
 |-------|------|---------|
 | `kind` | `"server"` | Discriminator; marks this as a remote model |
 | `repo_id` | string | Hugging Face model ID (e.g., `unsloth/Qwen3-30B-A3B-Instruct-2507-GGUF`) |
-| `revision` | string | Pinned commit SHA (e.g., `08e959edff...`); `"main"` is rejected |
+| `revision` | string | Pinned commit SHA (e.g., `eea7b2be58...`); `"main"` is rejected |
 | `quant` | string | Quantisation (e.g., `Q4_K_M`); empty string is rejected |
 | `family` | string | Model family for documentation (e.g., `qwen`, `gpt_oss`) |
 | `base_url` | string | OpenAI-compatible endpoint (e.g., `http://127.0.0.1:1234/v1`) |
