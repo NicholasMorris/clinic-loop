@@ -1,0 +1,3 @@
+# Towncrier fragments are committed but CHANGELOG.md is generated
+CHANGELOG.md
+*.orig

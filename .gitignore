@@ -1,0 +1,22 @@
+# Data and run output
+data/
+runs/
+corpus/rendered/
+evals/local/
+
+# Virtual environment
+.venv
+
+# Python and tooling artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+dist/
+site/
+.DS_Store
+build/

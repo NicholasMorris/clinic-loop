@@ -1,0 +1,105 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "clinicloop"
+version = "0.1.0"
+description = "Clinical workflow automation with LangGraph agents, synthetic audio, and integrity signals."
+requires-python = ">=3.12,<3.13"
+
+# The manifest names libraries only. Versions are resolved and recorded in uv.lock.
+[project.optional-dependencies]
+sim = [
+    "numpy",
+    "pydantic",
+    "streamlit",
+]
+api = [
+    "fastapi",
+    "uvicorn",
+    "httpx",
+    "pydantic",
+]
+agents = [
+    "langgraph",
+    "langgraph-checkpoint-sqlite",
+    "langchain-core",
+    "langchain-openai",
+    "pydantic",
+]
+audio = [
+    "numpy",
+    "soundfile",
+    "silero-vad",
+    "speechbrain",
+]
+docs = [
+    "mkdocs",
+    "mkdocs-material",
+    "mkdocs-awesome-nav",
+]
+dev = [
+    "pytest",
+    "pytest-socket",
+    "ruff",
+    "mypy",
+    "towncrier",
+    "packaging",
+]
+
+[project.scripts]
+clinicloop-doctor = "clinicloop.setup.doctor:main"
+clinicloop-install = "clinicloop.setup.install:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+clinicloop = ["py.typed"]
+
+[tool.mypy]
+strict = true
+files = ["src", "tests"]
+
+# Third-party libraries that ship no type information.
+[[tool.mypy.overrides]]
+module = ["soundfile", "silero_vad", "speechbrain", "speechbrain.*"]
+ignore_missing_imports = true
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "D"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.towncrier]
+directory = "changes"
+filename = "CHANGELOG.md"
+title_format = "Version {version}"
+
+[tool.towncrier.fragment.feat]
+name = "Features"
+
+[tool.towncrier.fragment.fix]
+name = "Fixes"
+
+[tool.towncrier.fragment.docs]
+name = "Documentation"
+
+[tool.towncrier.fragment.chore]
+name = "Chores"
+
+[tool.towncrier.fragment.test]
+name = "Tests"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--strict-markers"
+markers = [
+    "local_model: needs the local model server and is excluded from make ci",
+]
