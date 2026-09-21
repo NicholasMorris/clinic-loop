@@ -133,7 +133,7 @@ Would post one commit-status context per review persona (correctness, security, 
 **Defined contexts** (in `scripts/repo_settings/review_contexts.py`):
 ```python
 REQUIRED_STATUS_CONTEXTS = (
-    "local-ci",  # Posted by post_gate_status.py after make ci passes
+    "local-ci",  # Posted by the orchestrator after make ci passes
     "correctness",  # Posted by review persona (deferred)
     "security-privacy",  # Posted by review persona (deferred)
     "regulatory-guard",  # Posted by review persona (deferred)
