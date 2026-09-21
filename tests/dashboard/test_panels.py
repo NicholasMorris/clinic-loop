@@ -33,7 +33,7 @@ class TestMetricPanels:
         # Write the default snapshot
         from clinicloop.dashboard.runner import write_default_snapshot
 
-        write_default_snapshot(snapshot_dir=tmp_path)
+        write_default_snapshot(snapshots_dir=tmp_path)
 
         at = AppTest.from_file(str(dashboard_app_path), default_timeout=120)
         at.run()
@@ -44,9 +44,9 @@ class TestMetricPanels:
         # Extract metric labels
         metric_labels = {m.label for m in at.metric}
         expected_labels = {"Throughput", "Median wait", "SLA breaches", "Cost per order"}
-        assert (
-            metric_labels == expected_labels
-        ), f"Metric labels mismatch: {metric_labels} vs {expected_labels}"
+        assert metric_labels == expected_labels, (
+            f"Metric labels mismatch: {metric_labels} vs {expected_labels}"
+        )
 
         # Verify each metric has a non-empty value
         for metric in at.metric:
@@ -66,7 +66,7 @@ class TestMetricPanels:
         # Write the default snapshot
         from clinicloop.dashboard.runner import write_default_snapshot
 
-        write_default_snapshot(snapshot_dir=tmp_path)
+        write_default_snapshot(snapshots_dir=tmp_path)
 
         at = AppTest.from_file(str(dashboard_app_path), default_timeout=120)
         at.run()

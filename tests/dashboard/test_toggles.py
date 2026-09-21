@@ -1,6 +1,5 @@
 """Tests for dashboard toggle widgets."""
 
-import os
 from pathlib import Path
 
 import pytest
@@ -41,7 +40,9 @@ class TestToggles:
             "Integrity signals agent",
             "Consult documentation agent",
         }
-        assert toggle_labels == expected_labels, f"Labels mismatch: {toggle_labels} vs {expected_labels}"
+        assert toggle_labels == expected_labels, (
+            f"Labels mismatch: {toggle_labels} vs {expected_labels}"
+        )
 
     def test_turning_triage_off_increases_displayed_queue_depth(
         self, dashboard_app_path: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -58,7 +59,7 @@ class TestToggles:
         # Write the default snapshot to tmp_path
         from clinicloop.dashboard.runner import write_default_snapshot
 
-        write_default_snapshot(snapshot_dir=tmp_path)
+        write_default_snapshot(snapshots_dir=tmp_path)
 
         # First run: triage ON
         at = AppTest.from_file(str(dashboard_app_path), default_timeout=120)
@@ -66,7 +67,6 @@ class TestToggles:
 
         # Verify dataframe exists with queue data
         assert len(at.dataframe) >= 1, "Queue dataframe not rendered"
-        initial_dataframe = at.dataframe[0]
 
         # Get triage toggle
         triage_toggle = None
@@ -93,5 +93,7 @@ class TestToggles:
         # Verify no new files were written under snapshots
         files_after = set(tmp_path.glob("**/*"))
         new_files = files_after - files_before
-        snapshot_writes = [f for f in new_files if "var/snapshots" in str(f) or "snapshots" in f.name]
+        snapshot_writes = [
+            f for f in new_files if "var/snapshots" in str(f) or "snapshots" in f.name
+        ]
         assert not snapshot_writes, f"New files created under snapshots: {snapshot_writes}"

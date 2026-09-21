@@ -5,11 +5,10 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-from clinicloop.world.generator import generate_world
 from clinicloop.world.engine import Engine
-from clinicloop.world.metrics import compute_snapshot, MetricSnapshot, write_run_snapshot
-from clinicloop.world.ports import PortRegistry, FakeAgentPort
-
+from clinicloop.world.generator import generate_world
+from clinicloop.world.metrics import MetricSnapshot, compute_snapshot, write_run_snapshot
+from clinicloop.world.ports import FakeAgentPort, PortRegistry
 
 # Configuration constants
 SEED = 20260921
@@ -105,16 +104,16 @@ def run_with_toggles(toggles: dict[str, bool]) -> tuple[MetricSnapshot, dict[str
     return snapshot, max_depths
 
 
-def write_default_snapshot(snapshot_dir: Path | str | None = None) -> None:
+def write_default_snapshot(snapshots_dir: Path | str | None = None) -> None:
     """Write default snapshot with all toggles on.
 
     Args:
-        snapshot_dir: Directory to write snapshot to. Defaults to env var or var/snapshots.
+        snapshots_dir: Directory to write snapshot to. Defaults to env var or var/snapshots.
     """
-    if snapshot_dir is None:
-        snapshot_dir = snapshot_dir()
+    if snapshots_dir is None:
+        snapshots_dir = snapshot_dir()
     else:
-        snapshot_dir = Path(snapshot_dir)
+        snapshots_dir = Path(snapshots_dir)
 
     # All toggles on
     toggles = {scope: True for scope in ["triage", "integrity", "consult_documentation"]}
@@ -123,4 +122,4 @@ def write_default_snapshot(snapshot_dir: Path | str | None = None) -> None:
     snapshot, _ = run_with_toggles(toggles)
 
     # Write to file
-    write_run_snapshot(snapshot, SEED, snapshot_dir)
+    write_run_snapshot(snapshot, SEED, snapshots_dir)

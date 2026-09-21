@@ -1,12 +1,9 @@
 """Streamlit dashboard app for SimClinic metrics."""
 
-from pathlib import Path
-
-import pandas as pd
+import pandas as pd  # type: ignore[import-untyped]
 import streamlit as st
 
 from clinicloop.dashboard.runner import (
-    SEED,
     build_registry,
     run_with_toggles,
     snapshot_path,
@@ -65,6 +62,8 @@ def main() -> None:
         )
 
     # Data path selection based on session state
+    max_depths_raw: dict[str, int]
+
     if st.session_state["recomputed"]:
         # Path B: Re-run engine with current toggle values
         toggles = {
@@ -72,7 +71,7 @@ def main() -> None:
             "integrity": toggle_integrity,
             "consult_documentation": toggle_consult_documentation,
         }
-        snapshot, max_depths = run_with_toggles(toggles)
+        snapshot, max_depths_raw = run_with_toggles(toggles)
     else:
         # Path A: Read snapshot file on first paint
         snap_path = snapshot_path()
@@ -85,7 +84,15 @@ def main() -> None:
 
         snapshot = read_run_snapshot(snap_path)
         # First paint: max_depths come from file if available, or None
-        max_depths = {q: None for q in ["intake", "prescriber_review", "pharmacy_fulfilment", "support_inbox"]}
+        max_depths_raw = {
+            q: 0 for q in ["intake", "prescriber_review", "pharmacy_fulfilment", "support_inbox"]
+        }
+
+    # Convert to allow None values for first paint
+    if st.session_state["recomputed"]:
+        max_depths: dict[str, int | None] = max_depths_raw  # type: ignore[assignment]
+    else:
+        max_depths = {q: None for q in max_depths_raw}
 
     # Render metric panels
     st.subheader("Metrics")

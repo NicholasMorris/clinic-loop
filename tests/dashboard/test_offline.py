@@ -36,16 +36,15 @@ class TestOffline:
             for node in ast.walk(tree):
                 if isinstance(node, ast.Import):
                     for alias in node.names:
-                        assert (
-                            alias.name not in banned_modules
-                        ), f"{py_file} imports {alias.name}"
+                        assert alias.name not in banned_modules, f"{py_file} imports {alias.name}"
 
                 elif isinstance(node, ast.ImportFrom):
                     if node.module is not None:
-                        # Check direct import: "from requests import ..." or "from urllib.request import ..."
-                        assert (
-                            node.module not in banned_modules
-                        ), f"{py_file} imports from {node.module}"
+                        # Check direct import: "from requests import ..." or
+                        # "from urllib.request import ..."
+                        assert node.module not in banned_modules, (
+                            f"{py_file} imports from {node.module}"
+                        )
 
                         # Check partial matches: "from urllib import request"
                         if "." in node.module:
@@ -53,6 +52,4 @@ class TestOffline:
                             if base == "urllib":
                                 for alias in node.names:
                                     if alias.name == "request":
-                                        pytest.fail(
-                                            f"{py_file} imports urllib.request"
-                                        )
+                                        pytest.fail(f"{py_file} imports urllib.request")
