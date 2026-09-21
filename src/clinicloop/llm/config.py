@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any, Literal
 from urllib.parse import urlparse
 
-import tomli
+import tomllib
 from pydantic import BaseModel, field_validator
 
 
@@ -140,7 +140,7 @@ def load_models_config(config_path: Path) -> ModelsConfig:
 
     # Read TOML file
     with open(config_path, "rb") as f:
-        data = tomli.load(f)
+        data = tomllib.load(f)
 
     # Check for required roles
     required_roles = {"primary", "judge", "fallback", "fake"}
