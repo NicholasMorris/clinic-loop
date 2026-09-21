@@ -3,10 +3,13 @@
 Requirement ID: C0 (SimClinic)
 """
 
+import pytest
+
 from clinicloop.world.ports import PortRegistry, UnknownAgentScope
 from clinicloop.world.ports.fakes import FakeAgentPort
 
 
+@pytest.mark.checklist_id("C0")
 def test_C0_agent_port_protocol_exists() -> None:
     """C0: AgentPort protocol enables agent implementation."""
     from clinicloop.world.ports import AgentPort
