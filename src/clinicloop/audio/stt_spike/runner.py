@@ -21,7 +21,7 @@ class UnlistedAudioInput(Exception):
 def measure_clip(
     clip_path: str,
     build: str,
-    metadata: dict,
+    metadata: dict[str, object],
 ) -> MeasurementRow | None:
     """Measure transcription time and memory for a single clip.
 

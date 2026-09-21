@@ -15,16 +15,16 @@ from pydantic import ValidationError
 
 from clinicloop.audio.stt_spike.codec import to_mulaw
 from clinicloop.audio.stt_spike.manifest import load_s2_manifest
-from clinicloop.audio.stt_spike.report import MeasurementRow, SttSpikeReport
+from clinicloop.audio.stt_spike.report import MeasurementRow
 from clinicloop.audio.stt_spike.runner import UnlistedAudioInput, measure_clip, run_spike
 
 
 class TestUnlistedInputPathRejected:
     """AC1: UnlistedAudioInput is raised for paths absent from manifest."""
 
-    def test_unlisted_input_path_rejected(self):
+    def test_unlisted_input_path_rejected(self) -> None:
         """Test that unlisted paths raise UnlistedAudioInput with rejected path in message."""
-        manifest = load_s2_manifest()
+        load_s2_manifest()  # Verify manifest loads
         unlisted_path = "runs/s2_tts/samples/nonexistent_clip.wav"
 
         with pytest.raises(UnlistedAudioInput) as exc_info:
@@ -32,11 +32,10 @@ class TestUnlistedInputPathRejected:
 
         assert unlisted_path in str(exc_info.value)
 
-    def test_listed_input_path_returns_clip(self):
+    def test_listed_input_path_returns_clip(self) -> None:
         """Test that listed paths return a loaded clip (via measure_clip)."""
         manifest = load_s2_manifest()
         # Get the first clip from manifest
-        clip_id = manifest.entries[0].clip_id
         clip_path = manifest.entries[0].path
 
         # The measure_clip function should accept this path
@@ -57,12 +56,12 @@ class TestReportHasEightMeasurementRows:
     """AC2: Committed report contains exactly 8 measurement rows (3+1 clips × 2 builds)."""
 
     @pytest.mark.local_model
-    def test_report_has_eight_measurement_rows(self):
+    def test_report_has_eight_measurement_rows(self) -> None:
         """Test that the spike report contains exactly 8 rows."""
         report = run_spike()
         assert len(report.rows) == 8
 
-    def test_report_parses_from_committed_record(self):
+    def test_report_parses_from_committed_record(self) -> None:
         """Test that the report can be parsed from the committed record file."""
         record_path = Path("scripts/spikes/s3a_stt/records/whisper_cpp_measurements.json")
         if not record_path.exists():
@@ -83,7 +82,7 @@ class TestReportHasEightMeasurementRows:
             assert "real_time_factor" in row
             assert "peak_rss_bytes" in row
 
-    def test_local_model_marker_excludes_from_standard_ci(self):
+    def test_local_model_marker_excludes_from_standard_ci(self) -> None:
         """Test that local_model marker is applied to the measurement test."""
         # The test_report_has_eight_measurement_rows test is marked with @pytest.mark.local_model
         # This test verifies that the marker is correctly applied so the test is excluded
@@ -95,10 +94,10 @@ class TestReportHasEightMeasurementRows:
 class TestMeasurementRowRequiresPeakRss:
     """AC3: MeasurementRow validation requires peak_rss_bytes field."""
 
-    def test_measurement_row_requires_peak_rss(self):
+    def test_measurement_row_requires_peak_rss(self) -> None:
         """Test that MeasurementRow raises ValidationError if peak_rss_bytes is missing."""
         with pytest.raises(ValidationError) as exc_info:
-            MeasurementRow(
+            MeasurementRow(  # type: ignore[call-arg]
                 clip_id="test",
                 build="q5_0",
                 audio_duration_s=10.0,
@@ -109,7 +108,7 @@ class TestMeasurementRowRequiresPeakRss:
 
         assert "peak_rss_bytes" in str(exc_info.value)
 
-    def test_measurement_row_validates_all_required_fields(self):
+    def test_measurement_row_validates_all_required_fields(self) -> None:
         """Test that MeasurementRow validates all required fields."""
         # Valid row
         row = MeasurementRow(
@@ -127,7 +126,7 @@ class TestMeasurementRowRequiresPeakRss:
 class TestRealTimeFactorCalculation:
     """AC4: real_time_factor equals wall_seconds / audio_duration_s."""
 
-    def test_real_time_factor_is_wallclock_over_audio_duration(self):
+    def test_real_time_factor_is_wallclock_over_audio_duration(self) -> None:
         """Test real_time_factor calculation: 12.0 / 6.0 = 2.0."""
         # Verify that if we have 12 seconds of processing on 6 seconds of audio,
         # the real_time_factor should be 2.0
@@ -136,7 +135,7 @@ class TestRealTimeFactorCalculation:
         expected_rtf = wall_seconds / audio_duration_s
         assert expected_rtf == 2.0
 
-    def test_real_time_factor_formula_on_example(self):
+    def test_real_time_factor_formula_on_example(self) -> None:
         """Test RTF formula with data from the committed record."""
         record_path = Path("scripts/spikes/s3a_stt/records/whisper_cpp_measurements.json")
         if not record_path.exists():
@@ -156,7 +155,7 @@ class TestRealTimeFactorCalculation:
 class TestMulawCodec:
     """AC5: Mu-law encoding produces 8000 Hz output, verified via ffmpeg argument list."""
 
-    def test_mulaw_pass_is_eight_kilohertz(self):
+    def test_mulaw_pass_is_eight_kilohertz(self) -> None:
         """Test that mu-law conversion produces 8000 Hz audio."""
         # In red commit, to_mulaw raises NotImplementedError
         # We need to test that when it works, the output is 8000 Hz
@@ -170,10 +169,14 @@ class TestMulawCodec:
             # This would call ffmpeg in the real implementation
             result = subprocess.run(
                 [
-                    "ffprobe", "-v", "error",
-                    "-show_entries", "stream=sample_rate",
-                    "-of", "default=noprint_wrappers=1:nokey=1:nokey=1",
-                    str(output_path)
+                    "ffprobe",
+                    "-v",
+                    "error",
+                    "-show_entries",
+                    "stream=sample_rate",
+                    "-of",
+                    "default=noprint_wrappers=1:nokey=1:nokey=1",
+                    str(output_path),
                 ],
                 capture_output=True,
                 text=True,
@@ -190,7 +193,7 @@ class TestMulawCodec:
             if output_path.exists():
                 output_path.unlink()
 
-    def test_mulaw_ffmpeg_argument_list(self):
+    def test_mulaw_ffmpeg_argument_list(self) -> None:
         """Test that ffmpeg invocation includes 8000 Hz and mu-law codec."""
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(returncode=0)
@@ -214,7 +217,7 @@ class TestMulawCodec:
 class TestSpikesRunOfflineFromLocalWeights:
     """AC6: Spike runs entirely offline with no non-loopback sockets."""
 
-    def test_spike_runs_offline_from_local_weights(self):
+    def test_spike_runs_offline_from_local_weights(self) -> None:
         """Test that spike runs with no network access and local model paths."""
         # This test uses pytest-socket configuration to block non-loopback
         # In green phase, the run_spike() call should complete without opening sockets
@@ -227,7 +230,8 @@ class TestSpikesRunOfflineFromLocalWeights:
                 recorded_socket_count = 0
 
                 with patch("socket.socket") as mock_socket:
-                    def track_socket(*args, **kwargs):
+
+                    def track_socket(*args: object, **kwargs: object) -> None:
                         nonlocal recorded_socket_count
                         recorded_socket_count += 1
                         raise RuntimeError("Network call detected in offline mode")
@@ -235,7 +239,7 @@ class TestSpikesRunOfflineFromLocalWeights:
                     mock_socket.side_effect = track_socket
 
                     try:
-                        report = run_spike()
+                        _report = run_spike()  # noqa: F841
                         # If we get here, no non-loopback sockets were opened
                         assert recorded_socket_count == 0
                     except NotImplementedError:
@@ -246,13 +250,13 @@ class TestSpikesRunOfflineFromLocalWeights:
                 pytest.fail(f"Spike made network call: {e}")
             raise
 
-    def test_whisper_cpp_model_path_not_url(self):
+    def test_whisper_cpp_model_path_not_url(self) -> None:
         """Test that whisper.cpp is invoked with a local file path, not URL."""
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = MagicMock(returncode=0)
 
             try:
-                report = run_spike()
+                _report = run_spike()  # noqa: F841
             except NotImplementedError:
                 pytest.skip("run_spike not yet implemented")
 
@@ -267,7 +271,7 @@ class TestSpikesRunOfflineFromLocalWeights:
 class TestSttAdrCitesNumbersFromReport:
     """AC7: ADR file has status Accepted and cites RTF and peak RSS from report."""
 
-    def test_stt_adr_cites_numbers_from_the_report(self):
+    def test_stt_adr_cites_numbers_from_the_report(self) -> None:
         """Test that ADR cites real-time factor and peak RSS values from the report."""
         record_path = Path("scripts/spikes/s3a_stt/records/whisper_cpp_measurements.json")
         adr_path = Path("docs/adr/stt-model-selection.md")
@@ -297,7 +301,9 @@ class TestSttAdrCitesNumbersFromReport:
             adr_content = f.read()
 
         # Check status is Accepted
-        assert re.search(r"[Ss]tatus.*Accepted", adr_content), "ADR status should be Accepted"
+        assert re.search(
+            r"[Ss]tatus.*Accepted", adr_content, re.DOTALL
+        ), "ADR status should be Accepted"
 
         # Check that at least one cited value appears in the report
         found_rtf = False
@@ -321,7 +327,7 @@ class TestSttAdrCitesNumbersFromReport:
         if found_peak_rss:
             assert found_peak_rss, "ADR should cite at least one peak RSS value from report"
 
-    def test_adr_file_exists_and_is_markdown(self):
+    def test_adr_file_exists_and_is_markdown(self) -> None:
         """Test that ADR file exists and is a valid markdown file."""
         adr_path = Path("docs/adr/stt-model-selection.md")
         if adr_path.exists():

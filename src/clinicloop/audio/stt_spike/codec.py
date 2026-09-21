@@ -49,6 +49,4 @@ def to_mulaw(input_path: Path, output_path: Path) -> None:
     )
 
     if result.returncode != 0:
-        raise RuntimeError(
-            f"ffmpeg conversion failed for {input_path}: {result.stderr}"
-        )
+        raise RuntimeError(f"ffmpeg conversion failed for {input_path}: {result.stderr}")
