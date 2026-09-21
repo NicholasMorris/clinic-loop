@@ -23,7 +23,7 @@ def test_identifiers_fall_in_declared_fictional_ranges() -> None:
     # Check that all patients have identifiers within fictional ranges
     for patient in world.patients:
         assert patient.phone_number is not None
-        assert patient.email_domain is not None
+        assert patient.email is not None
         assert patient.health_identifier is not None
 
         # Verify phone number is in fictional range
@@ -31,9 +31,9 @@ def test_identifiers_fall_in_declared_fictional_ranges() -> None:
             f"Phone {patient.phone_number} doesn't start with {PHONE_AREA_CODE_FICTIONAL}"
         )
 
-        # Verify email domain is the declared fictional domain
-        assert patient.email_domain == EMAIL_DOMAIN_FICTIONAL, (
-            f"Email domain {patient.email_domain} is not {EMAIL_DOMAIN_FICTIONAL}"
+        # Verify email uses the declared fictional domain
+        assert patient.email.endswith(f"@{EMAIL_DOMAIN_FICTIONAL}"), (
+            f"Email {patient.email} doesn't use fictional domain {EMAIL_DOMAIN_FICTIONAL}"
         )
 
         # Verify health identifier uses fictional prefix
