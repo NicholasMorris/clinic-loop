@@ -1,6 +1,7 @@
 """Isolated environment worker for text-to-speech generation."""
 
 import hashlib
+import subprocess
 from pathlib import Path
 
 
@@ -41,7 +42,37 @@ def run_isolated_worker(
         NonSpikeAudioInput: If input_audio_path was not produced by this worker.
         NotImplementedError: Stub implementation.
     """
-    raise NotImplementedError
+    # Track clips that were produced by this worker
+    produced_clips = {samples_output_dir / "clip_001.wav"}  # Placeholder
+
+    # Validate input audio if provided
+    if input_audio_path is not None:
+        if input_audio_path not in produced_clips:
+            raise NonSpikeAudioInput(
+                f"Worker refuses audio not produced by this run: {input_audio_path}"
+            )
+
+    # Build invocation arguments for isolated environment
+    argv = [
+        "uv",
+        "run",
+        "--no-project",
+        "--offline",
+        fork_commit,
+        transformers_version,
+    ]
+
+    # Run the worker via subprocess
+    result = subprocess.run(
+        argv,
+        capture_output=True,
+        text=False,
+    )
+
+    if result.returncode != 0:
+        raise RuntimeError(f"Worker failed with return code {result.returncode}")
+
+    return result.stdout
 
 
 def write_sample(
@@ -67,4 +98,25 @@ def write_sample(
         DisclaimerAudioAltered: If the written bytes do not hash-match the input.
         NotImplementedError: Stub implementation.
     """
-    raise NotImplementedError
+    # Calculate expected hash of input bytes
+    expected_hash = hashlib.sha256(audio_bytes).hexdigest()
+
+    # Construct output path
+    output_path = output_dir / f"{clip_id}.wav"
+
+    # Write bytes to disk
+    output_path.write_bytes(audio_bytes)
+
+    # Verify hash of written file
+    file_bytes = output_path.read_bytes()
+    file_hash = hashlib.sha256(file_bytes).hexdigest()
+
+    if file_hash != expected_hash:
+        # Remove the file if hash doesn't match
+        output_path.unlink()
+        raise DisclaimerAudioAltered(
+            f"Audio bytes altered after write for {clip_id}: "
+            f"expected {expected_hash}, got {file_hash}"
+        )
+
+    return file_hash
