@@ -1,0 +1,9 @@
+# Code owners for gate-critical paths
+
+scripts/process/** @NicholasMorris
+checks/** @NicholasMorris
+src/clinicloop/naminglint/** @NicholasMorris
+src/clinicloop/compliance/** @NicholasMorris
+src/clinicloop/evals/thresholds* @NicholasMorris
+src/clinicloop/agents/integrity/forbidden_features* @NicholasMorris
+docs/process/** @NicholasMorris

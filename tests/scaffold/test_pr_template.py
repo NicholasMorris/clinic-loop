@@ -1,4 +1,5 @@
 """Tests for PR template and Makefile targets."""
+
 from pathlib import Path
 
 
@@ -43,9 +44,11 @@ def test_template_fields_setup_targets_and_gitignore_entries() -> None:
         "PR template should contain 'files' or 'glob' field"
     )
 
-    assert "doc" in template_content.lower() or "changelog" in template_content.lower() or "fragment" in template_content.lower(), (
-        "PR template should contain documentation/changelog field"
+    template_lower = template_content.lower()
+    has_doc_field = (
+        "doc" in template_lower or "changelog" in template_lower or "fragment" in template_lower
     )
+    assert has_doc_field, "PR template should contain documentation/changelog field"
 
     # Check Makefile targets
     makefile_path = get_makefile_path()
@@ -74,10 +77,12 @@ def test_template_fields_setup_targets_and_gitignore_entries() -> None:
     assert gitignore_path.exists(), f".gitignore not found at {gitignore_path}"
 
     gitignore_content = gitignore_path.read_text()
-    gitignore_lines = set(line.strip() for line in gitignore_content.split('\n') if line.strip() and not line.strip().startswith('#'))
+    gitignore_lines = set(
+        line.strip()
+        for line in gitignore_content.split("\n")
+        if line.strip() and not line.strip().startswith("#")
+    )
 
     required_entries = {"data/", "runs/", "corpus/rendered/", ".venv", "evals/local/"}
     for entry in required_entries:
-        assert entry in gitignore_lines, (
-            f"'{entry}' not found in .gitignore"
-        )
+        assert entry in gitignore_lines, f"'{entry}' not found in .gitignore"

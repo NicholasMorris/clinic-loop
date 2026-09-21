@@ -1,4 +1,5 @@
 """Tests for make ci target."""
+
 import subprocess
 import tempfile
 from pathlib import Path
@@ -31,9 +32,7 @@ def test_ci_target_discovers_unlisted_check() -> None:
 
     # Check that ci target runs checks/*.sh
     # It should have something like: find checks -name '*.sh' -executable ...
-    assert "checks" in makefile_content, (
-        "checks directory not referenced in Makefile"
-    )
+    assert "checks" in makefile_content, "checks directory not referenced in Makefile"
 
     # Create a temporary copy of the repo and test discovery
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -58,9 +57,9 @@ exit 0
         )
         fixture_check.chmod(0o755)
 
-        # Run make ci (might fail if dependencies aren't installed, but we're checking discovery)
+        # Run make ci (might fail if dependencies aren't installed)
         try:
-            result = subprocess.run(
+            subprocess.run(
                 ["make", "ci"],
                 cwd=str(tmpdir_path),
                 capture_output=True,

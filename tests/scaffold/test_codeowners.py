@@ -1,4 +1,5 @@
 """Tests for CODEOWNERS file."""
+
 from pathlib import Path
 
 
@@ -34,16 +35,12 @@ def test_every_gate_critical_prefix_has_an_owner() -> None:
 
     for prefix in required_prefixes:
         # Check if the prefix appears in CODEOWNERS
-        assert prefix in codeowners_content, (
-            f"Prefix '{prefix}' not found in CODEOWNERS"
-        )
+        assert prefix in codeowners_content, f"Prefix '{prefix}' not found in CODEOWNERS"
 
         # Find the line containing this prefix and check it has an owner
-        for line in codeowners_content.split('\n'):
-            if prefix in line and not line.strip().startswith('#'):
+        for line in codeowners_content.split("\n"):
+            if prefix in line and not line.strip().startswith("#"):
                 # Should have format: <pattern> <owner>
                 parts = line.split()
-                assert len(parts) >= 2, (
-                    f"CODEOWNERS entry for '{prefix}' has no owner assigned"
-                )
+                assert len(parts) >= 2, f"CODEOWNERS entry for '{prefix}' has no owner assigned"
                 break

@@ -1,6 +1,5 @@
 """Tests for pyproject.toml configuration."""
-import subprocess
-import sys
+
 from pathlib import Path
 
 import tomllib
@@ -31,9 +30,7 @@ def test_six_extras_and_python_3_12_are_declared() -> None:
         data = tomllib.load(f)
 
     expected_extras = {"sim", "api", "agents", "audio", "docs", "dev"}
-    actual_extras = set(
-        data.get("project", {}).get("optional-dependencies", {}).keys()
-    )
+    actual_extras = set(data.get("project", {}).get("optional-dependencies", {}).keys())
     assert actual_extras == expected_extras, (
         f"Expected extras {expected_extras}, got {actual_extras}"
     )
@@ -42,9 +39,7 @@ def test_six_extras_and_python_3_12_are_declared() -> None:
     assert python_version_path.exists(), ".python-version not found"
 
     version_content = python_version_path.read_text().strip()
-    assert version_content == "3.12", (
-        f"Expected '3.12' in .python-version, got '{version_content}'"
-    )
+    assert version_content == "3.12", f"Expected '3.12' in .python-version, got '{version_content}'"
 
     requires_python = data.get("project", {}).get("requires-python", "")
     assert requires_python, "requires-python not specified"
@@ -53,6 +48,7 @@ def test_six_extras_and_python_3_12_are_declared() -> None:
     # Parse using packaging.specifiers
     try:
         from packaging.specifiers import SpecifierSet
+
         spec = SpecifierSet(requires_python)
         assert "3.12" in spec, f"3.12 not admitted by {requires_python}"
         assert "3.11" not in spec, f"3.11 should not be admitted by {requires_python}"
@@ -87,12 +83,22 @@ def test_manifest_names_libraries_and_lockfile_holds_versions() -> None:
     # Check that no dependency has version specifiers
     for dep in all_deps:
         # Extract package name (before any [, ==, >=, etc.)
-        pkg_name = dep.split("[")[0].split("==")[0].split(">=")[0].split("<=")[0].split(">")[0].split("<")[0].split("!=")[0].strip()
+        pkg_name = (
+            dep.split("[")[0]
+            .split("==")[0]
+            .split(">=")[0]
+            .split("<=")[0]
+            .split(">")[0]
+            .split("<")[0]
+            .split("!=")[0]
+            .strip()
+        )
 
         # Check if dep has version specifier
-        assert pkg_name == dep.strip() or not any(
-            char in dep for char in ["==", ">=", "<=", ">", "<", "!="]
-        ), f"Dependency '{dep}' should not have version specifier"
+        has_specifier = any(char in dep for char in ["==", ">=", "<=", ">", "<", "!="])
+        assert pkg_name == dep.strip() or not has_specifier, (
+            f"Dependency '{dep}' should not have version specifier"
+        )
 
 
 def test_mypy_strict_and_ruff_google_docstrings_are_configured() -> None:
@@ -131,11 +137,7 @@ def test_mypy_strict_and_ruff_google_docstrings_are_configured() -> None:
     )
 
     # Check target-version is py312
-    assert ruff_config.get("target-version") == "py312", (
-        "ruff target-version not set to py312"
-    )
+    assert ruff_config.get("target-version") == "py312", "ruff target-version not set to py312"
 
     # Check line-length is 100
-    assert ruff_config.get("line-length") == 100, (
-        "ruff line-length not set to 100"
-    )
+    assert ruff_config.get("line-length") == 100, "ruff line-length not set to 100"

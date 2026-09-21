@@ -1,4 +1,5 @@
 """Tests for fragment.sh check script."""
+
 import subprocess
 import tempfile
 from pathlib import Path
@@ -20,9 +21,7 @@ def test_fragment_and_docs_are_required_unless_labelled() -> None:
     output names which of the two requirements was unmet.
     """
     fragment_check_path = get_fragment_check_path()
-    assert fragment_check_path.exists(), (
-        f"fragment.sh not found at {fragment_check_path}"
-    )
+    assert fragment_check_path.exists(), f"fragment.sh not found at {fragment_check_path}"
 
     # Test 1: No fragment, no docs -> should exit 1
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -60,7 +59,8 @@ def test_fragment_and_docs_are_required_unless_labelled() -> None:
         )
 
         assert result.returncode == 0, (
-            f"fragment.sh should exit 0 when has fragment and docs. Output: {result.stdout}\n{result.stderr}"
+            f"fragment.sh should exit 0 when has fragment and docs. "
+            f"Output: {result.stdout}\n{result.stderr}"
         )
 
     # Test 3: no-changelog label -> should exit 0 even without fragment

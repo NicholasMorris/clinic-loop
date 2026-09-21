@@ -1,0 +1,75 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "clinicloop"
+version = "0.1.0"
+description = "Clinical workflow automation with LangGraph agents, synthetic audio, and integrity signals."
+requires-python = ">=3.12,<3.13"
+authors = [
+    {name = "Nicholas Morris"},
+]
+readme = "README.md"
+license = {text = "MIT"}
+
+[project.optional-dependencies]
+sim = [
+    "numpy",
+]
+api = [
+    "fastapi",
+]
+agents = [
+    "langgraph",
+    "langchain",
+]
+audio = [
+    "librosa",
+]
+docs = [
+    "mkdocs",
+    "mkdocs-material",
+]
+dev = [
+    "pytest",
+    "ruff",
+    "mypy",
+    "towncrier",
+    "packaging",
+]
+
+[tool.mypy]
+strict = true
+
+[[tool.mypy.overrides]]
+module = "clinicloop"
+strict = true
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "D", "W"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.towncrier]
+directory = "changes"
+filename = "CHANGELOG.md"
+title_format = "Version {version}"
+
+[tool.towncrier.fragment.types]
+feat = {name = "Features"}
+fix = {name = "Fixes"}
+docs = {name = "Documentation"}
+chore = {name = "Chores"}
+test = {name = "Tests"}
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
