@@ -80,7 +80,6 @@ def test_post_message_returns_201_and_is_readable(
 
 def test_missing_field_returns_422(
     client: TestClient,
-    world_snapshot: Path,
 ) -> None:
     """Test POST /messages with missing field returns 422.
 
@@ -88,10 +87,6 @@ def test_missing_field_returns_422(
     patient_id field returns 422 and the response body names patient_id
     in its error list.
     """
-    from clinicloop.world.generator.snapshot import read_world_snapshot
-
-    snapshot = read_world_snapshot(world_snapshot)
-
     # Missing patient_id
     payload = {
         "channel": "chat",
