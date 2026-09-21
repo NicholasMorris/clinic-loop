@@ -157,22 +157,22 @@ def test_all_four_non_source_content_kinds_are_scanned(tmp_path: Path) -> None:
     # 1. Plant hit in tracked source file
     source_file = tmp_path / "src" / "code.py"
     source_file.parent.mkdir(parents=True)
-    source_file.write_text('message = "zeta-fixture-clinic"\n')
+    source_file.write_text('# This is from zeta-fixture-clinic\n')
 
     # 2. Plant hit in cassette file (*.cassette.json or similar)
     cassette_file = tmp_path / "tests" / "cassettes" / "test_api.cassette.json"
     cassette_file.parent.mkdir(parents=True)
-    cassette_file.write_text('{"request": "zeta-fixture-clinic", "response": "ok"}\n')
+    cassette_file.write_text('request_from zeta-fixture-clinic response ok\n')
 
     # 3. Plant hit in diagram file (*.mermaid or similar)
     diagram_file = tmp_path / "docs" / "arch.mermaid"
     diagram_file.parent.mkdir(parents=True)
-    diagram_file.write_text("graph LR\n  A[zeta-fixture-clinic] --> B[Process]\n")
+    diagram_file.write_text("graph LR\n  A --> B comment zeta-fixture-clinic Process\n")
 
     # 4. Plant hit in results file (*.results.json or similar)
     results_file = tmp_path / "evals" / "results" / "eval.results.json"
     results_file.parent.mkdir(parents=True)
-    results_file.write_text('{"case": 1, "output": "zeta-fixture-clinic"}\n')
+    results_file.write_text('case 1 output from zeta-fixture-clinic system\n')
 
     # Scan tree - should find 4 R7 hits
     tree_results = scan_tree(tmp_path, denylist, i6_words)
