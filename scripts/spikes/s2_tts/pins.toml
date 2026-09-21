@@ -1,0 +1,5 @@
+# Pinned versions for the text-to-speech spike worker.
+# These are recorded to ensure reproducible, offline measurement runs.
+
+[pins]
+# Fork commit and transformers version to be filled in by measurement run
