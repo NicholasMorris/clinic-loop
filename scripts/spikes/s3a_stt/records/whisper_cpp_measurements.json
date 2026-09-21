@@ -1,0 +1,95 @@
+{
+ "timestamp": "2026-09-21T09:13:10.141086+00:00",
+ "whisper_cpp": "whisper.cpp 1.9.4",
+ "mulaw_sample_rate_hz": 8000,
+ "rows": [
+  {
+   "clip_id": "clip_001",
+   "build": "q5_0",
+   "audio_duration_s": 27.87,
+   "wall_seconds": 1.88,
+   "real_time_factor": 0.0675,
+   "peak_rss_bytes": 879427584,
+   "returncode": 0,
+   "wer": 0.0,
+   "transcript": "Good afternoon. This is Dr. Hughes from the clinic. Am I speaking with Sam? Yes, that's me. Thanks for calling back. No worries. I've read your questionnaire and I'd like to ask a few more questions before we go on. Sure. I've been getting headaches most afternoons for about three months now. Understood. Are you taking any medication at the moment or have any allergies I should know about? Just paracetamol now and then and I'm allergic to penicillin."
+  },
+  {
+   "clip_id": "clip_002",
+   "build": "q5_0",
+   "audio_duration_s": 21.6,
+   "wall_seconds": 1.83,
+   "real_time_factor": 0.0848,
+   "peak_rss_bytes": 876724224,
+   "returncode": 0,
+   "wer": 0.0152,
+   "transcript": "Hello, it's Dr. Wynne. Is this a good time to talk about your review? Yeah, it's fine. I've got about ten minutes. Great. How has your sleep been since we last spoke? A bit better, maybe six hours a night, but I still wake up around three. Okay. I'll note that and we'll book a follow-up in four weeks. Thank you. That works for me."
+  },
+  {
+   "clip_id": "clip_003",
+   "build": "q5_0",
+   "audio_duration_s": 22.53,
+   "wall_seconds": 1.7,
+   "real_time_factor": 0.0754,
+   "peak_rss_bytes": 876625920,
+   "returncode": 0,
+   "wer": 0.0312,
+   "transcript": "Hi, this is Dr. Patel returning your call about the delivery. Oh good, yes, the parcel was meant to arrive on Tuesday and it hasn't. I'm sorry about that. I'll pass it to the pharmacy team and someone will contact you today. Thanks. Can you also confirm my next consult time? Of course, it's Friday at 2.30 in the afternoon. Perfect, thank you."
+  },
+  {
+   "clip_id": "clip_001_mulaw",
+   "build": "q5_0",
+   "audio_duration_s": 27.87,
+   "wall_seconds": 1.9,
+   "real_time_factor": 0.0683,
+   "peak_rss_bytes": 877953024,
+   "returncode": 0,
+   "wer": 0.0,
+   "transcript": "Good afternoon. This is Dr. Hughes from the clinic. Am I speaking with Sam? Yes, that's me. Thanks for calling back. No worries. I've read your questionnaire and I'd like to ask a few more questions before we go on. Sure. I've been getting headaches most afternoons for about three months now. Understood. Are you taking any medication at the moment or have any allergies I should know about? Just paracetamol now and then and I'm allergic to penicillin."
+  },
+  {
+   "clip_id": "clip_001",
+   "build": "fp16",
+   "audio_duration_s": 27.87,
+   "wall_seconds": 2.13,
+   "real_time_factor": 0.0766,
+   "peak_rss_bytes": 2009890816,
+   "returncode": 0,
+   "wer": 0.0,
+   "transcript": "Good afternoon. This is Dr. Hughes from the clinic. Am I speaking with Sam? Yes, that's me. Thanks for calling back. No worries. I've read your questionnaire and I'd like to ask a few more questions before we go on. Sure. I've been getting headaches most afternoons for about three months now. Understood. Are you taking any medication at the moment or have any allergies I should know about? Just paracetamol now and then and I'm allergic to penicillin."
+  },
+  {
+   "clip_id": "clip_002",
+   "build": "fp16",
+   "audio_duration_s": 21.6,
+   "wall_seconds": 2.64,
+   "real_time_factor": 0.1221,
+   "peak_rss_bytes": 2008645632,
+   "returncode": 0,
+   "wer": 0.0152,
+   "transcript": "Hello, it's Dr. Wynn. Is this a good time to talk about your review? Yeah, it's fine. I've got about ten minutes. Great. How has your sleep been since we last spoke? A bit better, maybe six hours a night, but I still wake up around three. Okay. I'll note that and we'll book a follow-up in four weeks. Thank you. That works for me."
+  },
+  {
+   "clip_id": "clip_003",
+   "build": "fp16",
+   "audio_duration_s": 22.53,
+   "wall_seconds": 1.92,
+   "real_time_factor": 0.0853,
+   "peak_rss_bytes": 2008350720,
+   "returncode": 0,
+   "wer": 0.0312,
+   "transcript": "Hi, this is Dr. Patel returning your call about the delivery. Oh good, yes, the parcel was meant to arrive on Tuesday and it hasn't. I'm sorry about that. I'll pass it to the pharmacy team and someone will contact you today. Thanks. Can you also confirm my next consult time? Of course, it's Friday at 2.30 in the afternoon. Perfect, thank you."
+  },
+  {
+   "clip_id": "clip_001_mulaw",
+   "build": "fp16",
+   "audio_duration_s": 27.87,
+   "wall_seconds": 2.14,
+   "real_time_factor": 0.0767,
+   "peak_rss_bytes": 2009923584,
+   "returncode": 0,
+   "wer": 0.0,
+   "transcript": "Good afternoon. This is Dr. Hughes from the clinic. Am I speaking with Sam? Yes, that's me. Thanks for calling back. No worries. I've read your questionnaire and I'd like to ask a few more questions before we go on. Sure. I've been getting headaches most afternoons for about three months now. Understood. Are you taking any medication at the moment or have any allergies I should know about? Just paracetamol now and then and I'm allergic to penicillin."
+  }
+ ]
+}
