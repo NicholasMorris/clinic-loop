@@ -256,6 +256,7 @@ audio = [
     { name = "speechbrain" },
 ]
 dev = [
+    { name = "httpx" },
     { name = "mypy" },
     { name = "packaging" },
     { name = "pytest" },
@@ -279,6 +280,7 @@ sim = [
 requires-dist = [
     { name = "fastapi", marker = "extra == 'api'" },
     { name = "httpx", marker = "extra == 'api'" },
+    { name = "httpx", marker = "extra == 'dev'" },
     { name = "langchain-core", marker = "extra == 'agents'" },
     { name = "langchain-openai", marker = "extra == 'agents'" },
     { name = "langgraph", marker = "extra == 'agents'" },
@@ -305,7 +307,7 @@ requires-dist = [
     { name = "types-pyyaml", marker = "extra == 'dev'" },
     { name = "uvicorn", marker = "extra == 'api'" },
 ]
-provides-extras = ["sim", "api", "agents", "audio", "docs", "dev"]
+provides-extras = ["sim", "api", "docs", "agents", "audio", "dev"]
 
 [[package]]
 name = "cloudpickle"
