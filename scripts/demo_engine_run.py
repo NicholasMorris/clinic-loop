@@ -54,9 +54,9 @@ def main() -> None:
     print("=" * 80)
     print()
 
-    # Generate world
-    print("Generating world: 500 patients, 30 days...")
-    world = generate_world(seed=42, population_size=500, span_days=30)
+    # Generate world: 500 patients over 3 busy days
+    print("Generating world: 500 patients, 3 days...")
+    world = generate_world(seed=20260921, population_size=500, span_days=3)
     print(f"  Questionnaires: {len(world.questionnaires)}")
     print(f"  Consults: {len(world.consults)}")
     print(f"  Orders: {len(world.orders)}")
@@ -64,9 +64,12 @@ def main() -> None:
     print()
 
     # Run with default staffing
-    print("Run 1: Default staffing (intake=2, prescriber_review=3, ...")
+    staffing_default = (
+        "Default: intake=1, prescriber_review=4, pharmacy_fulfilment=1, support_inbox=1"
+    )
+    print(f"Run 1: {staffing_default}")
     engine1 = Engine(world, regime_key="au")
-    result1 = engine1.run(43200)  # 30 days in minutes
+    result1 = engine1.run(4320)  # 3 days in minutes
     metrics1 = calculate_metrics(result1, queue_names)
     print(f"  Hash: {result1.run_hash[:16]}...")
     print()
@@ -74,7 +77,7 @@ def main() -> None:
     # Run with reduced prescriber_review staffing
     print("Run 2: Reduced staffing (prescriber_review=1)")
     engine2 = Engine(world, regime_key="au", staffing_overrides={"prescriber_review": 1})
-    result2 = engine2.run(43200)
+    result2 = engine2.run(4320)
     metrics2 = calculate_metrics(result2, queue_names)
     print(f"  Hash: {result2.run_hash[:16]}...")
     print()

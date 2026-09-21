@@ -149,11 +149,11 @@ from clinicloop.world.engine import Engine
 from clinicloop.world.generator import generate_world
 
 # Generate a deterministic world
-world = generate_world(seed=42, population_size=500, span_days=30)
+world = generate_world(seed=20260921, population_size=500, span_days=3)
 
-# Create and run the engine (duration in minutes; 1440 * 30 = 30 days)
+# Create and run the engine (duration in minutes; 1440 * 3 = 3 days)
 engine = Engine(world, regime_key="au")
-result = engine.run(duration_minutes=43200)  # 30 days
+result = engine.run(duration_minutes=4320)  # 3 days
 
 # RunResult contains:
 # - result.records: tuple of ItemRecords (queue, item_id, enqueued_at, started_at, finished_at, server)
@@ -175,11 +175,37 @@ for queue_name, samples in result.queue_depth.items():
     print(f"{queue_name}: max queue depth = {max_depth}")
 
 # Compare two runs for reproducibility
-world2 = generate_world(seed=42, population_size=500, span_days=30)
+world2 = generate_world(seed=20260921, population_size=500, span_days=3)
 engine2 = Engine(world2, regime_key="au")
-result2 = engine2.run(duration_minutes=43200)
+result2 = engine2.run(duration_minutes=4320)
 assert result.run_hash == result2.run_hash, "Same seed should produce same hash"
 ```
+
+## Demo Run Results
+
+The following results were measured on 500 patients over 3 busy days (seed=20260921) with assumed staffing levels shown in `src/clinicloop/world/config/staffing.toml`:
+
+**Demo run: 500 patients over 3 busy days, assumed staffing**
+
+Run with default staffing (prescriber_review=4):
+
+| Queue | Arrivals | Finished | Median Wait (min) | Max Depth |
+|-------|----------|----------|-------------------|-----------|
+| intake | 500 | 500 | 2 | 6 |
+| prescriber_review | 331 | 331 | 1 | 11 |
+| pharmacy_fulfilment | 67 | 67 | 0 | 1 |
+| support_inbox | 250 | 250 | 0 | 2 |
+
+Run with reduced prescriber_review staffing (prescriber_review=1):
+
+| Queue | Arrivals | Finished | Median Wait (min) | Max Depth |
+|-------|----------|----------|-------------------|-----------|
+| intake | 500 | 500 | 2 | 6 |
+| prescriber_review | 331 | 187 | 119 | 186 |
+| pharmacy_fulfilment | 33 | 33 | 0 | 0 |
+| support_inbox | 250 | 250 | 0 | 2 |
+
+With default staffing (prescriber_review=4), all 331 consults are processed with a median wait of 1 minute and max queue depth of 11. With reduced staffing (prescriber_review=1), the queue backs up dramatically: median wait increases to 119 minutes, max depth reaches 186, and only 187 of 331 consults are finished within the 3-day window. This demonstrates the critical impact of prescriber availability on queue throughput.
 
 ## Staff Work Schedule
 

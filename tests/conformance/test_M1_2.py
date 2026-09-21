@@ -42,22 +42,72 @@ def test_engine_respects_staffing_configuration() -> None:
     """Test that engine reads and respects staffing configuration.
 
     Staffing levels affect queue depths and service times.
+    Uses the busy world (500 patients, 3 days) to demonstrate effect.
     """
-    world = generate_world(seed=123, population_size=150, span_days=3)
+    # Use the busy world to measure staffing effect
+    world = generate_world(seed=20260921, population_size=500, span_days=3)
 
-    # Run with default staffing
+    # Run with default staffing (prescriber_review=4)
     engine_default = Engine(world, regime_key="au")
     result_default = engine_default.run(4320)  # 3 days
 
-    # Run with reduced prescriber_review staffing
+    # Run with reduced prescriber_review staffing to 1
     engine_reduced = Engine(world, regime_key="au", staffing_overrides={"prescriber_review": 1})
     result_reduced = engine_reduced.run(4320)
 
-    # With reduced staffing, max queue depth should increase
-    default_max = max((d[1] for d in result_default.queue_depth["prescriber_review"]), default=0)
-    reduced_max = max((d[1] for d in result_reduced.queue_depth["prescriber_review"]), default=0)
+    # Extract prescriber_review metrics
+    default_records = [r for r in result_default.records if r.queue == "prescriber_review"]
+    reduced_records = [r for r in result_reduced.records if r.queue == "prescriber_review"]
 
-    assert reduced_max >= default_max, "Reduced staffing should not decrease max queue depth"
+    # Count finished items
+    default_finished = sum(1 for r in default_records if r.finished_at is not None)
+    reduced_finished = sum(1 for r in reduced_records if r.finished_at is not None)
+
+    # Calculate median wait times
+    default_wait_times = [
+        r.started_at - r.enqueued_at for r in default_records if r.started_at is not None
+    ]
+    reduced_wait_times = [
+        r.started_at - r.enqueued_at for r in reduced_records if r.started_at is not None
+    ]
+
+    default_median_wait = (
+        sorted(default_wait_times)[len(default_wait_times) // 2] if default_wait_times else 0
+    )
+    reduced_median_wait = (
+        sorted(reduced_wait_times)[len(reduced_wait_times) // 2] if reduced_wait_times else 0
+    )
+
+    # Get max queue depths
+    default_max_depth = max(
+        (d[1] for d in result_default.queue_depth["prescriber_review"]), default=0
+    )
+    reduced_max_depth = max(
+        (d[1] for d in result_reduced.queue_depth["prescriber_review"]), default=0
+    )
+
+    # With default staffing (4), should be healthy: all finished and median wait <= 5 minutes
+    assert default_finished == len(default_records), (
+        f"Default staffing should finish all consults; "
+        f"finished={default_finished}, total={len(default_records)}"
+    )
+    assert default_median_wait <= 5, (
+        f"Default staffing (4) should have median wait <= 5 min, got {default_median_wait}"
+    )
+
+    # With reduced staffing (1), should show degradation
+    assert reduced_max_depth > default_max_depth, (
+        f"Reduced staffing should increase max queue depth: "
+        f"default={default_max_depth}, reduced={reduced_max_depth}"
+    )
+    assert reduced_median_wait > default_median_wait, (
+        f"Reduced staffing should increase median wait: "
+        f"default={default_median_wait}, reduced={reduced_median_wait}"
+    )
+    assert reduced_finished < default_finished, (
+        f"Reduced staffing should result in fewer finished items: "
+        f"default={default_finished}, reduced={reduced_finished}"
+    )
 
 
 @pytest.mark.checklist_id("G1")
