@@ -59,3 +59,24 @@ def test_adr_roles_carry_numbers_families_and_clear_the_bar() -> None:
     assert primary_pass_count >= bar.primary_min_passing_cases, (
         f"Primary pass count {primary_pass_count} < required {bar.primary_min_passing_cases}"
     )
+
+
+def test_adr_pass_counts_equal_counts_recomputed_from_records() -> None:
+    """Every model's pass count in the ADR equals the count recomputed from its committed record."""
+    import json
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[3]
+    adr = (root / "docs" / "adr" / "llm-model-selection.md").read_text()
+    records = sorted((root / "evals" / "results" / "toolcall").glob("*.jsonl"))
+    assert len(records) >= 3, "expected committed records for the measured models"
+    for path in records:
+        record = json.loads(path.read_text().splitlines()[0])
+        passed = sum(
+            1
+            for case in record["per_case_results"]
+            if case["emitted_tool_call"] and case["tool_name_matches"] and case["arguments_valid"]
+        )
+        assert f"**{record['model_id']}**: {passed}/30 passing" in adr, (
+            f"ADR pass count for {record['model_id']} does not match the record ({passed}/30)"
+        )
