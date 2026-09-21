@@ -3,6 +3,7 @@
 import json
 import time
 import urllib.request
+from collections.abc import Sequence
 from typing import Any
 
 from clinicloop.evals.toolcall.records import ToolCallResult
@@ -144,7 +145,7 @@ def score_case(
 
 def run_harness(
     model_id: str,
-    cases: list[dict[str, Any]],
+    cases: Sequence[Any],
     base_url: str = "http://localhost:1234/v1",
     max_tokens: int = 500,
 ) -> tuple[list[ToolCallResult], dict[str, Any]]:

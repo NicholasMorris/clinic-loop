@@ -24,7 +24,7 @@ Models measured serially with a warm-up call, one run of 30 cases each. A 28 ver
 - **medgemma-1.5-4b-it**: 0/30 passing (measured and rejected)
 - **medgemma-27b-text-it**: 0/30 passing (measured and rejected)
 
-## Alternatives Considered
+## Alternatives considered
 
 1. **Primary model selection:** qwen3-30b-a3b-instruct-2507 passes all 30 cases with 52.8 tokens/sec.
 2. **Judge model selection:** google/gemma-4-e4b from the gemma family (differs from primary's qwen family) with 29/30 passing.
