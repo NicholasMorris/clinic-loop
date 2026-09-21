@@ -20,6 +20,7 @@ ORDINARY_IGNORES = {
     "build/",
     "site/",
     ".DS_Store",
+    "var/",
 }
 
 

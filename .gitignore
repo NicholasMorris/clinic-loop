@@ -20,3 +20,6 @@ dist/
 site/
 .DS_Store
 build/
+
+# Runtime state (agent checkpoints)
+var/
