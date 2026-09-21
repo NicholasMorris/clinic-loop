@@ -1,0 +1,6 @@
+# Tool-call harness promotion bar thresholds
+# These values are assumed starting points and may be revised based on measured results.
+
+primary_min_passing_cases = 27
+fallback_min_passing_cases = 24
+max_schema_invalid_outputs = 0
