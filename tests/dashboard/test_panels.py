@@ -71,22 +71,19 @@ class TestMetricPanels:
         at = AppTest.from_file(str(dashboard_app_path), default_timeout=120)
         at.run()
 
-        # Find the breach detail table (should be the second dataframe or one with "rule_id")
-        breach_df = None
-        for df in at.dataframe:
-            if "rule_id" in str(df.columns):
-                breach_df = df
-                break
+        # If there are breaches, the second dataframe should be the breach detail table
+        # If there are no breaches, there may only be one dataframe (queues)
+        if len(at.dataframe) > 1:
+            breach_df = at.dataframe[1].data
 
-        # If no breaches in the snapshot, that's OK (no table rows expected)
-        # But if there are rows, verify they meet the criteria
-        if breach_df is not None and len(breach_df) > 0:
-            # Check that all required columns exist
-            assert "rule_id" in breach_df.columns, "rule_id column missing"
-            assert "inventory_id" in breach_df.columns, "inventory_id column missing"
+            # If the breach table has data, verify it meets criteria
+            if len(breach_df) > 0:
+                # Check that all required columns exist
+                assert "rule_id" in breach_df.columns, "rule_id column missing"
+                assert "inventory_id" in breach_df.columns, "inventory_id column missing"
 
-            # Verify all inventory_ids are in KNOWN_INVENTORY_IDS
-            for inv_id in breach_df["inventory_id"]:
-                assert inv_id in KNOWN_INVENTORY_IDS, (
-                    f"Inventory ID '{inv_id}' not in KNOWN_INVENTORY_IDS"
-                )
+                # Verify all inventory_ids are in KNOWN_INVENTORY_IDS
+                for inv_id in breach_df["inventory_id"]:
+                    assert inv_id in KNOWN_INVENTORY_IDS, (
+                        f"Inventory ID '{inv_id}' not in KNOWN_INVENTORY_IDS"
+                    )

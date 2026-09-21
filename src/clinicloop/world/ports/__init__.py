@@ -5,11 +5,13 @@ engine, a registry for managing toggleable agent scopes, and a shipped
 test double (FakeAgentPort) that real adapters replace.
 """
 
+from clinicloop.world.ports.fakes import FakeAgentPort
 from clinicloop.world.ports.protocol import AgentPort
 from clinicloop.world.ports.registry import PortFailure, PortRegistry, UnknownAgentScope
 
 __all__ = [
     "AgentPort",
+    "FakeAgentPort",
     "PortRegistry",
     "UnknownAgentScope",
     "PortFailure",
