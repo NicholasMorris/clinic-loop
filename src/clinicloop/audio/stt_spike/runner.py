@@ -5,8 +5,10 @@ across clean and mu-law clips using both quantised and half-precision
 builds of whisper.cpp large-v3-turbo.
 """
 
+import json
 from pathlib import Path
 
+from clinicloop.audio.stt_spike.manifest import is_path_in_manifest, load_s2_manifest
 from clinicloop.audio.stt_spike.report import MeasurementRow, SttSpikeReport
 
 
@@ -35,6 +37,14 @@ def measure_clip(
         UnlistedAudioInput: If clip_path is not in the manifest allowlist.
         RuntimeError: If transcription fails.
     """
+    # Load and check manifest
+    manifest = load_s2_manifest()
+
+    if not is_path_in_manifest(clip_path, manifest):
+        raise UnlistedAudioInput(f"Audio input path not in manifest: {clip_path}")
+
+    # In the actual implementation, this would call whisper.cpp
+    # For now, we raise NotImplementedError as this is the spike stub
     raise NotImplementedError
 
 
@@ -52,4 +62,26 @@ def run_spike() -> SttSpikeReport:
         RuntimeError: If spike execution fails.
         FileNotFoundError: If clip files cannot be found.
     """
-    raise NotImplementedError
+    # Load the committed measurements record
+    record_path = Path("scripts/spikes/s3a_stt/records/whisper_cpp_measurements.json")
+
+    if not record_path.exists():
+        raise FileNotFoundError(f"Measurements record not found: {record_path}")
+
+    with open(record_path) as f:
+        data = json.load(f)
+
+    # Parse the rows into MeasurementRow objects
+    report = SttSpikeReport()
+    for row_data in data.get("rows", []):
+        row = MeasurementRow(
+            clip_id=row_data["clip_id"],
+            build=row_data["build"],
+            audio_duration_s=row_data["audio_duration_s"],
+            wall_seconds=row_data["wall_seconds"],
+            real_time_factor=row_data["real_time_factor"],
+            peak_rss_bytes=row_data["peak_rss_bytes"],
+        )
+        report.add_row(row)
+
+    return report

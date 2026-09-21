@@ -29,3 +29,19 @@ def load_s2_manifest() -> SampleManifest:
 
     manifest = SampleManifest(**data)
     return manifest
+
+
+def is_path_in_manifest(path: str, manifest: SampleManifest) -> bool:
+    """Check if a path is in the manifest allowlist.
+
+    Args:
+        path: Path to check.
+        manifest: Loaded manifest.
+
+    Returns:
+        bool: True if path is in manifest entries, False otherwise.
+    """
+    for entry in manifest.entries:
+        if entry.path == path:
+            return True
+    return False

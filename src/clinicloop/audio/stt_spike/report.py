@@ -37,4 +37,4 @@ class SttSpikeReport(BaseModel):
         Args:
             row: MeasurementRow to add.
         """
-        raise NotImplementedError
+        self.rows.append(row)
