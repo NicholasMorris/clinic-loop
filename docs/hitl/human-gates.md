@@ -45,8 +45,10 @@ Each reference graph and agent graph uses a **typed state schema** (TypedDict) s
 ```python
 from typing import TypedDict, NotRequired
 
+
 class CaseState(TypedDict):
     """State for a triage case."""
+
     case_id: str  # Required
     next: NotRequired[tuple[str, ...]]  # Optional; set by LangGraph
     outcome: NotRequired[str]  # Optional; "approved", "rejected", or "edited"
@@ -121,20 +123,21 @@ from langgraph.graph import StateGraph
 
 graph = StateGraph(CaseState)
 
+
 def interview_node(state: CaseState) -> dict:
     """Interview node that asks questions dynamically."""
     # In a real scenario, the LLM decides what to ask next
     # For now, simulate two questions
     questions = ["What is the process?", "What are the success criteria?"]
     answers = []
-    
+
     for question in questions:
         # Pause for input
         graph.interrupt(value={"question": question})
         # Resume provides the answer
         # (In practice, the graph context provides the answer via update_state)
         answers.append("...")
-    
+
     return {"answers": answers}
 ```
 
