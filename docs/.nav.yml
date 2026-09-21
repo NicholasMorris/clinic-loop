@@ -1,5 +1,6 @@
 Home: index.md
 Architecture Decisions: adr/
+Human-in-the-Loop: hitl/
 Problem Inventory: problem-inventory.md
 Integrity & Ethics: integrity-ethics.md
 Evaluation: evaluation.md
