@@ -1,0 +1,16 @@
+{
+ "machine": "Apple M4 Pro, 48 GB unified memory, macOS (arm64)",
+ "python": "3.12.13",
+ "transformers": "5.17.0",
+ "torch": "2.14.0",
+ "diffusers": "0.40.0",
+ "device": "mps",
+ "dtype": "float16",
+ "model_id": "vibevoice/VibeVoice-1.5B-hf",
+ "model_class": "AutoModelForTextToWaveform (native in transformers, no fork)",
+ "reference_dataset": "ablmontazer/australian-english-speech",
+ "reference_dataset_licence": "cc0-1.0",
+ "reference_dataset_note": "LibriVox volunteer recordings donated to the public domain; the dataset card states accent is not verified per reader and a minority of narrators reading Australian books are not Australian",
+ "asr_used_for_checks": "openai/whisper-small.en via transformers pipeline (cpu)",
+ "isolated_env": "uv venv with transformers, torch, diffusers, accelerate, soundfile, librosa; outside the repository"
+}

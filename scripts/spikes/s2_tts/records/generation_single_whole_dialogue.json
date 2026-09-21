@@ -1,0 +1,20 @@
+{
+ "tag": "t1_fp16",
+ "dtype": "float16",
+ "model": "vibevoice/VibeVoice-1.5B-hf",
+ "load_seconds": 12.94,
+ "generation_seconds": 28.27,
+ "audio_seconds": 27.87,
+ "real_time_factor": 1.014,
+ "peak_rss_bytes": 7210778624,
+ "mps_allocated_bytes": 6797885440,
+ "sample_rate": 24000,
+ "sha256": "78d426be7c09a0171b036d77503e884de3fa1a13b75cd7d6bc503c5733c04f29",
+ "peak_abs": 0.4560546875,
+ "nan": false,
+ "script_words": 79,
+ "voices": {
+  "0": "6097 Phil Benson",
+  "1": "17483 Laurie Banza"
+ }
+}

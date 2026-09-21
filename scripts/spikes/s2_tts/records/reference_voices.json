@@ -1,0 +1,50 @@
+[
+ {
+  "reader_id": "17483",
+  "reader": "Laurie Banza",
+  "book": "Adventure of the Broad Arrow: An Australian Romance",
+  "book_id": "18449",
+  "section": 1,
+  "duration_s": 9.6,
+  "sr": 24000,
+  "median_f0_hz": 221.6,
+  "sha256": "1e8383927b78eb38b3f373ac77f38d1f51c39a3136b180ac8ddc00a2f3709c0e",
+  "transcript_excerpt": "or in the pit so to speak he continued but not the lowest for there are drinks h"
+ },
+ {
+  "reader_id": "6097",
+  "reader": "Phil Benson",
+  "book": "Art in Australia, No. 1, 1916",
+  "book_id": "18509",
+  "section": 1,
+  "duration_s": 9.9,
+  "sr": 24000,
+  "median_f0_hz": 112.4,
+  "sha256": "36cafed65b75bd20b0c9f3845ad6675b474c9eada258e85a03908132a6740930",
+  "transcript_excerpt": "faithful reproductions of their work in a publication of this kind will give a g"
+ },
+ {
+  "reader_id": "3906",
+  "reader": "tabithat",
+  "book": "Australia Felix",
+  "book_id": "3178",
+  "section": 0,
+  "duration_s": 9.3,
+  "sr": 24000,
+  "median_f0_hz": 180.5,
+  "sha256": "d27113d964e3d81622f034847e3b4111e19c8f18dac11d0c8a8a3764a1dc09b6",
+  "transcript_excerpt": "The digger fell forward on his face, his ribs jammed across his pick, his arms p"
+ },
+ {
+  "reader_id": "13963",
+  "reader": "Brianna Chiles",
+  "book": "Myths and Legends Around the World - Collection 01",
+  "book_id": "14763",
+  "section": 9,
+  "duration_s": 9.1,
+  "sr": 24000,
+  "median_f0_hz": 177.4,
+  "sha256": "84df69b23a2a72ec59e117e41982e700447cb01238b05e1185cf1b0eb0de96c4",
+  "transcript_excerpt": "The Dragon King and his children and retainers all crouched in different parts o"
+ }
+]
