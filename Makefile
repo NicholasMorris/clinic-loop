@@ -25,9 +25,19 @@ doctor:
 setup:
 	uv run python -m clinicloop.setup.install
 
+.PHONY: sim-snapshot
+sim-snapshot:
+	$(RUN) python -m clinicloop.dashboard.snapshot
+
+.PHONY: dashboard
+dashboard:
+	$(RUN) streamlit run src/clinicloop/dashboard/app.py
+
 .PHONY: help
 help:
 	@echo "Available targets:"
-	@echo "  ci      - ruff, mypy, pytest, then every executable checks/*.sh in lexical order"
-	@echo "  doctor  - check system configuration"
-	@echo "  setup   - install dependencies and set up the machine"
+	@echo "  ci           - ruff, mypy, pytest, then every executable checks/*.sh in lexical order"
+	@echo "  doctor       - check system configuration"
+	@echo "  setup        - install dependencies and set up the machine"
+	@echo "  sim-snapshot - generate default run snapshot to var/snapshots/"
+	@echo "  dashboard    - launch Streamlit dashboard"
