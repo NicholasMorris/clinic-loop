@@ -26,11 +26,11 @@ setup:
 	uv run python -m clinicloop.setup.install
 
 .PHONY: sim-snapshot
-sim-snapshot: $(RUN)
+sim-snapshot:
 	$(RUN) python -m clinicloop.dashboard.snapshot
 
 .PHONY: dashboard
-dashboard: $(RUN)
+dashboard:
 	$(RUN) streamlit run src/clinicloop/dashboard/app.py
 
 .PHONY: help

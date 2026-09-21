@@ -77,6 +77,8 @@ Below the metrics, a table lists each SLA breach rule and the inventory item it 
 
 ## Agent Implementation Status
 
+**All numbers are simulated.** The world is synthetic, and service times and hourly staff rates are assumed starter values (`assumed = true` in `staffing.toml`), not measured from any clinic. Cost per order is busy staff time divided by completed orders, so treat it as illustrative. The support inbox service time was set so that switching triage off visibly backs up the inbox.
+
 The three agents shown in the toggles are currently served by the shipped `FakeAgentPort`, which completes requests in 10% of the human service time. This is a stand-in until the real adapters land:
 
 - **M2-7**: Triage agent adapter

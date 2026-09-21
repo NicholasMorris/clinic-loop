@@ -150,7 +150,7 @@ def main() -> None:
         )
 
     queue_df = pd.DataFrame(queue_data)
-    st.dataframe(queue_df, use_container_width=True, hide_index=True)
+    st.dataframe(queue_df, width="stretch", hide_index=True)
 
     # SLA breach detail table
     st.subheader("SLA breaches")
@@ -167,10 +167,15 @@ def main() -> None:
 
     if breach_data:
         breach_df = pd.DataFrame(breach_data)
-        st.dataframe(breach_df, use_container_width=True, hide_index=True)
+        st.dataframe(breach_df, width="stretch", hide_index=True)
     else:
         st.info("No SLA breaches in this run.")
 
+    st.caption(
+        "All figures are simulated on a synthetic 500-patient world. Service times and hourly "
+        "staff rates are assumed starter values (assumed = true in staffing.toml), not real "
+        "clinic data, so cost per order is illustrative only."
+    )
     # Information about FakeAgentPort
     st.caption(
         "The three agents shown above are currently served by the shipped FakeAgentPort "

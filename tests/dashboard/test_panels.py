@@ -87,3 +87,16 @@ class TestMetricPanels:
                     assert inv_id in KNOWN_INVENTORY_IDS, (
                         f"Inventory ID '{inv_id}' not in KNOWN_INVENTORY_IDS"
                     )
+
+
+def test_dashboard_labels_figures_as_simulated(
+    dashboard_app_path: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Cost and other figures are labelled as simulated with assumed inputs."""
+    from clinicloop.dashboard.runner import write_default_snapshot
+
+    monkeypatch.setenv("CLINICLOOP_SNAPSHOT_DIR", str(tmp_path))
+    write_default_snapshot()
+    at = AppTest.from_file(str(dashboard_app_path), default_timeout=120).run()
+    captions = " ".join(c.value for c in at.caption)
+    assert "simulated" in captions and "assumed" in captions
