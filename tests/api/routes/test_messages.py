@@ -100,3 +100,146 @@ def test_missing_field_returns_422(
     # Check that the error mentions patient_id
     detail_text = str(body)
     assert "patient_id" in detail_text
+
+
+def test_post_twice_gives_distinct_ids_no_collision(
+    client: TestClient,
+    world_snapshot: Path,
+) -> None:
+    """Test that posting twice gives two distinct IDs that don't collide with world IDs.
+
+    This tests that:
+    1. Two posted messages get different IDs
+    2. The IDs do not collide with any world message IDs
+    """
+    from clinicloop.world.generator.snapshot import read_world_snapshot
+
+    snapshot = read_world_snapshot(world_snapshot)
+
+    # Find the highest message ID in the world
+    if snapshot.messages:
+        # Extract numbers from message IDs like "M000001"
+        max_id = max(
+            int(m.message_id[1:]) for m in snapshot.messages
+        )
+    else:
+        max_id = 0
+
+    # Create two messages
+    payload1 = {
+        "patient_id": snapshot.patients[0].patient_id,
+        "channel": "chat",
+        "body": "First message",
+    }
+    response1 = client.post("/messages", json=payload1)
+    assert response1.status_code == 201
+    message_id_1 = response1.json()["message_id"]
+
+    payload2 = {
+        "patient_id": snapshot.patients[0].patient_id,
+        "channel": "email",
+        "body": "Second message",
+    }
+    response2 = client.post("/messages", json=payload2)
+    assert response2.status_code == 201
+    message_id_2 = response2.json()["message_id"]
+
+    # Verify IDs are different
+    assert message_id_1 != message_id_2
+
+    # Verify IDs don't collide with world IDs
+    world_ids = {m.message_id for m in snapshot.messages}
+    assert message_id_1 not in world_ids
+    assert message_id_2 not in world_ids
+
+    # Verify IDs are after the highest world ID
+    id_num_1 = int(message_id_1[1:])
+    id_num_2 = int(message_id_2[1:])
+    assert id_num_1 > max_id
+    assert id_num_2 > max_id
+
+
+def test_posted_message_appears_in_get_messages(
+    client: TestClient,
+    world_snapshot: Path,
+) -> None:
+    """Test that posted messages appear in GET /messages.
+
+    This tests that GET /messages includes both world messages and newly posted
+    messages.
+    """
+    from clinicloop.world.generator.snapshot import read_world_snapshot
+
+    snapshot = read_world_snapshot(world_snapshot)
+
+    # Get initial count
+    response = client.get("/messages")
+    assert response.status_code == 200
+    initial_count = len(response.json())
+
+    # Create a message
+    payload = {
+        "patient_id": snapshot.patients[0].patient_id,
+        "channel": "chat",
+        "body": "Test message for list",
+    }
+    response = client.post("/messages", json=payload)
+    assert response.status_code == 201
+    message_id = response.json()["message_id"]
+
+    # Get all messages and check the count increased
+    response = client.get("/messages")
+    assert response.status_code == 200
+    messages = response.json()
+    assert len(messages) == initial_count + 1
+
+    # Verify the new message is in the list
+    message_ids = [m["message_id"] for m in messages]
+    assert message_id in message_ids
+
+
+def test_second_app_instance_does_not_see_posted_message(
+    world_snapshot: Path,
+) -> None:
+    """Test that a second app instance created from the same snapshot doesn't see posted messages.
+
+    This verifies that message creation is per-instance and doesn't persist to the snapshot.
+    """
+    from clinicloop.world.generator.snapshot import read_world_snapshot
+
+    snapshot = read_world_snapshot(world_snapshot)
+
+    # Create first app instance and post a message
+    app1 = create_app(snapshot_path=world_snapshot)
+    client1 = TestClient(app1)
+
+    payload = {
+        "patient_id": snapshot.patients[0].patient_id,
+        "channel": "chat",
+        "body": "Message from app1",
+    }
+    response1 = client1.post("/messages", json=payload)
+    assert response1.status_code == 201
+    message_id = response1.json()["message_id"]
+
+    # Verify the message is visible in app1
+    response = client1.get("/messages")
+    assert response.status_code == 200
+    messages1 = response.json()
+    message_ids1 = [m["message_id"] for m in messages1]
+    assert message_id in message_ids1
+
+    # Create second app instance from the same snapshot
+    app2 = create_app(snapshot_path=world_snapshot)
+    client2 = TestClient(app2)
+
+    # Verify the message is NOT visible in app2
+    response = client2.get("/messages")
+    assert response.status_code == 200
+    messages2 = response.json()
+    message_ids2 = [m["message_id"] for m in messages2]
+    assert message_id not in message_ids2
+
+    # Verify the message counts match the world messages count
+    assert len(messages1) == len(snapshot.messages) + 1
+    assert len(messages2) == len(snapshot.messages)
