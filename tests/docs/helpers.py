@@ -5,9 +5,7 @@ These functions are outside src/ so they return sentinels rather than raising ex
 """
 
 import subprocess
-import tempfile
 from pathlib import Path
-from typing import Any
 
 
 def build_site(docs_dir: Path, strict: bool = True) -> int:

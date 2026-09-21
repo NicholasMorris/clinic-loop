@@ -3,8 +3,6 @@
 import re
 from pathlib import Path
 
-import yaml
-
 from tests.docs.helpers import parse_adr
 
 
@@ -47,9 +45,9 @@ def test_every_adr_has_the_five_required_sections() -> None:
 
 
 def test_adr_filenames_match_the_slug_pattern() -> None:
-    """Test that ADR filenames match the required slug pattern.
+    r"""Test that ADR filenames match the required slug pattern.
 
-    AC4: ADR file names match ^[a-z0-9]+(-[a-z0-9]+)*\\.md$, docs/adr/index.md
+    AC4: ADR file names match ^[a-z0-9]+(-[a-z0-9]+)*\.md$, docs/adr/index.md
     lists exactly the twelve slugs named in this issue, and the test fails naming
     any file under docs/adr that breaks either rule.
     """
@@ -103,9 +101,7 @@ def test_adr_filenames_match_the_slug_pattern() -> None:
 
     # Verify all required slugs are mentioned in index
     for slug in required_slugs:
-        assert slug in index_content, (
-            f"Required ADR slug '{slug}' not found in docs/adr/index.md"
-        )
+        assert slug in index_content, f"Required ADR slug '{slug}' not found in docs/adr/index.md"
 
     # Verify no unexpected slugs are listed
     # (This is checked by verifying the slugs mentioned match our list)

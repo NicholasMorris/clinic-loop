@@ -5,7 +5,7 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-import yaml
+import yaml  # type: ignore[import-untyped]
 
 
 def extract_nav_entries(nav_config: Any) -> set[str]:
@@ -17,7 +17,7 @@ def extract_nav_entries(nav_config: Any) -> set[str]:
     Returns:
         A set of all navigation entry names.
     """
-    entries = set()
+    entries: set[str] = set()
 
     if isinstance(nav_config, list):
         for item in nav_config:
@@ -41,10 +41,10 @@ def get_nav_from_mkdocs(docs_dir: Path) -> set[str]:
         A set of navigation entry names from the built site.
     """
     # For this test, we parse the .nav.yml files to understand the structure
-    nav_entries = set()
+    nav_entries: set[str] = set()
 
     # Create a custom YAML loader that handles !include tags
-    class IncludeLoader(yaml.SafeLoader):
+    class IncludeLoader(yaml.SafeLoader):  # type: ignore[misc]
         pass
 
     def include_constructor(loader: Any, node: Any) -> str:
