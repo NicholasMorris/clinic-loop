@@ -1,0 +1,2095 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Clinical workflow automation with LangGraph agents, synthetic audio, and integrity signals">
+      
+      
+      
+      
+        <link rel="prev" href="../../audio/tts-spike-harness/">
+      
+      
+        <link rel="next" href="../rulesets/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Ingress Module: PII Redaction and Pseudonymisation - ClinicLoop</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#ingress-module-pii-redaction-and-pseudonymisation" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="ClinicLoop" class="md-header__button md-logo" aria-label="ClinicLoop" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            ClinicLoop
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Ingress Module: PII Redaction and Pseudonymisation
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="ClinicLoop" class="md-nav__button md-logo" aria-label="ClinicLoop" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    ClinicLoop
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ClinicLoop
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../brief-checklist/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Requirement checklist (traceability source)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../evaluation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../integrity-ethics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrity &amp; Ethics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../problem-inventory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Problem Inventory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../runbook/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runbook
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Adr
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Adr
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture Decision Records
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/_template/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR Template
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/checkpointing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR: SQLite Checkpointing with One Database Per Agent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/human-gates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR: Static Interrupt Before vs Dynamic Interrupt for Human Gates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/llm-model-selection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR: LLM Model Selection for Tool Calling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/stt-model-selection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR: Speech-to-Text Model Build Selection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/tts-engine-and-pin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR: Text-to-Speech Engine and Version Pins
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Audio
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Audio
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../audio/stt-spike/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Speech-to-Text Spike (M0-10): whisper.cpp Measurement
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../audio/tts-spike/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Text-to-Speech Spike S2: Measurement Results
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../audio/tts-spike-harness/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Text-to-Speech Spike Harness
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compliance
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Compliance
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ingress Module: PII Redaction and Pseudonymisation
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ingress Module: PII Redaction and Pseudonymisation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#redaction-classes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Redaction Classes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Redaction Classes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-national-health-number-medicare" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. National Health Number (Medicare)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-tax-identifier-tfn" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Tax Identifier (TFN)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-phone-number" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Phone Number
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-email-address" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Email Address
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-date-of-birth" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Date of Birth
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-street-address" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Street Address
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-nz-health-index-nhi" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. NZ Health Index (NHI)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8-uk-health-number-nhs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. UK Health Number (NHS)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9-synthetic-roster-name-matcher" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Synthetic Roster Name Matcher
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#redaction-algorithm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Redaction Algorithm
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Redaction Algorithm">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#checksum-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checksum Validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pattern-order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pattern Order
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#jurisdiction-independent-redaction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Jurisdiction-Independent Redaction
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pseudonymisation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pseudonymisation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Pseudonymisation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#overview_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run-key-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run Key Generation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#key-lifetime" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Lifetime
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#token-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Token Format
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ingress-public-surface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ingress Public Surface
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Ingress Public Surface">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#boundary-rule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Boundary Rule
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#private-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Private Variables
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage Pattern
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Usage Pattern">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#complete-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Complete Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../rulesets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compliance Rulesets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evals
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Evals
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../evals/eval-core/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Evaluation Core Framework
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11" >
+        
+          
+          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hitl
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Hitl
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../hitl/human-gates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Human-in-the-Loop Kernel
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
+        
+          
+          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Llm
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Llm
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../llm/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LLM Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../llm/tool-call-harness/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tool-Call Harness
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_13" >
+        
+          
+          <label class="md-nav__link" for="__nav_13" id="__nav_13_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Process
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_13_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_13">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Process
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../process/ci/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Continuous Integration and Local Gate
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../process/controls/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Process Control Scripts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../process/docs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../process/docs-deploy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Deployment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../process/naming-lint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Naming lint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../process/repository-settings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Repository Settings
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../process/shared-files/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Shared Files and Governance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_14" >
+        
+          
+          <label class="md-nav__link" for="__nav_14" id="__nav_14_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Setup
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_14_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_14">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Setup
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../setup/hardware-tiers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hardware Tiers and Model Selection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="ingress-module-pii-redaction-and-pseudonymisation">Ingress Module: PII Redaction and Pseudonymisation</h1>
+<h2 id="overview">Overview</h2>
+<p>The ingress module provides the boundary where raw identifier values from external records are processed before being made available to the rest of the system. It performs two key functions:</p>
+<ol>
+<li><strong>PII Redaction</strong>: Removes personally identifiable information (PII) from text fields using pattern matching and checksum validation</li>
+<li><strong>Pseudonymisation</strong>: Converts identifier values to stable keyed-hash tokens for use within the system</li>
+</ol>
+<h2 id="redaction-classes">Redaction Classes</h2>
+<p>The redaction system recognizes and removes nine identifier classes:</p>
+<h3 id="1-national-health-number-medicare">1. National Health Number (Medicare)</h3>
+<p><strong>Format</strong>: 10 digits<br />
+<strong>Validation</strong>: Luhn-style checksum with weights [1,3,7,9,1,3,7,9,1,3]<br />
+<strong>Behavior</strong>: Numbers matching the format with valid checksums are redacted; invalid checksums pass through unchanged.</p>
+<p>Example:
+<div class="highlight"><pre><span></span><code>Input:  "Patient Medicare: 1111111113"
+Output: "Patient Medicare: [REDACTED]"
+</code></pre></div></p>
+<h3 id="2-tax-identifier-tfn">2. Tax Identifier (TFN)</h3>
+<p><strong>Format</strong>: 11 digits (optionally hyphenated as XXX-XXX-XXX)<br />
+<strong>Validation</strong>: Weighted sum modulo 89 (checksum must be 0 or 1)<br />
+<strong>Behavior</strong>: Numbers matching the format with valid checksums are redacted; invalid checksums pass through unchanged.</p>
+<p>Example:
+<div class="highlight"><pre><span></span><code>Input:  "TFN: 12 345 678 901"
+Output: "TFN: [REDACTED]"
+</code></pre></div></p>
+<h3 id="3-phone-number">3. Phone Number</h3>
+<p><strong>Format</strong>: Australian phone numbers (02-07 area codes, 04 mobile prefix)<br />
+<strong>Validation</strong>: No checksum (pattern-based)<br />
+<strong>Behavior</strong>: All matching phone numbers are redacted.</p>
+<p>Examples:
+<div class="highlight"><pre><span></span><code>0412345678, +61412345678, (02)12345678
+</code></pre></div></p>
+<h3 id="4-email-address">4. Email Address</h3>
+<p><strong>Format</strong>: Standard email (local@domain.tld)<br />
+<strong>Validation</strong>: No checksum (pattern-based)<br />
+<strong>Behavior</strong>: All matching email addresses are redacted.</p>
+<p>Example:
+<div class="highlight"><pre><span></span><code>Input:  "Contact: john.doe@example.com"
+Output: "Contact: [REDACTED]"
+</code></pre></div></p>
+<h3 id="5-date-of-birth">5. Date of Birth</h3>
+<p><strong>Format</strong>: DDMMYYYY, DD/MM/YYYY, DD-MM-YYYY, YYYYMMDD, YYYY/MM/DD<br />
+<strong>Validation</strong>: No checksum (pattern-based)<br />
+<strong>Behavior</strong>: All matching dates are redacted.</p>
+<p>Example:
+<div class="highlight"><pre><span></span><code>Input:  "Born 15121990"
+Output: "Born [REDACTED]"
+</code></pre></div></p>
+<h3 id="6-street-address">6. Street Address</h3>
+<p><strong>Format</strong>: Numeric street number followed by street name<br />
+<strong>Validation</strong>: Pattern matching (number + known street type keywords)<br />
+<strong>Behavior</strong>: Street numbers and name tokens are redacted.</p>
+<p>Example:
+<div class="highlight"><pre><span></span><code>Input:  "42 Elm Street, Springfield"
+Output: "[REDACTED] [REDACTED], Springfield"
+</code></pre></div></p>
+<h3 id="7-nz-health-index-nhi">7. NZ Health Index (NHI)</h3>
+<p><strong>Format</strong>: 7 digits + letter (e.g., 1234567A)<br />
+<strong>Validation</strong>: Format validation<br />
+<strong>Behavior</strong>: Matching codes are redacted.</p>
+<p>Example:
+<div class="highlight"><pre><span></span><code>Input:  "NHI: 1234567A"
+Output: "NHI: [REDACTED]"
+</code></pre></div></p>
+<h3 id="8-uk-health-number-nhs">8. UK Health Number (NHS)</h3>
+<p><strong>Format</strong>: 10 digits<br />
+<strong>Validation</strong>: NHS checksum algorithm<br />
+<strong>Behavior</strong>: Numbers matching the format with valid checksums are redacted.</p>
+<p>Example:
+<div class="highlight"><pre><span></span><code>Input:  "NHS: 1234567890"
+Output: "NHS: [REDACTED]"
+</code></pre></div></p>
+<h3 id="9-synthetic-roster-name-matcher">9. Synthetic Roster Name Matcher</h3>
+<p><strong>Format</strong>: Given names and family names from the synthetic roster<br />
+<strong>Validation</strong>: Whole-word matching against roster list<br />
+<strong>Behavior</strong>: Roster names are redacted; common words not on the roster pass through unchanged.</p>
+<p>Examples:
+<div class="highlight"><pre><span></span><code>Input:  "Patient John Smith"
+Output: "Patient [REDACTED] [REDACTED]"
+
+Input:  "This is a common case"
+Output: "This is a common case"  # "common" not on roster
+</code></pre></div></p>
+<h2 id="redaction-algorithm">Redaction Algorithm</h2>
+<h3 id="checksum-validation">Checksum Validation</h3>
+<p>For identifier classes with checksums (Medicare, TFN, NHI, NHS), the redaction process is:
+1. Match the pattern (e.g., 10 consecutive digits)
+2. Extract the candidate (remove formatting)
+3. Validate the checksum
+4. <strong>If valid</strong>: Replace with <code>[REDACTED]</code>
+5. <strong>If invalid</strong>: Leave unchanged</p>
+<p>This ensures that strings accidentally matching the pattern but with invalid checksums (and thus not real identifiers) are not redacted.</p>
+<h3 id="pattern-order">Pattern Order</h3>
+<p>Redaction patterns are applied in order:
+1. Medicare (10-digit pattern)
+2. TFN (11-digit pattern)
+3. Phone (country and area code patterns)
+4. Email (domain pattern)
+5. Date of birth (date patterns)
+6. Street address (number + name pattern)
+7. NHI (7-digit + letter pattern)
+8. NHS (10-digit pattern with checksum)
+9. Roster names (word list)</p>
+<p>Note: Pattern order can affect results when patterns overlap (e.g., Medicare and NHS both match 10 digits). The system relies on checksum validation to disambiguate these cases.</p>
+<h2 id="jurisdiction-independent-redaction">Jurisdiction-Independent Redaction</h2>
+<p>Redaction runs regardless of jurisdiction setting. The same redaction rules apply in AU, UK, and NZ contexts. Jurisdiction-specific variations are handled through rule configuration, not redaction logic.</p>
+<h2 id="pseudonymisation">Pseudonymisation</h2>
+<h3 id="overview_1">Overview</h3>
+<p>Pseudonymisation converts raw identifier values to stable keyed-hash tokens. Each token is unique to a combination of (value, key) and stable within a run:
+- <code>pseudonymise(value, key_a)</code> always produces the same token
+- <code>pseudonymise(value, key_b)</code> produces a different token (different key)</p>
+<h3 id="run-key-generation">Run Key Generation</h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">clinicloop.compliance.pseudonymise</span><span class="w"> </span><span class="kn">import</span> <span class="n">current_run_key</span><span class="p">,</span> <span class="n">pseudonymise</span>
+
+<span class="c1"># Get a new run key</span>
+<span class="n">key</span> <span class="o">=</span> <span class="n">current_run_key</span><span class="p">()</span>
+
+<span class="c1"># Pseudonymise a value</span>
+<span class="n">token</span> <span class="o">=</span> <span class="n">pseudonymise</span><span class="p">(</span><span class="s2">"patient_id_123"</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+<span class="c1"># Returns: "[PSN-ABCD1234EFGH5678]" or similar</span>
+
+<span class="c1"># Same value + same key = same token</span>
+<span class="n">token_2</span> <span class="o">=</span> <span class="n">pseudonymise</span><span class="p">(</span><span class="s2">"patient_id_123"</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">token</span> <span class="o">==</span> <span class="n">token_2</span>
+</code></pre></div>
+<h3 id="key-lifetime">Key Lifetime</h3>
+<ul>
+<li><strong>Generation</strong>: One key per invocation of <code>current_run_key()</code>; keys differ across invocations</li>
+<li><strong>Persistence</strong>: Keys are never written to disk (no .env, config, or checkpoint files)</li>
+<li><strong>Lifetime</strong>: Keys exist only in process memory and are discarded when the process exits</li>
+</ul>
+<h3 id="token-format">Token Format</h3>
+<p>Tokens are designed to be:
+- <strong>Opaque</strong>: No part of the original value is recoverable
+- <strong>Stable</strong>: Deterministic for a given (value, key) pair
+- <strong>Unique</strong>: Different keys produce different tokens
+- <strong>Safe</strong>: No 4+ character substring of the input value appears in the output</p>
+<h2 id="ingress-public-surface">Ingress Public Surface</h2>
+<p>The ingress module exports only one function: <code>process_record(record)</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">clinicloop.compliance.ingress</span><span class="w"> </span><span class="kn">import</span> <span class="n">process_record</span>
+
+<span class="n">record</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"patient_id"</span><span class="p">:</span> <span class="s2">"P123"</span><span class="p">,</span>
+    <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"john.doe@example.com"</span><span class="p">,</span>
+    <span class="s2">"phone"</span><span class="p">:</span> <span class="s2">"0412345678"</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="c1"># Redact PII in string fields</span>
+<span class="n">processed</span> <span class="o">=</span> <span class="n">process_record</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
+<span class="c1"># All string values in processed record have PII redacted</span>
+</code></pre></div>
+<h3 id="boundary-rule">Boundary Rule</h3>
+<p>Raw identifier values are accessible only within the ingress module. The public API (<code>process_record</code>) accepts records and returns processed records with PII redacted. No exported function returns raw identifiers.</p>
+<h3 id="private-variables">Private Variables</h3>
+<p>Module-level variables holding raw identifier data (if any) are prefixed with underscore (<code>_raw_value</code>) and excluded from <code>__all__</code>. This marks them as private and prevents accidental export.</p>
+<h2 id="usage-pattern">Usage Pattern</h2>
+<h3 id="complete-example">Complete Example</h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">clinicloop.compliance.ingress</span><span class="w"> </span><span class="kn">import</span> <span class="n">process_record</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">clinicloop.compliance.pseudonymise</span><span class="w"> </span><span class="kn">import</span> <span class="n">pseudonymise</span><span class="p">,</span> <span class="n">current_run_key</span>
+
+<span class="c1"># Get run key at process start</span>
+<span class="n">run_key</span> <span class="o">=</span> <span class="n">current_run_key</span><span class="p">()</span>
+
+<span class="c1"># Process incoming records</span>
+<span class="n">record</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"patient_id"</span><span class="p">:</span> <span class="s2">"P123456789"</span><span class="p">,</span>
+    <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"John Smith"</span><span class="p">,</span>
+    <span class="s2">"email"</span><span class="p">:</span> <span class="s2">"john.smith@clinic.local"</span><span class="p">,</span>
+    <span class="s2">"phone"</span><span class="p">:</span> <span class="s2">"0412345678"</span><span class="p">,</span>
+    <span class="s2">"dob"</span><span class="p">:</span> <span class="s2">"15121990"</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="c1"># Redact PII</span>
+<span class="n">processed</span> <span class="o">=</span> <span class="n">process_record</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
+<span class="c1"># Result: PII removed from string fields</span>
+
+<span class="c1"># Pseudonymise an identifier for database storage</span>
+<span class="n">pseudonym</span> <span class="o">=</span> <span class="n">pseudonymise</span><span class="p">(</span><span class="n">record</span><span class="p">[</span><span class="s2">"patient_id"</span><span class="p">],</span> <span class="n">run_key</span><span class="p">)</span>
+<span class="c1"># Result: "[PSN-ABCD1234EFGH5678]" - stable per key, different per key</span>
+</code></pre></div>
+<h2 id="testing">Testing</h2>
+<p>The ingress module includes tests that verify:
+1. Public surface matches the declared <code>__all__</code>
+2. No raw identifiers leak from <code>process_record()</code>
+3. All PII classes are redacted appropriately
+4. Checksum validation works correctly
+5. Pseudonymisation is stable per key and differs across keys
+6. Run keys are not persisted to disk</p>
+<p>See <code>tests/compliance/test_ingress_surface.py</code> and related tests for details.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.top", "content.code.copy", "toc.integrate"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
