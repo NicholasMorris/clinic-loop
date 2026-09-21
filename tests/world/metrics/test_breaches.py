@@ -47,6 +47,7 @@ def test_breach_entries_carry_rule_and_inventory_ids() -> None:
             "pharmacy_fulfilment": 1,
             "support_inbox": 1,
         },
+        agent_toggles={"triage": True, "consult_scribe": True, "integrity": True},
         run_hash="test_hash_breach",
     )
 

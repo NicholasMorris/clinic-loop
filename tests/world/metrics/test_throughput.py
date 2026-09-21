@@ -117,6 +117,7 @@ def test_throughput_on_fixture_log() -> None:
             "pharmacy_fulfilment": 1,
             "support_inbox": 1,
         },
+        agent_toggles={"triage": True, "consult_scribe": True, "integrity": True},
         run_hash="test_hash_123",
     )
 

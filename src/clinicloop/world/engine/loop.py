@@ -42,6 +42,7 @@ class RunResult:
         queue_depth: Dict mapping queue name to tuple of (timestamp, depth) samples.
         duration_minutes: The simulation duration in minutes.
         staffing: Dict mapping queue name to staffing level.
+        agent_toggles: Dict mapping agent name to boolean toggle state.
         run_hash: SHA256 hash of the run.
     """
 
@@ -49,6 +50,7 @@ class RunResult:
     queue_depth: dict[str, tuple[tuple[int, int], ...]]
     duration_minutes: int
     staffing: dict[str, int]
+    agent_toggles: dict[str, bool]
     run_hash: str
 
 
@@ -85,6 +87,7 @@ class Engine:
         world: Any,
         regime_key: Literal["au", "nz", "uk"] = "au",
         staffing_overrides: dict[str, int] | None = None,
+        agent_toggles: dict[str, bool] | None = None,
     ) -> None:
         """Initialize the engine.
 
@@ -92,16 +95,31 @@ class Engine:
             world: The World object with generated entities.
             regime_key: Jurisdiction key ("au", "nz", or "uk").
             staffing_overrides: Dict of queue_name -> staffing_level overrides.
+            agent_toggles: Dict of agent_name -> bool toggle state.
+                If None, defaults to all three agents ON
+                (triage, consult_scribe, integrity).
+                Unknown agent names raise KeyError.
 
         Raises:
             ValueError: If any staffing override is < 1.
-            KeyError: If a staffing override queue name is unknown.
+            KeyError: If a staffing override queue name is unknown,
+                or if agent_toggles contains an unknown agent name.
         """
         self.world = world
         self.regime_key = regime_key
         self.staffing_overrides = staffing_overrides or {}
         self._regime = get_regime(regime_key)
         self._last_run_result: RunResult | None = None
+
+        # Initialize agent toggles: default all ON
+        self.agent_toggles = {"triage": True, "consult_scribe": True, "integrity": True}
+        if agent_toggles is not None:
+            # Validate all keys are known
+            unknown_agents = set(agent_toggles.keys()) - {"triage", "consult_scribe", "integrity"}
+            if unknown_agents:
+                raise KeyError(f"Unknown agent(s): {unknown_agents}")
+            self.agent_toggles.update(agent_toggles)
+
         self._validate_staffing_overrides()
 
     def _validate_staffing_overrides(self) -> None:
@@ -133,6 +151,11 @@ class Engine:
         # Load and validate staffing configuration
         staffing_config = load_staffing()
 
+        # Load agent configuration
+        from clinicloop.world.workers import load_agents
+
+        agent_config = load_agents()
+
         # Verify regime parameters exist for the three SLA rules
         _ = self._regime.termination_cutoff_business_days
         _ = self._regime.damage_report_window_days
@@ -161,6 +184,9 @@ class Engine:
             queue: np.random.default_rng([self.world.seed, i])
             for i, queue in enumerate(queue_names)
         }
+
+        # Create dedicated RNG for triage agent
+        triage_rng = np.random.default_rng([self.world.seed, 99])
 
         # Schedule initial arrivals
         for questionnaire in self.world.questionnaires:
@@ -235,7 +261,6 @@ class Engine:
             if event.event_type == "arrive":
                 queue = event.queue
                 item_id = event.item_id
-                waiting[queue].append((item_id, timestamp))
 
                 # Create item record if it doesn't exist (for routed items)
                 key = (queue, item_id)
@@ -248,6 +273,41 @@ class Engine:
                         finished_at=None,
                         server=None,
                     )
+
+                # Check for triage agent on support_inbox
+                if queue == "support_inbox" and self.agent_toggles.get("triage", True):
+                    # Draw from triage RNG to decide if agent resolves this message
+                    u = triage_rng.uniform()
+                    if u < agent_config.triage.agent_resolved_share:
+                        # Agent resolves: create finish event immediately, skip human queue
+                        old_record = item_records[key]
+                        item_records[key] = ItemRecord(
+                            queue=old_record.queue,
+                            item_id=old_record.item_id,
+                            enqueued_at=old_record.enqueued_at,
+                            started_at=timestamp,
+                            finished_at=timestamp + int(agent_config.triage.agent_service_minutes),
+                            server=None,
+                        )
+
+                        # Schedule finish event
+                        finish_event = Event(
+                            timestamp=timestamp + int(agent_config.triage.agent_service_minutes),
+                            sequence_number=sequence_counter,
+                            event_type="finish",
+                            queue=queue,
+                            item_id=item_id,
+                            server=None,
+                        )
+                        heapq.heappush(
+                            event_heap,
+                            (finish_event.timestamp, finish_event.sequence_number, finish_event),
+                        )
+                        sequence_counter += 1
+                        continue  # Skip human queue processing
+
+                # Normal path: add to waiting queue
+                waiting[queue].append((item_id, timestamp))
 
                 # Try to start service
                 sequence_counter = self._try_start_service(
@@ -264,6 +324,7 @@ class Engine:
                     event_heap,
                     sequence_counter,
                     duration_minutes,
+                    agent_config=agent_config,
                 )
 
             elif event.event_type == "finish":
@@ -314,6 +375,7 @@ class Engine:
                     event_heap,
                     sequence_counter,
                     duration_minutes,
+                    agent_config=agent_config,
                 )
 
         # Emit remaining queue depth samples after the loop
@@ -330,12 +392,13 @@ class Engine:
         queue_depth_final = {q: tuple(queue_depth_samples[q]) for q in queue_names}
 
         # Create run result
-        run_hash = self._compute_hash(records_tuple, staffing)
+        run_hash = self._compute_hash(records_tuple, staffing, self.agent_toggles)
         result = RunResult(
             records=records_tuple,
             queue_depth=queue_depth_final,
             duration_minutes=duration_minutes,
             staffing=staffing,
+            agent_toggles=dict(self.agent_toggles),
             run_hash=run_hash,
         )
 
@@ -357,6 +420,7 @@ class Engine:
         event_heap: list[tuple[int, int, Event]],
         sequence_counter: int,
         duration_minutes: int,
+        agent_config: Any | None = None,
     ) -> int:
         """Try to start service for waiting items.
 
@@ -374,6 +438,7 @@ class Engine:
             event_heap: Event heap.
             sequence_counter: Current sequence counter.
             duration_minutes: Duration of simulation.
+            agent_config: Agent configuration for applying agent extra minutes.
 
         Returns:
             Updated sequence counter.
@@ -394,6 +459,21 @@ class Engine:
                 )
             else:
                 service_time = mean_service_minutes
+
+            # Apply agent extra minutes
+            if agent_config is not None:
+                if queue == "prescriber_review" and agent_config.consult_scribe:
+                    # Add consult_scribe extra time based on toggle state
+                    if self.agent_toggles.get("consult_scribe", True):
+                        service_time += agent_config.consult_scribe.on_extra_minutes
+                    else:
+                        service_time += agent_config.consult_scribe.off_extra_minutes
+                elif queue == "intake" and agent_config.integrity:
+                    # Add integrity extra time based on toggle state
+                    if self.agent_toggles.get("integrity", True):
+                        service_time += agent_config.integrity.on_extra_minutes
+                    else:
+                        service_time += agent_config.integrity.off_extra_minutes
 
             duration = max(1, int(np.ceil(service_time)))
             finish_time = current_time + duration
@@ -497,12 +577,18 @@ class Engine:
         # pharmacy_fulfilment and support_inbox have no routing
         return sequence_counter
 
-    def _compute_hash(self, records: tuple[ItemRecord, ...], staffing: dict[str, int]) -> str:
-        """Compute run hash from records and staffing.
+    def _compute_hash(
+        self,
+        records: tuple[ItemRecord, ...],
+        staffing: dict[str, int],
+        agent_toggles: dict[str, bool],
+    ) -> str:
+        """Compute run hash from records, staffing, and agent toggles.
 
         Args:
             records: Tuple of ItemRecords.
             staffing: Staffing dict.
+            agent_toggles: Agent toggle state dict.
 
         Returns:
             SHA256 hex hash.
@@ -520,11 +606,13 @@ class Engine:
             for r in records
         ]
         staffing_dict = dict(sorted(staffing.items()))
+        agent_toggles_dict = dict(sorted(agent_toggles.items()))
 
         hash_input = json.dumps(
             {
                 "records": records_dicts,
                 "staffing": staffing_dict,
+                "agent_toggles": agent_toggles_dict,
             },
             sort_keys=True,
         )

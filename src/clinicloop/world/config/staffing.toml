@@ -27,8 +27,8 @@ hourly_cost = 32.0
 
 [support_inbox]
 assumed = true
-assumption_note = "Based on support agent response time: 3-8 minutes per message"
+assumption_note = "Assumed human handling time per support message, tuned so that switching the triage agent off visibly backs up the inbox on the demo world"
 service_time_family = "exponential"
-mean_service_minutes = 5
+mean_service_minutes = 14
 staffing_level = 1
 hourly_cost = 30.0

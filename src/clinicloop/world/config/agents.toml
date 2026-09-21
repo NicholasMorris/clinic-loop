@@ -1,0 +1,23 @@
+# Agent configuration for SimClinic
+# All values are assumed starter values; they must be measured or updated before deployment.
+
+[triage]
+queue = "support_inbox"
+agent_resolved_share = 0.75
+agent_service_minutes = 1
+assumed = true
+assumption_note = "Triage agent resolves 75% of messages in 1 minute; remainder goes to human support"
+
+[consult_scribe]
+queue = "prescriber_review"
+on_extra_minutes = 1
+off_extra_minutes = 6
+assumed = true
+assumption_note = "Consult scribe adds 1 minute when ON, 6 minutes when OFF to prescriber review time"
+
+[integrity]
+queue = "intake"
+on_extra_minutes = 1
+off_extra_minutes = 3
+assumed = true
+assumption_note = "Integrity agent adds 1 minute when ON, 3 minutes when OFF to intake time"

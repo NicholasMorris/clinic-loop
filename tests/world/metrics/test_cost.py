@@ -155,6 +155,7 @@ def test_cost_per_order_on_fixture_log() -> None:
             "pharmacy_fulfilment": 1,
             "support_inbox": 1,
         },
+        agent_toggles={"triage": True, "consult_scribe": True, "integrity": True},
         run_hash="test_hash_cost",
     )
 
@@ -221,6 +222,7 @@ def test_cost_per_order_with_idle_time() -> None:
             "pharmacy_fulfilment": 1,
             "support_inbox": 1,
         },
+        agent_toggles={"triage": True, "consult_scribe": True, "integrity": True},
         run_hash="test_hash_idle",
     )
 

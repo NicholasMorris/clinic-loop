@@ -41,6 +41,7 @@ def test_snapshot_is_frozen_and_versioned() -> None:
             "pharmacy_fulfilment": 1,
             "support_inbox": 1,
         },
+        agent_toggles={"triage": True, "consult_scribe": True, "integrity": True},
         run_hash="test_hash",
     )
 
@@ -90,6 +91,7 @@ def test_snapshot_is_deterministic_and_empty_run_cost_is_none() -> None:
             "pharmacy_fulfilment": 1,
             "support_inbox": 1,
         },
+        agent_toggles={"triage": True, "consult_scribe": True, "integrity": True},
         run_hash="test_hash_determinism",
     )
 
@@ -130,6 +132,7 @@ def test_snapshot_is_deterministic_and_empty_run_cost_is_none() -> None:
             "pharmacy_fulfilment": 1,
             "support_inbox": 1,
         },
+        agent_toggles={"triage": True, "consult_scribe": True, "integrity": True},
         run_hash="test_hash_empty",
     )
 
