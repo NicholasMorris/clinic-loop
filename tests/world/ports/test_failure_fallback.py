@@ -2,7 +2,6 @@
 
 from clinicloop.world.engine import Engine
 from clinicloop.world.generator import generate_world
-from clinicloop.world.ports import AgentPort, PortRegistry, PortFailure
 
 
 class FailingPort:
@@ -43,8 +42,9 @@ def test_port_exception_falls_back_to_human_step() -> None:
     )
 
     engine = Engine(world, regime_key="au")
-    registry = PortRegistry()
     # TODO: Register failing port when engine supports agent_toggles
+    # from clinicloop.world.ports import PortRegistry
+    # registry = PortRegistry()
     # registry.register("triage", FailingPort())
 
     result = engine.run(duration)

@@ -1,6 +1,6 @@
 """Tests for the PortRegistry and toggleable scopes."""
 
-from clinicloop.world.ports import AgentPort, PortRegistry, UnknownAgentScope
+from clinicloop.world.ports import PortRegistry, UnknownAgentScope
 
 
 def test_exactly_three_toggleable_scopes() -> None:
@@ -25,10 +25,10 @@ def test_registering_unknown_scope_raises() -> None:
             raise NotImplementedError
 
     registry = PortRegistry()
-    fake_port = FakePort()  # type: ignore[assignment]
+    fake_port = FakePort()
 
     with pytest.raises(UnknownAgentScope):
-        registry.register("factory", fake_port)  # type: ignore[arg-type]
+        registry.register("factory", fake_port)
 
 
 def test_factory_has_no_toggleable_port() -> None:
@@ -50,7 +50,7 @@ def test_factory_has_no_toggleable_port() -> None:
             """Placeholder serve method."""
             raise NotImplementedError
 
-    fake_port = FakePort()  # type: ignore[assignment]
+    fake_port = FakePort()
 
     with pytest.raises(UnknownAgentScope):
-        registry.register("factory", fake_port)  # type: ignore[arg-type]
+        registry.register("factory", fake_port)

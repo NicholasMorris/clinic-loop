@@ -2,10 +2,9 @@
 
 import pytest
 
-from clinicloop.world.engine import Engine
+from clinicloop.world.engine import Engine, RunResult
 from clinicloop.world.generator import generate_world
 from clinicloop.world.metrics import compute_snapshot
-from clinicloop.world.ports.fakes import FakeAgentPort
 
 
 @pytest.mark.skip(reason="Requires agent_toggles parameter in Engine (not yet implemented)")
@@ -50,15 +49,12 @@ def test_disabling_fake_triage_port_increases_queue_depth_and_wait() -> None:
     wait_without = snapshot_without.median_wait_minutes.get("support_inbox") or 0
 
     assert depth_with < depth_without, (
-        f"With agent: depth={depth_with}, "
-        f"without: depth={depth_without}"
+        f"With agent: depth={depth_with}, without: depth={depth_without}"
     )
-    assert wait_with < wait_without, (
-        f"With agent: wait={wait_with}, without: wait={wait_without}"
-    )
+    assert wait_with < wait_without, f"With agent: wait={wait_with}, without: wait={wait_without}"
 
 
-def _get_max_queue_depth(result: "RunResult", queue_name: str) -> int:  # type: ignore[name-defined]
+def _get_max_queue_depth(result: RunResult, queue_name: str) -> int:
     """Helper: get max queue depth from queue_depth samples."""
     if queue_name not in result.queue_depth:
         return 0

@@ -1,7 +1,6 @@
 """PortRegistry for managing toggleable agent scopes."""
 
 from dataclasses import dataclass
-from typing import Any
 
 from clinicloop.world.ports.protocol import AgentPort
 

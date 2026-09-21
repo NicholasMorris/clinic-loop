@@ -40,13 +40,12 @@ def test_C0_factory_scope_not_toggleable() -> None:
     registry = PortRegistry()
     scopes = registry.toggleable_scopes()
 
-    assert "factory" not in scopes, (
-        "factory should not be in toggleable scopes"
-    )
+    assert "factory" not in scopes, "factory should not be in toggleable scopes"
 
     # Registering factory should raise
     try:
-        registry.register("factory", FakeAgentPort(service_time_fraction=0.1))  # type: ignore[arg-type]
+        port = FakeAgentPort(service_time_fraction=0.1)
+        registry.register("factory", port)
         assert False, "Should have raised UnknownAgentScope"
     except UnknownAgentScope:
         pass

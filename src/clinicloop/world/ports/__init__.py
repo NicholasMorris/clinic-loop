@@ -6,7 +6,7 @@ test double (FakeAgentPort) that real adapters replace.
 """
 
 from clinicloop.world.ports.protocol import AgentPort
-from clinicloop.world.ports.registry import PortRegistry, UnknownAgentScope, PortFailure
+from clinicloop.world.ports.registry import PortFailure, PortRegistry, UnknownAgentScope
 
 __all__ = [
     "AgentPort",

@@ -11,8 +11,6 @@ toggling the agent off visibly worsen queue metrics (depth and wait time rise,
 affecting the SLA).
 """
 
-from clinicloop.world.ports.protocol import AgentPort
-
 
 class FakeAgentPort:
     """A deterministic fake agent that serves in a fraction of human time.

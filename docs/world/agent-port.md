@@ -65,6 +65,7 @@ A `PortFailure` record is written when a port's `serve()` method raises an excep
 @dataclass
 class PortFailure:
     """Record of a port failure (exception during serve)."""
+
     scope: str  # "triage", "integrity", or "consult_documentation"
     exception_type: str  # Name of the exception class
     case_id: str  # The case that triggered the failure
@@ -95,12 +96,15 @@ result_without_agent = engine.run(duration)
 
 # Compare metrics to measure toggle effect
 from clinicloop.world.metrics import compute_snapshot
+
 snapshot_with = compute_snapshot(result_with_agent)
 snapshot_without = compute_snapshot(result_without_agent)
 
 # With agent: lower support_inbox queue depth and median wait
-assert snapshot_with.median_wait_minutes["support_inbox"] < \
-       snapshot_without.median_wait_minutes["support_inbox"]
+assert (
+    snapshot_with.median_wait_minutes["support_inbox"]
+    < snapshot_without.median_wait_minutes["support_inbox"]
+)
 ```
 
 ## Why Ship FakeAgentPort in src?
