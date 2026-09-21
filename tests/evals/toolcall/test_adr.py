@@ -1,8 +1,6 @@
 """Test AC7: ADR parsing and validation."""
 
 from pathlib import Path
-import tempfile
-import pytest
 
 from clinicloop.evals.toolcall.adr import parse_model_selection_adr
 from clinicloop.evals.toolcall.thresholds import promotion_bar
@@ -18,7 +16,9 @@ def test_adr_roles_carry_numbers_families_and_clear_the_bar() -> None:
     - Judge family differs from primary family
     - Primary pass count >= promotion_bar().primary_min_passing_cases
     """
-    adr_path = Path(__file__).parent.parent.parent.parent / "docs" / "adr" / "llm-model-selection.md"
+    adr_path = (
+        Path(__file__).parent.parent.parent.parent / "docs" / "adr" / "llm-model-selection.md"
+    )
 
     # Parse the ADR
     adr = parse_model_selection_adr(str(adr_path))
@@ -57,6 +57,5 @@ def test_adr_roles_carry_numbers_families_and_clear_the_bar() -> None:
     bar = promotion_bar()
     primary_pass_count = adr["roles"]["primary"]["pass_count"]
     assert primary_pass_count >= bar.primary_min_passing_cases, (
-        f"Primary pass count {primary_pass_count} < required "
-        f"{bar.primary_min_passing_cases}"
+        f"Primary pass count {primary_pass_count} < required {bar.primary_min_passing_cases}"
     )

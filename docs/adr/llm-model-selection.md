@@ -1,8 +1,10 @@
 # ADR: LLM Model Selection for Tool Calling
 
-**Status: Accepted**
-
 **Date: 2026-09-21**
+
+## Status
+
+Accepted
 
 ## Context
 
@@ -18,6 +20,21 @@ Installed models available for measurement:
 - medgemma-27b-text-it (family: medgemma)
 - medgemma-1.5-4b-it (family: medgemma)
 - gemma-4-12b-obliterated (family: gemma_obliterated) [skipped: unrestricted variant]
+
+Tool calling is a hard constraint: if the primary model cannot emit tool calls reliably,
+agent graphs cannot be built. The 30-case harness is the gate before any graph development.
+
+## Alternatives considered
+
+1. **Wait for Qwen3-30B to be installed:** This delays agent development. Interim selection
+   allows graph work to proceed in parallel with the Qwen download.
+2. **Use Gemma-4 as primary:** gpt-oss-20b measured 2 more passing cases (28 vs 26), and has
+   a different family from the judge, maintaining independence.
+3. **Use a single model for all roles:** Violates the no-self-grading principle. If the model
+   has a systematic bias in its tool calling, the judge must use a different family to catch it.
+
+This ADR selects interim models from those currently installed and measured, while leaving
+Qwen3-30B as the target for future installation and re-measurement.
 
 ## Decision
 
@@ -61,9 +78,25 @@ Once installed, measure and update this ADR with results.
 - The fallback model (medgemma) meets the fallback threshold of 24/30 and handles resource constraints.
 - All selected models are currently installed and measured on the evaluation machine.
 
-## Implications
+## Consequences
 
-- Agent graphs build on gpt-oss-20b as the primary model.
-- The judge model provides independent verification of tool-call correctness.
-- Fallback is available if tool calling degrades under resource pressure.
-- Once Qwen3-30B is installed, this ADR will be updated with its measured results.
+### Positive
+
+- Agent development can proceed immediately on the interim primary model.
+- All three roles (primary, judge, fallback) are available now, without waiting for Qwen download.
+- The judge (gemma family) is sufficiently independent for grading tool-call correctness.
+- Measured results (28, 26, 25 passing cases) meet or exceed the promotion bars (27, 24, 0 schema-invalid).
+
+### Negative
+
+- The interim primary (gpt-oss-20b) may perform differently than the target Qwen3-30B in production.
+- If Qwen3-30B later shows materially better tool calling, a migration may be required.
+- Memory usage differs between models (gpt-oss-20b ~12 GB vs Qwen3-30B 17.28 GB).
+
+### Migration Path
+
+Once Qwen3-30B is installed and measured:
+1. Run the 30-case harness against Qwen3-30B.
+2. Compare pass count and tokens/second with gpt-oss-20b.
+3. If Qwen3-30B is substantially better, update this ADR and re-measure all graphs.
+4. Existing checkpoint DBs remain valid; the model swap is transparent to the graph state.

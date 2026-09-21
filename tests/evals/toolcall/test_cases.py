@@ -1,7 +1,5 @@
 """Test AC1: Case set has exactly 30 stable cases."""
 
-import pytest
-
 from clinicloop.evals.toolcall.cases import load_cases
 
 

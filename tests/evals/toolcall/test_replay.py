@@ -1,11 +1,11 @@
 """Test AC5: Cassette replay reproduces deterministic fields."""
 
-from pathlib import Path
 import json
 import tempfile
-import pytest
+from pathlib import Path
+from typing import Any
 
-from clinicloop.evals.toolcall.replay import replay_from_cassette, DETERMINISTIC_FIELDS
+from clinicloop.evals.toolcall.replay import DETERMINISTIC_FIELDS, replay_from_cassette
 
 
 def test_cassette_replay_reproduces_deterministic_fields_only() -> None:
@@ -18,7 +18,7 @@ def test_cassette_replay_reproduces_deterministic_fields_only() -> None:
     but excluded from comparison.
     """
     # Create a temporary cassette file with per-case results and summary
-    cassette_data = {
+    cassette_data: dict[str, Any] = {
         "per_case_results": [
             {
                 "case_id": "case_001",
@@ -56,14 +56,14 @@ def test_cassette_replay_reproduces_deterministic_fields_only() -> None:
         replayed_results, replayed_summary = replay_from_cassette(str(cassette_path))
 
         # Extract deterministic fields from replayed results
-        replayed_det = {
+        replayed_det: dict[str, list[Any]] = {
             field: [r.get(field) for r in replayed_results]
             for field in DETERMINISTIC_FIELDS
             if field not in ["passed_cases", "failed_cases"]
         }
 
         # Extract deterministic fields from original cassette
-        committed_det = {
+        committed_det: dict[str, list[Any]] = {
             field: [r.get(field) for r in cassette_data["per_case_results"]]
             for field in DETERMINISTIC_FIELDS
             if field not in ["passed_cases", "failed_cases"]

@@ -1,7 +1,5 @@
 """Benchmark utilities: measure tokens per second."""
 
-from typing import Any
-
 
 def measure_tokens_per_second(
     model_id: str,
@@ -17,6 +15,6 @@ def measure_tokens_per_second(
         Tokens per second (completion tokens / wall time in seconds).
 
     Raises:
-        NotImplementedError: Stub implementation.
+        NotImplementedError: Requires actual model integration.
     """
-    raise NotImplementedError("measure_tokens_per_second stub")
+    raise NotImplementedError("measure_tokens_per_second requires model integration stub")

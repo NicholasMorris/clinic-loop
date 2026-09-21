@@ -1,5 +1,8 @@
 """Model promotion bar thresholds loaded from config."""
 
+import tomllib
+from pathlib import Path
+
 from pydantic import BaseModel, Field
 
 
@@ -12,12 +15,8 @@ class PromotionBar(BaseModel):
         max_schema_invalid_outputs: Maximum allowed schema-invalid outputs (0 means none).
     """
 
-    primary_min_passing_cases: int = Field(
-        description="Minimum passing cases for primary model"
-    )
-    fallback_min_passing_cases: int = Field(
-        description="Minimum passing cases for fallback model"
-    )
+    primary_min_passing_cases: int = Field(description="Minimum passing cases for primary model")
+    fallback_min_passing_cases: int = Field(description="Minimum passing cases for fallback model")
     max_schema_invalid_outputs: int = Field(description="Maximum schema-invalid outputs allowed")
 
 
@@ -31,6 +30,32 @@ def promotion_bar() -> PromotionBar:
         and max_schema_invalid_outputs loaded from config.
 
     Raises:
-        NotImplementedError: Stub implementation.
+        FileNotFoundError: If the config file is not found.
+        ValueError: If required keys are missing from the config.
     """
-    raise NotImplementedError("promotion_bar stub")
+    # Path from src/clinicloop/evals/toolcall/thresholds.py to repo root: go up 5 levels
+    config_path = (
+        Path(__file__).parent.parent.parent.parent.parent / "evals" / "toolcall" / "thresholds.toml"
+    )
+
+    if not config_path.exists():
+        raise FileNotFoundError(f"Config file not found: {config_path}")
+
+    with open(config_path, "rb") as f:
+        data = tomllib.load(f)
+
+    # Validate that all required keys are present
+    required_keys = {
+        "primary_min_passing_cases",
+        "fallback_min_passing_cases",
+        "max_schema_invalid_outputs",
+    }
+    missing_keys = required_keys - set(data.keys())
+    if missing_keys:
+        raise ValueError(f"Missing required keys in config: {missing_keys}")
+
+    return PromotionBar(
+        primary_min_passing_cases=data["primary_min_passing_cases"],
+        fallback_min_passing_cases=data["fallback_min_passing_cases"],
+        max_schema_invalid_outputs=data["max_schema_invalid_outputs"],
+    )

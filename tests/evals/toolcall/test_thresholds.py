@@ -1,11 +1,9 @@
 """Test AC6: Promotion bar reads from config with no code default."""
 
-from pathlib import Path
-import tempfile
 import pytest
 from pydantic import ValidationError
 
-from clinicloop.evals.toolcall.thresholds import promotion_bar, PromotionBar
+from clinicloop.evals.toolcall.thresholds import PromotionBar, promotion_bar
 
 
 def test_promotion_bar_read_from_config_with_no_code_default() -> None:

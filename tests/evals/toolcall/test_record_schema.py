@@ -36,7 +36,7 @@ def test_result_record_requires_all_fields() -> None:
     ]
 
     for field in required_fields:
-        data = {
+        data: dict[str, str | bool | float] = {
             "case_id": "case_001",
             "model_id": "primary",
             "emitted_tool_call": True,
@@ -48,7 +48,7 @@ def test_result_record_requires_all_fields() -> None:
         del data[field]
 
         with pytest.raises(ValidationError) as exc_info:
-            ToolCallResult(**data)
+            ToolCallResult(**data)  # type: ignore
 
         # The error message should name the missing field
         assert field in str(exc_info.value), (

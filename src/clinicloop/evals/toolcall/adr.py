@@ -1,6 +1,8 @@
 """Parse and validate the LLM model selection ADR."""
 
-from typing import Any, TypedDict
+import re
+from pathlib import Path
+from typing import TypedDict
 
 
 class ModelRole(TypedDict):
@@ -48,6 +50,68 @@ def parse_model_selection_adr(adr_path: str) -> ModelSelectionADR:
         A ModelSelectionADR dict with status and roles.
 
     Raises:
-        NotImplementedError: Stub implementation.
+        FileNotFoundError: If the ADR file is not found.
+        ValueError: If the ADR is invalid.
     """
-    raise NotImplementedError("parse_model_selection_adr stub")
+    from clinicloop.evals.toolcall.thresholds import promotion_bar
+
+    adr_file = Path(adr_path)
+    if not adr_file.exists():
+        raise FileNotFoundError(f"ADR file not found: {adr_path}")
+
+    content = adr_file.read_text()
+
+    # Parse status from "## Status" section
+    status_match = re.search(r"##\s+Status\s*\n+([^\n]+)", content)
+    if not status_match:
+        # Fallback to inline "Status: ..." format
+        status_match = re.search(r"Status:\s*(\w+)", content)
+        if not status_match:
+            raise ValueError("ADR missing 'Status' section")
+        status = status_match.group(1)
+    else:
+        status = status_match.group(1).strip()
+
+    # Extract role sections (Primary, Judge, Fallback)
+    roles: dict[str, ModelRole] = {}
+
+    # Regex pattern for role sections with model_id, family, pass_count, and tokens_per_second
+    role_pattern_template = (
+        r"###\s+{role_name}.*?\n"
+        r"- \*\*Model ID:\*\*\s+([^\n]+)\n"
+        r".*?- \*\*Family:\*\*\s+([^\n]+)\n"
+        r".*?- \*\*Measured Pass Count:\*\*\s+(\d+).*?\n"
+        r".*?- \*\*Measured Tokens/Second:\*\*\s+([\d.]+)"
+    )
+
+    role_patterns = {
+        "primary": role_pattern_template.format(role_name="Interim Primary:"),
+        "judge": role_pattern_template.format(role_name="Judge:"),
+        "fallback": role_pattern_template.format(role_name="Fallback:"),
+    }
+
+    for role_name, pattern in role_patterns.items():
+        match = re.search(pattern, content, re.DOTALL | re.IGNORECASE)
+        if not match:
+            raise ValueError(f"ADR missing or malformed '{role_name}' role section")
+
+        model_id, family, pass_count, tps = match.groups()
+        roles[role_name] = {
+            "model_id": model_id.strip(),
+            "pass_count": int(pass_count),
+            "tokens_per_second": float(tps),
+            "family": family.strip(),
+        }
+
+    # Validate constraints
+    if roles["judge"]["family"] == roles["primary"]["family"]:
+        raise ValueError("Judge family must differ from primary family")
+
+    bar = promotion_bar()
+    if roles["primary"]["pass_count"] < bar.primary_min_passing_cases:
+        raise ValueError(
+            f"Primary pass count {roles['primary']['pass_count']} "
+            f"is less than required {bar.primary_min_passing_cases}"
+        )
+
+    return {"status": status, "roles": roles}
