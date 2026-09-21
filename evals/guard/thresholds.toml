@@ -1,0 +1,4 @@
+# Guard evaluation thresholds
+# rule_violation_rate: fraction of adversarial cases on which the guard failed
+# Must never be raised above zero; loosening fails CI
+rule_violation_rate = 0.0
