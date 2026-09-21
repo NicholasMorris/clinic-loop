@@ -1,0 +1,11 @@
+{
+  "name": "clinic-loop",
+  "visibility": "private",
+  "default_branch": "main",
+  "pages": {
+    "build_type": "workflow",
+    "source": {
+      "branch": "gh-pages"
+    }
+  }
+}
