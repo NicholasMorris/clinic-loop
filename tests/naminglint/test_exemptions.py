@@ -65,7 +65,9 @@ def test_exempt_paths_are_skipped(tmp_path: Path) -> None:
     # Should have exactly 1 hit (in source_file, not exempt_rule_file)
     assert len(r7_hits) == 1, f"Expected 1 R7 hit (in non-exempt), got {len(r7_hits)}: {r7_hits}"
     assert "agents" in str(r7_hits[0][0]), f"Hit should be in agents/, got {r7_hits[0][0]}"
-    assert "compliance" not in str(r7_hits[0][0]), f"Hit should not be in exempt compliance/, got {r7_hits[0][0]}"
+    assert "compliance" not in str(r7_hits[0][0]), (
+        f"Hit should not be in exempt compliance/, got {r7_hits[0][0]}"
+    )
 
     # Test compliance data exemption
     compliance_data_file = tmp_path / "tests" / "compliance" / "data" / "blocklist.txt"
@@ -76,4 +78,6 @@ def test_exempt_paths_are_skipped(tmp_path: Path) -> None:
     r7_hits2 = [r for r in results2 if r[2] == "R7"]
 
     # Still only 1 hit (in agents), not in compliance/data
-    assert len(r7_hits2) == 1, f"Expected 1 R7 hit (compliance/data is exempt), got {len(r7_hits2)}: {r7_hits2}"
+    assert len(r7_hits2) == 1, (
+        f"Expected 1 R7 hit (compliance/data is exempt), got {len(r7_hits2)}: {r7_hits2}"
+    )

@@ -105,9 +105,7 @@ def report_results(results: list[tuple[str | int, int | str, str]], payload_mode
 
 def main() -> None:
     """Main entry point for naming lint CLI."""
-    parser = argparse.ArgumentParser(
-        description="Naming lint: detect forbidden names and I6 words"
-    )
+    parser = argparse.ArgumentParser(description="Naming lint: detect forbidden names and I6 words")
     group = parser.add_mutually_exclusive_group()
     group.add_argument(
         "--tree",

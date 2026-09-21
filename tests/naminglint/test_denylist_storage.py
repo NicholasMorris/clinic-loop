@@ -44,20 +44,20 @@ def test_tracked_tree_holds_no_hashed_names_and_one_i6_word_file() -> None:
     # Check for I6 violations (should only appear in i6_words.txt)
     i6_hits = [r for r in results if r[2] == "I6"]
     i6_outside_file = [r for r in i6_hits if "i6_words.txt" not in str(r[0])]
-    assert (
-        len(i6_outside_file) == 0
-    ), f"Found {len(i6_outside_file)} I6 words outside i6_words.txt: {i6_outside_file}"
+    assert len(i6_outside_file) == 0, (
+        f"Found {len(i6_outside_file)} I6 words outside i6_words.txt: {i6_outside_file}"
+    )
 
 
 @pytest.mark.checklist_id("I6")
 @pytest.mark.checklist_id("R7")
 def test_empty_or_missing_hash_file_exits_two_and_plaintext_tests_skip() -> None:
-    """AC4: load_denylist() exits 2 on missing/empty file; plaintext tests skip when not provisioned.
+    """AC4: load_denylist() exits 2 on missing/empty file; plaintext tests skip.
 
     Tests:
     - load_denylist() raises SystemExit with code 2 when hash file is missing
     - load_denylist() raises SystemExit with code 2 when hash file exists but is empty
-    - Tests requiring plaintext denylist skip with reason when CLINICLOOP_NAMING_DENYLIST not set
+    - Tests requiring plaintext denylist skip when CLINICLOOP_NAMING_DENYLIST not set
     """
     # Test 1: Missing hash file
     missing_file = Path("/tmp/nonexistent_denylist_hash_file_12345.txt")
@@ -65,7 +65,9 @@ def test_empty_or_missing_hash_file_exits_two_and_plaintext_tests_skip() -> None
 
     with pytest.raises(SystemExit) as exc_info:
         load_denylist(missing_file)
-    assert exc_info.value.code == 2, f"Expected exit code 2 for missing file, got {exc_info.value.code}"
+    assert exc_info.value.code == 2, (
+        f"Expected exit code 2 for missing file, got {exc_info.value.code}"
+    )
 
     # Test 2: Empty hash file
     import tempfile
@@ -77,7 +79,9 @@ def test_empty_or_missing_hash_file_exits_two_and_plaintext_tests_skip() -> None
     try:
         with pytest.raises(SystemExit) as exc_info:
             load_denylist(empty_hash_file)
-        assert exc_info.value.code == 2, f"Expected exit code 2 for empty file, got {exc_info.value.code}"
+        assert exc_info.value.code == 2, (
+            f"Expected exit code 2 for empty file, got {exc_info.value.code}"
+        )
     finally:
         empty_hash_file.unlink()
 

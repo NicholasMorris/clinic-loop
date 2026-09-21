@@ -72,8 +72,12 @@ def test_denylisted_name_reported_with_path_line_and_rule_id(tmp_path: Path) -> 
     denylist = load_denylist(hash_file)
 
     # Read I6 words from the tracked file
-    i6_words_path = Path(__file__).parent.parent.parent / "src" / "clinicloop" / "naminglint" / "i6_words.txt"
-    i6_words = set(i6_words_path.read_text().strip().split("\n")) if i6_words_path.exists() else set()
+    i6_words_path = (
+        Path(__file__).parent.parent.parent / "src" / "clinicloop" / "naminglint" / "i6_words.txt"
+    )
+    i6_words = (
+        set(i6_words_path.read_text().strip().split("\n")) if i6_words_path.exists() else set()
+    )
 
     # Scan the tree
     results = scan_tree(tmp_path, denylist, i6_words)
@@ -109,7 +113,9 @@ def test_i6_word_list_matched_case_insensitively(tmp_path: Path) -> None:
     - As whole words only (fraudulent does not match fraud)
     """
     # Use i6 words from the tracked file
-    i6_words_path = Path(__file__).parent.parent.parent / "src" / "clinicloop" / "naminglint" / "i6_words.txt"
+    i6_words_path = (
+        Path(__file__).parent.parent.parent / "src" / "clinicloop" / "naminglint" / "i6_words.txt"
+    )
     i6_words_content = i6_words_path.read_text().strip()
     i6_words = set(i6_words_content.split("\n"))
 
@@ -126,12 +132,16 @@ def test_i6_word_list_matched_case_insensitively(tmp_path: Path) -> None:
     # Find hits in test1.txt (should be 3: FRAUD, fraud, Fraud)
     file1_hits = [r for r in results if "test1.txt" in str(r[0])]
     i6_hits_file1 = [r for r in file1_hits if r[2] == "I6"]
-    assert len(i6_hits_file1) == 3, f"Expected 3 I6 hits in test1.txt, got {len(i6_hits_file1)}: {i6_hits_file1}"
+    assert len(i6_hits_file1) == 3, (
+        f"Expected 3 I6 hits in test1.txt, got {len(i6_hits_file1)}: {i6_hits_file1}"
+    )
 
     # Find hits in test2.txt (should be 1: just "fraud", not "fraudulent")
     file2_hits = [r for r in results if "test2.txt" in str(r[0])]
     i6_hits_file2 = [r for r in file2_hits if r[2] == "I6"]
-    assert len(i6_hits_file2) == 1, f"Expected 1 I6 hit in test2.txt, got {len(i6_hits_file2)}: {i6_hits_file2}"
+    assert len(i6_hits_file2) == 1, (
+        f"Expected 1 I6 hit in test2.txt, got {len(i6_hits_file2)}: {i6_hits_file2}"
+    )
     # Verify it's on the right line
     assert i6_hits_file2[0][1] == 2, f"Expected hit on line 2, got line {i6_hits_file2[0][1]}"
 
@@ -151,18 +161,20 @@ def test_all_four_non_source_content_kinds_are_scanned(tmp_path: Path) -> None:
     hash_file.write_text("\n".join(sorted(name_hashes)))
     denylist = load_denylist(hash_file)
 
-    i6_words_path = Path(__file__).parent.parent.parent / "src" / "clinicloop" / "naminglint" / "i6_words.txt"
+    i6_words_path = (
+        Path(__file__).parent.parent.parent / "src" / "clinicloop" / "naminglint" / "i6_words.txt"
+    )
     i6_words = set(i6_words_path.read_text().strip().split("\n"))
 
     # 1. Plant hit in tracked source file
     source_file = tmp_path / "src" / "code.py"
     source_file.parent.mkdir(parents=True)
-    source_file.write_text('# This is from zeta-fixture-clinic\n')
+    source_file.write_text("# This is from zeta-fixture-clinic\n")
 
     # 2. Plant hit in cassette file (*.cassette.json or similar)
     cassette_file = tmp_path / "tests" / "cassettes" / "test_api.cassette.json"
     cassette_file.parent.mkdir(parents=True)
-    cassette_file.write_text('request_from zeta-fixture-clinic response ok\n')
+    cassette_file.write_text("request_from zeta-fixture-clinic response ok\n")
 
     # 3. Plant hit in diagram file (*.mermaid or similar)
     diagram_file = tmp_path / "docs" / "arch.mermaid"
@@ -172,7 +184,7 @@ def test_all_four_non_source_content_kinds_are_scanned(tmp_path: Path) -> None:
     # 4. Plant hit in results file (*.results.json or similar)
     results_file = tmp_path / "evals" / "results" / "eval.results.json"
     results_file.parent.mkdir(parents=True)
-    results_file.write_text('case 1 output from zeta-fixture-clinic system\n')
+    results_file.write_text("case 1 output from zeta-fixture-clinic system\n")
 
     # Scan tree - should find 4 R7 hits
     tree_results = scan_tree(tmp_path, denylist, i6_words)

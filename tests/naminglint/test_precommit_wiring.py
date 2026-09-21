@@ -51,5 +51,9 @@ def test_hook_and_ci_use_the_same_entry_point() -> None:
     )
 
     # 5. Verify both conformance tests carry checklist markers
-    assert "@pytest.mark.checklist_id" in i6_content, "test_I6.py should carry @pytest.mark.checklist_id"
-    assert "@pytest.mark.checklist_id" in r7_content, "test_R7.py should carry @pytest.mark.checklist_id"
+    assert "@pytest.mark.checklist_id" in i6_content, (
+        "test_I6.py should carry @pytest.mark.checklist_id"
+    )
+    assert "@pytest.mark.checklist_id" in r7_content, (
+        "test_R7.py should carry @pytest.mark.checklist_id"
+    )

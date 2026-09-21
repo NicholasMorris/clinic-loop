@@ -43,9 +43,5 @@ def test_r7_no_forbidden_names_in_tree() -> None:
 
     # Report results
     if r7_hits:
-        hit_summary = "\n  ".join(
-            f"{hit[0]}:{hit[1]} - {hit[2]}" for hit in r7_hits[:10]
-        )
-        pytest.fail(
-            f"Found {len(r7_hits)} R7 violations (forbidden names):\n  {hit_summary}"
-        )
+        hit_summary = "\n  ".join(f"{hit[0]}:{hit[1]} - {hit[2]}" for hit in r7_hits[:10])
+        pytest.fail(f"Found {len(r7_hits)} R7 violations (forbidden names):\n  {hit_summary}")

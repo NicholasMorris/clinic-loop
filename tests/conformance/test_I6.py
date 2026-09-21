@@ -45,9 +45,9 @@ def test_i6_no_forbidden_words_in_tree() -> None:
 
     # Report results
     if i6_outside_file:
-        hit_summary = "\n  ".join(
-            f"{hit[0]}:{hit[1]} - {hit[2]}" for hit in i6_outside_file[:10]
+        hit_summary = "\n  ".join(f"{hit[0]}:{hit[1]} - {hit[2]}" for hit in i6_outside_file[:10])
+        msg = (
+            f"Found {len(i6_outside_file)} I6 word violations outside exempt paths:"
+            f"\n  {hit_summary}"
         )
-        pytest.fail(
-            f"Found {len(i6_outside_file)} I6 word violations outside exempt paths:\n  {hit_summary}"
-        )
+        pytest.fail(msg)

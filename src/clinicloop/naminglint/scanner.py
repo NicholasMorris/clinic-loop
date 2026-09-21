@@ -9,13 +9,11 @@ I6 words live in a single tracked file (i6_words.txt) with deliberate exception.
 """
 
 import hashlib
-import re
 import subprocess
 import sys
 import unicodedata
 from pathlib import Path
 from typing import Set
-
 
 # Exempt paths that are allowed to contain forbidden names
 EXEMPT_PATHS = {
@@ -26,7 +24,7 @@ EXEMPT_PATHS = {
 }
 
 # File patterns to scan (tracked files only; special content kinds scanned separately)
-# Note: *.cassette.json, *.mermaid, *.results.json are scanned separately to handle non-tracked files
+# Note: *.cassette.json, *.mermaid, *.results.json scanned separately for non-tracked files
 TRACKABLE_PATTERNS = {
     "*.py",
     "*.md",
@@ -215,7 +213,11 @@ def _scan_tracked_files(
 
         # Skip special content kinds (scanned separately)
         file_str = str(file_path)
-        if file_str.endswith(".cassette.json") or file_str.endswith(".results.json") or file_str.endswith(".mermaid"):
+        if (
+            file_str.endswith(".cassette.json")
+            or file_str.endswith(".results.json")
+            or file_str.endswith(".mermaid")
+        ):
             continue
 
         try:
