@@ -1,15 +1,16 @@
 """Tests for documentation and checker expectation synchronization."""
 
-import re
 import sys
 from pathlib import Path
-
-import pytest
+from typing import Any
 
 # Add scripts directory to path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts"))
 
-from repo_settings.review_contexts import REQUIRED_STATUS_CONTEXTS, REQUIRED_TOKEN_SCOPES
+from repo_settings.review_contexts import (  # type: ignore
+    REQUIRED_STATUS_CONTEXTS,
+    REQUIRED_TOKEN_SCOPES,
+)
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DOCS_FILE = REPO_ROOT / "docs" / "process" / "repository-settings.md"
@@ -34,7 +35,7 @@ def test_doc_and_checker_expectations_match() -> None:
     doc_content = DOCS_FILE.read_text()
 
     # Parse expectations from the document
-    expectations = {}
+    expectations: dict[str, Any] = {}
 
     # Look for visibility setting
     if "visibility" in doc_content and "public" in doc_content:
@@ -54,14 +55,18 @@ def test_doc_and_checker_expectations_match() -> None:
         expectations["pages_source_branch"] = "gh-pages"
 
     # Look for required status contexts
+    if "status_contexts" not in expectations:
+        expectations["status_contexts"] = []
     for context in REQUIRED_STATUS_CONTEXTS:
         if context in doc_content:
-            expectations.setdefault("status_contexts", []).append(context)
+            expectations["status_contexts"].append(context)
 
     # Look for required token scopes
+    if "token_scopes" not in expectations:
+        expectations["token_scopes"] = []
     for scope in REQUIRED_TOKEN_SCOPES:
         if scope in doc_content:
-            expectations.setdefault("token_scopes", []).append(scope)
+            expectations["token_scopes"].append(scope)
 
     # Verify all expected values are present
     assert expectations.get("visibility") == "public", (

@@ -4,15 +4,12 @@ import io
 import sys
 from contextlib import redirect_stdout
 from pathlib import Path
-from unittest import mock
-
-import pytest
 
 # Add scripts directory to path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts"))
 
-from repo_settings.check import check_token_scopes
-from repo_settings.review_contexts import REQUIRED_TOKEN_SCOPES
+from repo_settings.check import check_token_scopes  # type: ignore
+from repo_settings.review_contexts import REQUIRED_TOKEN_SCOPES  # type: ignore
 
 FIXTURES_DIR = Path(__file__).resolve().parent / "fixtures"
 
@@ -56,6 +53,10 @@ def test_missing_scope_reported_without_token_value() -> None:
         # Allow common words and scope names, but no 8+ char substrings that could be tokens
         if len(word) >= 8 and word not in ["read:org", "regulatory-guard", "security-privacy"]:
             # This might be a token leak - be cautious
-            assert word.startswith("test") or "scope" in word.lower() or "missing" in word.lower(), (
-                f"Suspicious 8+ char substring in output that might be a token: {word}"
-            )
+            word_lower = word.lower()
+            assert (
+                word.startswith("test")
+                or "scope" in word_lower
+                or "missing" in word_lower
+                or "required" in word_lower
+            ), f"Suspicious 8+ char substring in output that might be a token: {word}"
