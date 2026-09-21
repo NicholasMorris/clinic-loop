@@ -119,9 +119,7 @@ def test_post_twice_gives_distinct_ids_no_collision(
     # Find the highest message ID in the world
     if snapshot.messages:
         # Extract numbers from message IDs like "M000001"
-        max_id = max(
-            int(m.message_id[1:]) for m in snapshot.messages
-        )
+        max_id = max(int(m.message_id[1:]) for m in snapshot.messages)
     else:
         max_id = 0
 

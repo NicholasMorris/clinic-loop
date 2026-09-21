@@ -20,16 +20,21 @@ def get_world() -> World:
 
 
 @router.get("", response_model=list[MessageRead])
-def get_messages(world: World = Depends(get_world)) -> list[MessageRead]:
-    """Get all messages from the snapshot.
+def get_messages(
+    request: Request,
+    world: World = Depends(get_world),
+) -> list[MessageRead]:
+    """Get all messages from the snapshot and created messages.
 
     Args:
+        request: The request object (for accessing app state).
         world: The loaded world snapshot (injected).
 
     Returns:
-        List of MessageRead schemas.
+        List of MessageRead schemas including both snapshot and created messages.
     """
-    return [
+    # Collect world messages
+    messages = [
         MessageRead(
             message_id=m.message_id,
             patient_id=m.patient_id,
@@ -40,6 +45,11 @@ def get_messages(world: World = Depends(get_world)) -> list[MessageRead]:
         )
         for m in world.messages
     ]
+
+    # Add created messages from this app instance
+    messages.extend(request.app.state.created_messages.values())
+
+    return messages
 
 
 @router.get("/{message_id}", response_model=MessageRead)

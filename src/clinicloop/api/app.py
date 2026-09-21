@@ -56,8 +56,14 @@ def create_app(snapshot_path: Path | str, host: str = "127.0.0.1") -> FastAPI:
     )
 
     # Initialize app state for message storage
+    # Message counter starts after the highest existing message ID
     app.state.created_messages = {}
-    app.state.message_counter = 0
+    if world.messages:
+        # Extract numbers from message IDs like "M000001" and find the maximum
+        max_id = max(int(m.message_id[1:]) for m in world.messages)
+        app.state.message_counter = max_id
+    else:
+        app.state.message_counter = 0
 
     # Create a function to be used as a dependency
     def get_world_impl() -> World:
