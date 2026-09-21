@@ -1,16 +1,108 @@
-rules:
-  - rule_id: "AU-R1"
-    citation:
-      instrument: "National Health Act 1953 (Cth)"
-      provision: "Section 16"
-      checked_date: "2026-09-21"
-      citation_status: "unverified"
-    description: "Example rule for AU jurisdiction"
+jurisdiction: au
+version: "2026-09-22.1"
 
-  - rule_id: "AU-R2"
+second_opinion:
+  enabled: false
+
+lexicon:
+  products:
+    - veltrazine
+    - veltrazamide
+    - norvexal
+    - norvexatine
+    - quelmoran
+    - quelmoridone
+    - drexomide
+    - drexomil
+    - zafirol
+    - zafirolan
+    - brivantek
+    - brivantekol
+  euphemisms:
+    - the usual medicine
+    - your special script
+    - the strong stuff
+    - the pharmacy-only option
+    - the pills from last time
+    - the tablets you know
+    - the blue helper
+    - that prescription-strength option
+    - your regular fix
+    - the good stuff from the chemist
+    - the little helper
+    - the stuff we talked about
+  conditions:
+    - depression
+    - anxiety
+    - insomnia
+    - hypertension
+    - diabetes
+    - asthma
+    - migraine
+    - arthritis
+    - eczema
+    - acne
+
+escalation_routing:
+  # Assumed starter values for the orchestrator
+  - category: adverse_event
+    queue: clinical_urgent
+    target_response_minutes: 15
+    value_source: assumed
+  - category: suspected_misuse
+    queue: integrity_review
+    target_response_minutes: 60
+    value_source: assumed
+  - category: distress
+    queue: clinical_urgent
+    target_response_minutes: 15
+    value_source: assumed
+  - category: pregnancy
+    queue: prescriber_review
+    target_response_minutes: 60
+    value_source: assumed
+  - category: clinical_advice
+    queue: prescriber_review
+    target_response_minutes: 240
+    value_source: assumed
+
+rules:
+  - rule_id: AU-G-PRODUCT
+    description: "Naming a prescription-only product (brand or generic name)"
     citation:
       instrument: "Therapeutic Goods Act 1989 (Cth)"
-      provision: "Section 21"
-      checked_date: "2026-09-21"
+      provision: "Restrictions on advertising prescription-only goods to the public"
+      checked_date: "2026-09-22"
       citation_status: "unverified"
-    description: "Example compliance rule"
+
+  - rule_id: AU-G-EUPHEMISM
+    description: "Using euphemisms for prescription-only treatments"
+    citation:
+      instrument: "Therapeutic Goods Act 1989 (Cth)"
+      provision: "Restrictions on advertising prescription-only goods to the public"
+      checked_date: "2026-09-22"
+      citation_status: "unverified"
+
+  - rule_id: AU-G-DOSE
+    description: "Specifying a dose: a number with a unit of measurement"
+    citation:
+      instrument: "Health Practitioner Regulation National Law"
+      provision: "Restrictions on dosage information provision by non-prescribers"
+      checked_date: "2026-09-22"
+      citation_status: "unverified"
+
+  - rule_id: AU-G-CONDITION
+    description: "Making condition claims about patients or treatments"
+    citation:
+      instrument: "Therapeutic Goods Advertising Code 2021"
+      provision: "Restrictions on claims that products cure or treat conditions"
+      checked_date: "2026-09-22"
+      citation_status: "unverified"
+
+  - rule_id: AU-G-ADVICE
+    description: "Providing clinical advice about medications or treatment"
+    citation:
+      instrument: "Health Practitioner Regulation National Law"
+      provision: "Restrictions on clinical advice provision by non-prescribers"
+      checked_date: "2026-09-22"
+      citation_status: "unverified"
