@@ -2,7 +2,6 @@
 
 from typing import Any, NotRequired, TypedDict
 
-from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.graph import StateGraph
 
 
@@ -26,7 +25,7 @@ class ReferenceState(TypedDict):
     human_decision: NotRequired[dict[str, Any]]
 
 
-def build_reference_graph(checkpointer: BaseCheckpointSaver | None = None) -> Any:
+def build_reference_graph(checkpointer: Any = None) -> Any:
     """Build the reference graph with approval gate pattern.
 
     Args:

@@ -1,17 +1,14 @@
 """Tests for applying decisions to pending items."""
 
 import sqlite3
-from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
 
 import pytest
+from langgraph.checkpoint.sqlite import SqliteSaver
 
 from clinicloop.hitl.console.backend import apply_decision, list_pending
 from clinicloop.hitl.console.errors import DecisionAlreadyRecorded, UnknownDecisionKind
-from clinicloop.hitl.decision import HumanDecision
 from clinicloop.hitl.reference_graph import build_reference_graph
-from langgraph.checkpoint.sqlite import SqliteSaver
 
 
 @pytest.fixture
@@ -122,7 +119,7 @@ def test_three_decision_kinds_accepted_others_rejected(
         apply_decision(
             agent="reference",
             case_id="case_001",
-            kind="invalid",  # type: ignore
+            kind="invalid",
             reviewer="someone",
         )
 
@@ -136,7 +133,7 @@ def test_second_decision_is_refused(
     and does not overwrite the first decision.
     """
     # Apply first decision
-    recorded_first = apply_decision(
+    apply_decision(
         agent="reference",
         case_id="case_001",
         kind="approve",

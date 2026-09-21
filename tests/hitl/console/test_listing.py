@@ -1,15 +1,14 @@
 """Tests for listing pending items from checkpoint databases."""
 
-import os
 import sqlite3
 from pathlib import Path
-from typing import Any
 
 import pytest
-
-from clinicloop.hitl.console.backend import PendingListing, list_pending
-from clinicloop.hitl.reference_graph import build_reference_graph
 from langgraph.checkpoint.sqlite import SqliteSaver
+
+from clinicloop.hitl.console.backend import list_pending
+from clinicloop.hitl.reference_graph import build_reference_graph
+from clinicloop.hitl.registry import register_graph
 
 
 @pytest.fixture
@@ -24,6 +23,9 @@ def checkpoint_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
 
     # Monkeypatch the environment variable
     monkeypatch.setenv("CLINICLOOP_CHECKPOINT_ROOT", str(root))
+
+    # Register the reference-b graph builder
+    register_graph("reference-b", build_reference_graph)
 
     # Create first agent database with one interrupted thread
     db1_path = root / "reference.sqlite"

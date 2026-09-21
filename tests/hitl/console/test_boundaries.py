@@ -1,15 +1,12 @@
 """Tests for console module boundary restrictions."""
 
 import ast
-import importlib
-import inspect
-import sys
 from pathlib import Path
 from typing import Any
 
 import pytest
 
-from clinicloop.hitl.console.backend import apply_decision, list_pending
+from clinicloop.hitl.console.backend import list_pending
 
 
 def scan_module_for_violations(module_path: Path) -> list[dict[str, Any]]:
@@ -20,7 +17,7 @@ def scan_module_for_violations(module_path: Path) -> list[dict[str, Any]]:
     - update_state calls with channels other than "human_decision"
     - Imports of clinicloop.dashboard
     """
-    violations = []
+    violations: list[dict[str, Any]] = []
 
     try:
         with open(module_path) as f:
@@ -35,48 +32,70 @@ def scan_module_for_violations(module_path: Path) -> list[dict[str, Any]]:
             """Check for forbidden imports."""
             for alias in node.names:
                 if "clinicloop.dashboard" in alias.name:
-                    violations.append({
-                        "type": "forbidden_import",
-                        "name": alias.name,
-                        "line": node.lineno,
-                    })
+                    violations.append(
+                        {
+                            "type": "forbidden_import",
+                            "name": alias.name,
+                            "line": node.lineno,
+                        }
+                    )
             self.generic_visit(node)
 
         def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
             """Check for forbidden imports and symbols."""
             if node.module and "clinicloop.dashboard" in node.module:
-                violations.append({
-                    "type": "forbidden_import",
-                    "name": node.module,
-                    "line": node.lineno,
-                })
+                violations.append(
+                    {
+                        "type": "forbidden_import",
+                        "name": node.module,
+                        "line": node.lineno,
+                    }
+                )
             for alias in node.names:
                 if alias.name in ("SignoffService", "SignedNote"):
-                    violations.append({
+                    violations.append(
+                        {
+                            "type": "forbidden_symbol",
+                            "name": alias.name,
+                            "line": node.lineno,
+                        }
+                    )
+            self.generic_visit(node)
+
+        def visit_ClassDef(self, node: ast.ClassDef) -> None:
+            """Check for class definitions of forbidden symbols."""
+            if node.name in ("SignoffService", "SignedNote"):
+                violations.append(
+                    {
                         "type": "forbidden_symbol",
-                        "name": alias.name,
+                        "name": node.name,
                         "line": node.lineno,
-                    })
+                    }
+                )
             self.generic_visit(node)
 
         def visit_Name(self, node: ast.Name) -> None:
             """Check for direct references to forbidden symbols."""
             if node.id in ("SignoffService", "SignedNote"):
-                violations.append({
-                    "type": "forbidden_symbol",
-                    "name": node.id,
-                    "line": node.lineno,
-                })
+                violations.append(
+                    {
+                        "type": "forbidden_symbol",
+                        "name": node.id,
+                        "line": node.lineno,
+                    }
+                )
             self.generic_visit(node)
 
         def visit_Attribute(self, node: ast.Attribute) -> None:
             """Check for attribute references to forbidden symbols."""
             if node.attr in ("SignoffService", "SignedNote"):
-                violations.append({
-                    "type": "forbidden_symbol",
-                    "name": node.attr,
-                    "line": node.lineno,
-                })
+                violations.append(
+                    {
+                        "type": "forbidden_symbol",
+                        "name": node.attr,
+                        "line": node.lineno,
+                    }
+                )
             self.generic_visit(node)
 
         def visit_Call(self, node: ast.Call) -> None:
@@ -95,11 +114,13 @@ def scan_module_for_violations(module_path: Path) -> list[dict[str, Any]]:
                         for key in arg.keys:
                             if isinstance(key, ast.Constant):
                                 if key.value != "human_decision":
-                                    violations.append({
-                                        "type": "forbidden_update_state",
-                                        "channel": key.value,
-                                        "line": node.lineno,
-                                    })
+                                    violations.append(
+                                        {
+                                            "type": "forbidden_update_state",
+                                            "channel": key.value,
+                                            "line": node.lineno,
+                                        }
+                                    )
             self.generic_visit(node)
 
     Visitor().visit(tree)
@@ -122,9 +143,7 @@ def test_console_cannot_sign_or_write_other_state() -> None:
         violations.extend(scan_module_for_violations(py_file))
 
     # Should have no violations
-    assert (
-        len(violations) == 0
-    ), f"Console module has forbidden symbols/patterns: {violations}"
+    assert len(violations) == 0, f"Console module has forbidden symbols/patterns: {violations}"
 
     # Now verify the scanner detects violations in decoy_signer.py
     decoy_path = Path(__file__).parent / "decoy_signer.py"
