@@ -1,0 +1,16 @@
+rules:
+  - rule_id: "AU-R1"
+    citation:
+      instrument: "National Health Act 1953 (Cth)"
+      provision: "Section 16"
+      checked_date: "2026-09-21"
+      citation_status: "unverified"
+    description: "Example rule for AU jurisdiction"
+
+  - rule_id: "AU-R2"
+    citation:
+      instrument: "Therapeutic Goods Act 1989 (Cth)"
+      provision: "Section 21"
+      checked_date: "2026-09-21"
+      citation_status: "unverified"
+    description: "Example compliance rule"
