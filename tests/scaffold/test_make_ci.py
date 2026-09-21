@@ -70,7 +70,7 @@ done
         discovery_path.chmod(0o755)
 
         # Run the discovery script
-        result = subprocess.run(
+        subprocess.run(
             ["bash", str(discovery_path)],
             capture_output=True,
             text=True,
