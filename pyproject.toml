@@ -108,4 +108,5 @@ addopts = "--strict-markers"
 markers = [
     "local_model: needs the local model server and is excluded from make ci",
     "checklist_id: requirement identifier for conformance test coverage",
+    "conformance_M1_8: conformance test for M1-8",
 ]
