@@ -50,9 +50,6 @@ def test_each_corpus_case_stores_correctly(
         case_index: Index of the case to test.
     """
     cases = load_cases()
-    if case_index >= len(cases):
-        pytest.skip(f"Case index {case_index} out of range")
-
     case = cases[case_index]
     snapshot = read_world_snapshot(world_snapshot)
 
