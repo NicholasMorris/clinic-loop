@@ -109,9 +109,9 @@ The voice prompts used for TTS are public recordings with Australian English acc
 - Become the starting allowlist inherited by M4-2
 - Allow downstream code to verify that only expected reference clips were used
 
-## See Also
+## Future Work
 
-- [M0-9b (Spike ADRs)](../adrs/): Architectural decision records for audio generation strategy selection
-- [M4-2 (Provenance)](../audio/provenance.md): Production ledger, HMAC sidecar, and voice-prompt allowlist
-- [M4-3 (TTS Worker)](../audio/worker.md): Production text-to-speech worker in isolated environment
-- [Evaluation](../evaluation.md): How the disclaimer is excluded from WER/DER metrics
+- **M0-9b**: Architectural decision records for audio generation strategy selection
+- **M4-2**: Production ledger, HMAC sidecar, and voice-prompt allowlist
+- **M4-3**: Production text-to-speech worker in isolated environment
+- **M5-6**: Evaluation metrics showing how the disclaimer is excluded from WER/DER calculations
