@@ -43,10 +43,20 @@ def get_nav_from_mkdocs(docs_dir: Path) -> set[str]:
     # For this test, we parse the .nav.yml files to understand the structure
     nav_entries = set()
 
+    # Create a custom YAML loader that handles !include tags
+    class IncludeLoader(yaml.SafeLoader):
+        pass
+
+    def include_constructor(loader: Any, node: Any) -> str:
+        # Return a placeholder for included files
+        return f"[included: {node.value}]"
+
+    IncludeLoader.add_constructor("!include", include_constructor)
+
     # Check main .nav.yml if it exists
     main_nav = docs_dir / ".nav.yml"
     if main_nav.exists():
-        content = yaml.safe_load(main_nav.read_text())
+        content = yaml.load(main_nav.read_text(), Loader=IncludeLoader)
         if isinstance(content, list):
             for item in content:
                 if isinstance(item, dict):
@@ -56,7 +66,7 @@ def get_nav_from_mkdocs(docs_dir: Path) -> set[str]:
     for nav_file in docs_dir.rglob(".nav.yml"):
         if nav_file == main_nav:
             continue
-        content = yaml.safe_load(nav_file.read_text())
+        content = yaml.load(nav_file.read_text(), Loader=IncludeLoader)
         if isinstance(content, list):
             for item in content:
                 if isinstance(item, dict):

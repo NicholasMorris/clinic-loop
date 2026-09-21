@@ -1,0 +1,18 @@
+site_name: ClinicLoop
+site_description: Clinical workflow automation with LangGraph agents, synthetic audio, and integrity signals
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - toc.integrate
+
+plugins:
+  - awesome-nav
+
+markdown_extensions:
+  - pymdownx.arithmatex
+  - pymdownx.superfences
+  - pymdownx.tasklist
+  - tables

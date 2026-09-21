@@ -24,7 +24,7 @@ def build_site(docs_dir: Path, strict: bool = True) -> int:
         The exit code from mkdocs build, or 2 if an error occurs.
     """
     try:
-        cmd = ["mkdocs", "build", "--docs-dir", str(docs_dir)]
+        cmd = ["uv", "run", "--extra", "docs", "mkdocs", "build"]
         if strict:
             cmd.append("--strict")
         result = subprocess.run(
