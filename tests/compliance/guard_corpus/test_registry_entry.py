@@ -10,8 +10,10 @@ def test_guard_component_registered_with_zero_violation_threshold() -> None:
     """AC5: Guard component registered with rule_violation_rate=0.0."""
     clear_registry()
 
-    # Import to trigger registration
-    import clinicloop.evals.guard.metric  # noqa: F401
+    # Registration is idempotent and explicit: importing the module twice would not re-run it
+    from clinicloop.evals.guard.metric import register_guard_metric
+
+    register_guard_metric()
 
     # Check registry entry exists
     entry = get_metric("guard", "rule_violation_rate")
