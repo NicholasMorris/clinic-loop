@@ -19,7 +19,7 @@ def test_replay_reproduces_final_state() -> None:
 
     # Run the engine and record the event log
     engine = Engine(world, regime_key="au")
-    engine.run(1440)
+    result = engine.run(1440)
 
     # Get the final state
     hash_original = engine.run_hash()
@@ -36,9 +36,21 @@ def test_replay_reproduces_final_state() -> None:
     )
 
     engine2 = Engine(world2, regime_key="au")
-    engine2.run(1440)
+    result2 = engine2.run(1440)
     hash_replayed = engine2.run_hash()
 
     assert hash_original == hash_replayed, (
         "Replaying with the same seed should produce identical final state"
     )
+
+    # Verify that the records match exactly
+    assert len(result.records) == len(result2.records), (
+        "Replayed run should have same number of records"
+    )
+
+    for r1, r2 in zip(result.records, result2.records):
+        assert r1.queue == r2.queue, "Queue should match"
+        assert r1.item_id == r2.item_id, "Item ID should match"
+        assert r1.enqueued_at == r2.enqueued_at, "Enqueue time should match"
+        assert r1.started_at == r2.started_at, "Start time should match"
+        assert r1.finished_at == r2.finished_at, "Finish time should match"

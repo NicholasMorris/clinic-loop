@@ -33,6 +33,7 @@ class WorkerPoolConfig(BaseModel):
         assumed: Whether the values are assumed (starter values).
         assumption_note: Description of what is assumed.
         service_time_family: Distribution family for service times (e.g., "exponential", "normal").
+        mean_service_minutes: Mean service time in minutes for this pool.
         staffing_level: Number of workers in this pool.
         hourly_cost: Cost per hour for this pool.
     """
@@ -40,6 +41,7 @@ class WorkerPoolConfig(BaseModel):
     assumed: bool
     assumption_note: str
     service_time_family: str
+    mean_service_minutes: float
     staffing_level: int
     hourly_cost: float
 
@@ -75,6 +77,7 @@ def load_staffing(config_path: str | Path | None = None) -> dict[str, WorkerPool
         "assumed",
         "assumption_note",
         "service_time_family",
+        "mean_service_minutes",
         "staffing_level",
         "hourly_cost",
     }
@@ -91,6 +94,7 @@ def load_staffing(config_path: str | Path | None = None) -> dict[str, WorkerPool
             assumed=pool_data["assumed"],
             assumption_note=pool_data["assumption_note"],
             service_time_family=pool_data["service_time_family"],
+            mean_service_minutes=pool_data["mean_service_minutes"],
             staffing_level=pool_data["staffing_level"],
             hourly_cost=pool_data["hourly_cost"],
         )

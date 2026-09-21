@@ -19,7 +19,7 @@ def test_ties_break_by_insertion_sequence() -> None:
 
     # Run the engine
     engine = Engine(world, regime_key="au")
-    engine.run(1440)
+    result = engine.run(1440)
 
     # The test passes if the engine runs without error and produces a consistent hash
     # The tie-breaking is verified by determinism: running again with the same seed
@@ -32,7 +32,14 @@ def test_ties_break_by_insertion_sequence() -> None:
         span_days=1,
     )
     engine2 = Engine(world2, regime_key="au")
-    engine2.run(1440)
+    result2 = engine2.run(1440)
     hash2 = engine2.run_hash()
 
     assert hash1 == hash2, "Tie-breaking should be consistent across identical runs"
+
+    # Verify that at least some items were actually serviced (not just enqueued)
+    serviced_count = sum(
+        1 for record in result.records
+        if record.finished_at is not None
+    )
+    assert serviced_count > 0, "At least some items should have been serviced"

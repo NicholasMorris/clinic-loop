@@ -3,6 +3,7 @@
 from clinicloop.world.engine import Engine, sla_rules
 from clinicloop.world.generator import generate_world
 from clinicloop.world.regimes import get_regime
+from clinicloop.world.workers import load_staffing
 
 
 def test_sla_rules_cite_inventory_ids() -> None:
@@ -41,9 +42,32 @@ def test_sla_rules_cite_inventory_ids() -> None:
     )
 
     engine = Engine(world, regime_key="au")
-    engine.run(1440)
+    result = engine.run(1440)
 
     # Verify the engine runs without error
     hash_value = engine.run_hash()
     assert isinstance(hash_value, str)
     assert len(hash_value) > 0
+
+
+def test_staffing_config_has_mean_service_minutes() -> None:
+    """Verify staffing config includes mean_service_minutes for all pools."""
+    staffing = load_staffing()
+
+    expected_pools = {"intake", "prescriber_review", "pharmacy_fulfilment", "support_inbox"}
+    assert set(staffing.keys()) == expected_pools
+
+    # Check that each pool has mean_service_minutes
+    for pool_name, config in staffing.items():
+        assert hasattr(config, "mean_service_minutes"), (
+            f"Pool '{pool_name}' should have mean_service_minutes"
+        )
+        assert config.mean_service_minutes > 0, (
+            f"Pool '{pool_name}' mean_service_minutes should be > 0"
+        )
+
+    # Verify specific expected values
+    assert staffing["intake"].mean_service_minutes == 2
+    assert staffing["prescriber_review"].mean_service_minutes == 8
+    assert staffing["pharmacy_fulfilment"].mean_service_minutes == 4
+    assert staffing["support_inbox"].mean_service_minutes == 5

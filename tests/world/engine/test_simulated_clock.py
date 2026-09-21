@@ -37,11 +37,12 @@ def test_engine_never_reads_wall_clock() -> None:
         )
 
         engine = Engine(world, regime_key="au")
-        engine.run(1440)  # 24 hours
+        result = engine.run(1440)  # 24 hours
 
         # If we reach here, the engine didn't read the wall clock
         hash_value = engine.run_hash()
         assert isinstance(hash_value, str)
+        assert result is not None
 
 
 def test_nz_regime_raises_not_set_error() -> None:
