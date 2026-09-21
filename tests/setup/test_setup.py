@@ -2,7 +2,7 @@
 
 from io import StringIO
 from pathlib import Path
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -12,7 +12,7 @@ from clinicloop.setup.install import run_setup
 
 @pytest.mark.checklist_id("L4")
 def test_written_selection_is_read_back_by_doctor(tmp_path: Path) -> None:
-    """setup writes selection to config; doctor reads it back."""
+    """Setup writes selection to config; doctor reads it back."""
     hardware_tiers_path = (
         __file__.rsplit("/", 3)[0]  # get the repo root
         + "/src/clinicloop/setup/hardware_tiers.toml"
@@ -37,9 +37,7 @@ def test_written_selection_is_read_back_by_doctor(tmp_path: Path) -> None:
 
     with patch("clinicloop.setup.doctor.find_binary", side_effect=find_binary):
         with patch("clinicloop.setup.doctor.get_binary_version", side_effect=get_version):
-            with patch(
-                "clinicloop.setup.doctor.get_available_memory_gib", return_value=32
-            ):
+            with patch("clinicloop.setup.doctor.get_available_memory_gib", return_value=32):
                 # Run setup
                 with patch(
                     "clinicloop.setup.install.find_binary",
@@ -62,7 +60,7 @@ def test_written_selection_is_read_back_by_doctor(tmp_path: Path) -> None:
                 assert config_file.exists(), f"Config file should be written to {config_file}"
 
                 # Run doctor to verify it can read back the same values
-                with patch("sys.stdout", StringIO()) as captured:
+                with patch("sys.stdout", StringIO()):
                     # Create a temporary models.toml that doctor can read
                     # We need to tell doctor to read from this file
                     exit_code = run_doctor(
@@ -74,7 +72,7 @@ def test_written_selection_is_read_back_by_doctor(tmp_path: Path) -> None:
 
 
 def test_setup_invokes_package_manager_for_ffmpeg_when_absent(tmp_path: Path) -> None:
-    """setup invokes package manager once with ffmpeg install when ffmpeg absent."""
+    """Setup invokes package manager once with ffmpeg install when ffmpeg absent."""
     hardware_tiers_path = (
         __file__.rsplit("/", 3)[0]  # get the repo root
         + "/src/clinicloop/setup/hardware_tiers.toml"
@@ -112,7 +110,7 @@ def test_setup_invokes_package_manager_for_ffmpeg_when_absent(tmp_path: Path) ->
 
 
 def test_setup_prints_whisper_cpp_build_instructions(tmp_path: Path) -> None:
-    """setup prints whisper.cpp build instructions when binary absent."""
+    """Setup prints whisper.cpp build instructions when binary absent."""
     hardware_tiers_path = (
         __file__.rsplit("/", 3)[0]  # get the repo root
         + "/src/clinicloop/setup/hardware_tiers.toml"
@@ -138,6 +136,4 @@ def test_setup_prints_whisper_cpp_build_instructions(tmp_path: Path) -> None:
                     )
 
                 output = captured_output.getvalue()
-                assert "whisper" in output.lower(), (
-                    "Should print whisper.cpp build instructions"
-                )
+                assert "whisper" in output.lower(), "Should print whisper.cpp build instructions"

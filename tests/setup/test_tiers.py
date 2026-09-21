@@ -16,11 +16,7 @@ from clinicloop.setup.tiers import (
 def hardware_tiers_path() -> Path:
     """Return path to hardware_tiers.toml in the source tree."""
     return (
-        Path(__file__).parent.parent.parent
-        / "src"
-        / "clinicloop"
-        / "setup"
-        / "hardware_tiers.toml"
+        Path(__file__).parent.parent.parent / "src" / "clinicloop" / "setup" / "hardware_tiers.toml"
     )
 
 
@@ -69,9 +65,7 @@ def test_four_rows_load_from_config_and_48gib_resolves_to_its_own_row(
     # Test with 48 GiB mocked memory
     with patch("clinicloop.setup.tiers.get_available_memory_gib", return_value=48):
         selected = resolve_tier(tiers)
-        assert selected["label"] == "48GB", (
-            "48 GiB should resolve to 48GB row, not 32GB row"
-        )
+        assert selected["label"] == "48GB", "48 GiB should resolve to 48GB row, not 32GB row"
 
 
 def test_missing_quantisation_key_raises_validation_error(
@@ -83,20 +77,14 @@ def test_missing_quantisation_key_raises_validation_error(
 
     # Error message should name the key and the row
     error_msg = str(exc_info.value).lower()
-    assert "quantisation" in error_msg, (
-        "Error should mention missing 'quantisation' key"
-    )
+    assert "quantisation" in error_msg, "Error should mention missing 'quantisation' key"
 
 
 @pytest.mark.checklist_id("L4")
 def test_each_mocked_tier_returns_its_configured_selection() -> None:
     """Each mocked memory tier returns its configured repo_id and quantisation."""
     hardware_tiers_path = (
-        Path(__file__).parent.parent.parent
-        / "src"
-        / "clinicloop"
-        / "setup"
-        / "hardware_tiers.toml"
+        Path(__file__).parent.parent.parent / "src" / "clinicloop" / "setup" / "hardware_tiers.toml"
     )
     tiers = load_tiers(hardware_tiers_path)
 
@@ -105,20 +93,14 @@ def test_each_mocked_tier_returns_its_configured_selection() -> None:
         selected = resolve_tier(tiers)
         assert selected["repo_id"] == "unsloth/Qwen3-30B-A3B-Instruct-2507-GGUF"
         assert selected["quantisation"] == "Q4_K_M"
-        assert (
-            selected["fallback_repo_id"]
-            == "unsloth/Mistral-Small-3.2-24B-Instruct-2506-GGUF"
-        )
+        assert selected["fallback_repo_id"] == "unsloth/Mistral-Small-3.2-24B-Instruct-2506-GGUF"
 
     # Test 48 GiB
     with patch("clinicloop.setup.tiers.get_available_memory_gib", return_value=48):
         selected = resolve_tier(tiers)
         assert selected["repo_id"] == "unsloth/Qwen3-30B-A3B-Instruct-2507-GGUF"
         assert selected["quantisation"] == "Q4_K_M"
-        assert (
-            selected["fallback_repo_id"]
-            == "unsloth/Mistral-Small-3.2-24B-Instruct-2506-GGUF"
-        )
+        assert selected["fallback_repo_id"] == "unsloth/Mistral-Small-3.2-24B-Instruct-2506-GGUF"
 
     # Test 32 GiB
     with patch("clinicloop.setup.tiers.get_available_memory_gib", return_value=32):
@@ -154,18 +136,12 @@ def test_every_row_is_marked_assumed_and_the_page_says_so(
     )
 
     # Check documentation page exists and contains the required statement
-    docs_path = (
-        Path(__file__).parent.parent.parent.parent
-        / "docs"
-        / "setup"
-        / "hardware-tiers.md"
-    )
+    # Path: tests/setup/test_tiers.py -> tests -> root
+    docs_path = Path(__file__).parent.parent.parent / "docs" / "setup" / "hardware-tiers.md"
     assert docs_path.exists(), f"Documentation page not found at {docs_path}"
 
     docs_content = docs_path.read_text()
-    assert "assumed" in docs_content.lower(), (
-        "Documentation should mention 'assumed' values"
-    )
+    assert "assumed" in docs_content.lower(), "Documentation should mention 'assumed' values"
     assert "docs/adr/llm-model-selection.md" in docs_content, (
         "Documentation should reference docs/adr/llm-model-selection.md"
     )

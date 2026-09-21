@@ -12,11 +12,7 @@ from clinicloop.setup.tiers import load_tiers
 def test_every_tier_row_names_a_repo_id_and_quantisation() -> None:
     """Every row in hardware_tiers.toml has valid repo_id and quantisation Q4_K_M."""
     hardware_tiers_path = (
-        Path(__file__).parent.parent.parent
-        / "src"
-        / "clinicloop"
-        / "setup"
-        / "hardware_tiers.toml"
+        Path(__file__).parent.parent.parent / "src" / "clinicloop" / "setup" / "hardware_tiers.toml"
     )
 
     tiers = load_tiers(hardware_tiers_path)

@@ -1,9 +1,8 @@
 """Tests for doctor command (AC4, AC6)."""
 
 import socket
-import sys
 from io import StringIO
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -12,7 +11,7 @@ from clinicloop.setup.doctor import run_doctor
 
 @pytest.mark.checklist_id("L4")
 def test_missing_external_binaries_are_named_and_exit_is_one() -> None:
-    """doctor exits 1, naming each missing binary (ffmpeg, whisper.cpp)."""
+    """Doctor exits 1, naming each missing binary (ffmpeg, whisper.cpp)."""
     hardware_tiers_path = (
         __file__.rsplit("/", 3)[0]  # get the repo root
         + "/src/clinicloop/setup/hardware_tiers.toml"
@@ -49,7 +48,7 @@ def test_missing_external_binaries_are_named_and_exit_is_one() -> None:
 
 @pytest.mark.checklist_id("L4")
 def test_doctor_with_both_binaries_present_exits_zero() -> None:
-    """doctor exits 0 and prints version strings when both binaries present."""
+    """Doctor exits 0 and prints version strings when both binaries present."""
     hardware_tiers_path = (
         __file__.rsplit("/", 3)[0]  # get the repo root
         + "/src/clinicloop/setup/hardware_tiers.toml"
@@ -83,7 +82,7 @@ def test_doctor_with_both_binaries_present_exits_zero() -> None:
 
 @pytest.mark.checklist_id("L4")
 def test_doctor_opens_no_socket() -> None:
-    """doctor returns same exit code regardless of socket.socket monkeypatch."""
+    """Doctor returns same exit code regardless of socket.socket monkeypatch."""
     hardware_tiers_path = (
         __file__.rsplit("/", 3)[0]  # get the repo root
         + "/src/clinicloop/setup/hardware_tiers.toml"
@@ -112,9 +111,7 @@ def test_doctor_opens_no_socket() -> None:
     # Get exit code with socket.socket monkeypatched to raise RuntimeError
     with patch.object(socket, "socket", side_effect=RuntimeError("No sockets!")):
         with patch("clinicloop.setup.doctor.find_binary", side_effect=find_binary):
-            with patch(
-                "clinicloop.setup.doctor.get_binary_version", side_effect=get_version
-            ):
+            with patch("clinicloop.setup.doctor.get_binary_version", side_effect=get_version):
                 with patch("clinicloop.setup.doctor.get_available_memory_gib", return_value=32):
                     with patch("sys.stdout", StringIO()):
                         exit_code_with_socket_patch = run_doctor(hardware_tiers_path)
