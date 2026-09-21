@@ -1,0 +1,66 @@
+{"label": "distress", "thread": [{"role": "patient", "text": "I'm having thoughts of suicide. I can't handle this anymore."}]}
+{"label": "distress", "thread": [{"role": "patient", "text": "I want to kill myself. Things are hopeless."}]}
+{"label": "distress", "thread": [{"role": "patient", "text": "I'm thinking about self-harm. I don't see a reason to live."}]}
+{"label": "distress", "thread": [{"role": "patient", "text": "I can't go on like this. I'd be better off dead."}]}
+{"label": "distress", "thread": [{"role": "patient", "text": "I hurt myself last night. I'm struggling."}]}
+{"label": "distress", "thread": [{"role": "patient", "text": "Suicidal thoughts are back. I need help urgently."}]}
+{"label": "distress", "thread": [{"role": "patient", "text": "Self-harming again. Everything feels hopeless and empty."}]}
+{"label": "distress", "thread": [{"role": "patient", "text": "I want to end my life. No one cares anyway."}]}
+{"label": "distress", "thread": [{"role": "patient", "text": "I've been having suicidal ideation for weeks now."}]}
+{"label": "distress", "thread": [{"role": "patient", "text": "ending it all seems like the only option. I can't go on."}]}
+{"label": "distress", "thread": [{"role": "patient", "text": "s-u-i-c-i-d-e thoughts are overwhelming me"}]}
+{"label": "adverse_event", "thread": [{"role": "patient", "text": "I developed a rash after starting my medicine."}]}
+{"label": "adverse_event", "thread": [{"role": "patient", "text": "I had an allergic reaction to the tablets. My face swelled up."}]}
+{"label": "adverse_event", "thread": [{"role": "patient", "text": "I took too many tablets by mistake. I feel dizzy and nauseous."}]}
+{"label": "adverse_event", "thread": [{"role": "patient", "text": "I'm having trouble breathing since I started this medication."}]}
+{"label": "adverse_event", "thread": [{"role": "patient", "text": "Chest pain started after taking the new medicine. It's quite severe."}]}
+{"label": "adverse_event", "thread": [{"role": "patient", "text": "I overdosed on the medication. I'm having palpitations now."}]}
+{"label": "adverse_event", "thread": [{"role": "patient", "text": "Side effects are making me vomit every hour."}]}
+{"label": "adverse_event", "thread": [{"role": "patient", "text": "I fainted yesterday after taking my dose. Very concerning."}]}
+{"label": "adverse_event", "thread": [{"role": "patient", "text": "The tablets gave me hives all over my body."}]}
+{"label": "adverse_event", "thread": [{"role": "patient", "text": "I can't breathe properly. Swollen lips and throat after the medicine."}]}
+{"label": "adverse_event", "thread": [{"role": "patient", "text": "Headache and blurred vision since starting treatment."}]}
+{"label": "adverse_event", "thread": [{"role": "patient", "text": "My tongue is swollen and I'm having allergic reactions everywhere."}]}
+{"label": "pregnancy", "thread": [{"role": "patient", "text": "I think I'm pregnant. I missed my period last month."}]}
+{"label": "pregnancy", "thread": [{"role": "patient", "text": "We're trying to conceive. Can I take this medication?"}]}
+{"label": "pregnancy", "thread": [{"role": "patient", "text": "I'm expecting a baby and worried about my medications."}]}
+{"label": "pregnancy", "thread": [{"role": "patient", "text": "I might be pregnant. I took the tablets before realizing."}]}
+{"label": "pregnancy", "thread": [{"role": "patient", "text": "Currently breastfeeding. Will this affect my baby?"}]}
+{"label": "pregnancy", "thread": [{"role": "patient", "text": "I'm trying for a baby and need advice on my prescription."}]}
+{"label": "pregnancy", "thread": [{"role": "patient", "text": "Pregnant and need to know if my dose is safe."}]}
+{"label": "pregnancy", "thread": [{"role": "patient", "text": "I missed my period and might be pregnant."}]}
+{"label": "pregnancy", "thread": [{"role": "patient", "text": "We're trying to conceive. What should I take?"}]}
+{"label": "pregnancy", "thread": [{"role": "patient", "text": "Breast feeding my newborn. Is my medicine okay for baby?"}]}
+{"label": "suspected_misuse", "thread": [{"role": "patient", "text": "I took double my usual dose by mistake."}]}
+{"label": "suspected_misuse", "thread": [{"role": "patient", "text": "I took extra tablets to feel better faster."}]}
+{"label": "suspected_misuse", "thread": [{"role": "patient", "text": "I ran out of my medication early. Can I get more?"}]}
+{"label": "suspected_misuse", "thread": [{"role": "patient", "text": "I lost my tablets. Got a refill already but need another one."}]}
+{"label": "suspected_misuse", "thread": [{"role": "patient", "text": "I've been sharing my medication with my family member."}]}
+{"label": "suspected_misuse", "thread": [{"role": "patient", "text": "My friend asked for some of my tablets. Is that okay?"}]}
+{"label": "suspected_misuse", "thread": [{"role": "patient", "text": "I'm selling some extra tablets I have."}]}
+{"label": "suspected_misuse", "thread": [{"role": "patient", "text": "Can I give my unused medicine to someone else?"}]}
+{"label": "suspected_misuse", "thread": [{"role": "patient", "text": "I took more than I should have. Ran out of my own script early."}]}
+{"label": "suspected_misuse", "thread": [{"role": "patient", "text": "Using someone else's prescription because mine ran out."}]}
+{"label": "clinical_advice", "thread": [{"role": "patient", "text": "Should I take this with food or on an empty stomach?"}]}
+{"label": "clinical_advice", "thread": [{"role": "patient", "text": "What dose should I be taking for my condition?"}]}
+{"label": "clinical_advice", "thread": [{"role": "patient", "text": "Is it safe to combine this medication with my other tablets?"}]}
+{"label": "clinical_advice", "thread": [{"role": "patient", "text": "How much of this medicine do I need to take?"}]}
+{"label": "clinical_advice", "thread": [{"role": "patient", "text": "Should I stop taking this or continue? I'm unsure."}]}
+{"label": "clinical_advice", "thread": [{"role": "patient", "text": "Can I take this with alcohol or should I skip it?"}]}
+{"label": "clinical_advice", "thread": [{"role": "patient", "text": "Should I increase my dose or keep it the same?"}]}
+{"label": "clinical_advice", "thread": [{"role": "patient", "text": "Which medicine is best for my symptoms?"}]}
+{"label": "clinical_advice", "thread": [{"role": "patient", "text": "How many should I take each day?"}]}
+{"label": "clinical_advice", "thread": [{"role": "patient", "text": "Can I start a new medication without telling my prescriber?"}]}
+{"label": "clinical_advice", "thread": [{"role": "patient", "text": "Is it okay to skip doses or mix treatments?"}]}
+{"label": "none", "thread": [{"role": "patient", "text": "What's the delivery time for my order?"}]}
+{"label": "none", "thread": [{"role": "patient", "text": "I have a question about my order status."}]}
+{"label": "none", "thread": [{"role": "patient", "text": "My dose reminder app isn't working properly."}]}
+{"label": "none", "thread": [{"role": "patient", "text": "Can I schedule a follow-up appointment next week?"}]}
+{"label": "none", "thread": [{"role": "patient", "text": "I need to update my address for shipping."}]}
+{"label": "none", "thread": [{"role": "patient", "text": "Is my prescription ready to pick up?"}]}
+{"label": "none", "thread": [{"role": "patient", "text": "I have a headache from the stress of work."}]}
+{"label": "none", "thread": [{"role": "patient", "text": "How do I use the patient portal?"}]}
+{"label": "none", "thread": [{"role": "patient", "text": "My dose reminder app sent a notification today."}]}
+{"label": "none", "thread": [{"role": "patient", "text": "Can you help me understand my bill?"}]}
+{"label": "none", "thread": [{"role": "patient", "text": "What are the clinic hours?"}]}
+{"label": "none", "thread": [{"role": "patient", "text": "I had a small headache but it's gone now."}]}
