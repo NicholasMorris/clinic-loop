@@ -1,48 +1,54 @@
-"""Tests for towncrier configuration."""
+"""Tests for the towncrier changelog configuration."""
 
+import shutil
+import subprocess
+import sys
+import tomllib
 from pathlib import Path
 
-import tomllib
+REPO_ROOT = Path(__file__).resolve().parents[2]
+FIXTURE_FRAGMENT = Path(__file__).resolve().parent / "fixtures" / "0.feat.md"
+EXPECTED_TYPES = ["feat", "fix", "docs", "chore", "test"]
 
 
-def get_pyproject_path() -> Path:
-    """Get the path to pyproject.toml."""
-    return Path(__file__).parent.parent.parent / "pyproject.toml"
+def test_draft_render_includes_fixture_fragment(tmp_path: Path) -> None:
+    """AC4: towncrier config declares changes/ and five types, and renders the fixture."""
+    with open(REPO_ROOT / "pyproject.toml", "rb") as handle:
+        config = tomllib.load(handle)["tool"]["towncrier"]
 
+    assert config["directory"] == "changes", "fragment directory must be changes/"
+    declared = set(config["fragment"])
+    assert declared == set(EXPECTED_TYPES), f"fragment types must be exactly {EXPECTED_TYPES}"
 
-def get_fixture_fragment_path() -> Path:
-    """Get the path to the fixture fragment."""
-    return Path(__file__).parent / "fixtures" / "0.feat.md"
+    project = tmp_path / "project"
+    (project / "changes").mkdir(parents=True)
+    shutil.copy(REPO_ROOT / "pyproject.toml", project / "pyproject.toml")
+    shutil.copy(FIXTURE_FRAGMENT, project / "changes" / FIXTURE_FRAGMENT.name)
 
-
-def test_draft_render_includes_fixture_fragment() -> None:
-    """Test that towncrier configuration is correct.
-
-    AC4: The towncrier configuration declares the fragment directory
-    changes/ and the fragment types feat, fix, docs, chore and test and
-    no others.
-    """
-    pyproject_path = get_pyproject_path()
-    assert pyproject_path.exists(), "pyproject.toml not found"
-
-    with open(pyproject_path, "rb") as f:
-        data = tomllib.load(f)
-
-    # Check towncrier configuration
-    towncrier_config = data.get("tool", {}).get("towncrier", {})
-
-    # Check fragment directory
-    assert towncrier_config.get("directory") == "changes", (
-        "towncrier directory not set to 'changes'"
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "towncrier",
+            "build",
+            "--draft",
+            "--version",
+            "0.0.0",
+            "--dir",
+            str(project),
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
     )
+    assert result.returncode == 0, f"towncrier failed: {result.stdout}\n{result.stderr}"
 
-    # Check fragment types
-    fragment_types = set(towncrier_config.get("fragment", {}).get("types", {}).keys())
-    expected_types = {"feat", "fix", "docs", "chore", "test"}
-    assert fragment_types == expected_types, (
-        f"Expected fragment types {expected_types}, got {fragment_types}"
-    )
+    fixture_text = FIXTURE_FRAGMENT.read_text().strip()
+    assert fixture_text, "fixture fragment is empty"
+    draft = result.stdout
+    assert fixture_text in draft, f"fixture text missing from draft:\n{draft}"
 
-    # Verify fixture fragment exists
-    fixture_fragment = get_fixture_fragment_path()
-    assert fixture_fragment.exists(), f"Fixture fragment not found at {fixture_fragment}"
+    heading = draft.index("Features")
+    position = draft.index(fixture_text)
+    assert heading < position, "fixture text is not below the Features heading"
+    assert "###" not in draft[heading + len("Features") : position], "another heading intervenes"

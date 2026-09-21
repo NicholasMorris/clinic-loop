@@ -1,88 +1,76 @@
-"""Tests for PR template and Makefile targets."""
+"""Tests for the pull request template, the setup targets and the .gitignore entries."""
 
+import re
+import subprocess
 from pathlib import Path
 
+REPO_ROOT = Path(__file__).resolve().parents[2]
 
-def get_pr_template_path() -> Path:
-    """Get the path to PR template."""
-    return Path(__file__).parent.parent.parent / ".github" / "PULL_REQUEST_TEMPLATE.md"
+REQUIRED_IGNORES = {"data/", "runs/", "corpus/rendered/", ".venv", "evals/local/"}
+ORDINARY_IGNORES = {
+    "__pycache__/",
+    "*.py[cod]",
+    "*.egg-info/",
+    ".pytest_cache/",
+    ".mypy_cache/",
+    ".ruff_cache/",
+    ".coverage",
+    "htmlcov/",
+    "dist/",
+    "site/",
+    ".DS_Store",
+}
 
 
-def get_makefile_path() -> Path:
-    """Get the path to Makefile."""
-    return Path(__file__).parent.parent.parent / "Makefile"
+def headings(markdown: str) -> list[str]:
+    """Return the lower-cased Markdown headings of a document.
+
+    Args:
+        markdown: The document text.
+
+    Returns:
+        Heading texts in document order.
+    """
+    return [m.group(1).strip().lower() for m in re.finditer(r"^#{1,6}\s+(.+)$", markdown, re.M)]
 
 
-def get_gitignore_path() -> Path:
-    """Get the path to .gitignore."""
-    return Path(__file__).parent.parent.parent / ".gitignore"
+def make_dry_run(target: str) -> str:
+    """Return the commands make would run for a target.
+
+    Args:
+        target: The make target.
+
+    Returns:
+        The dry-run output.
+    """
+    result = subprocess.run(
+        ["make", "-n", "-C", str(REPO_ROOT), target], capture_output=True, text=True, check=False
+    )
+    assert result.returncode == 0, f"make -n {target} failed: {result.stderr}"
+    return result.stdout
 
 
 def test_template_fields_setup_targets_and_gitignore_entries() -> None:
-    """Test PR template, Makefile targets, and .gitignore.
-
-    AC7: .github/PULL_REQUEST_TEMPLATE.md contains fields labelled for
-    the red-commit SHA, the files globs and the docs-and-fragment entry;
-    the Makefile declares doctor and setup targets whose recipes invoke
-    python -m clinicloop.setup.doctor and python -m clinicloop.setup.install;
-    and .gitignore contains the entries data/, runs/, corpus/rendered/,
-    .venv and evals/local/, asserted as an exact membership check so
-    later issues add none.
-    """
-    # Check PR template
-    pr_template_path = get_pr_template_path()
-    assert pr_template_path.exists(), f"PR template not found at {pr_template_path}"
-
-    template_content = pr_template_path.read_text()
-
-    # Check for required fields
-    assert "red-commit" in template_content.lower() or "red commit" in template_content.lower(), (
-        "PR template should contain 'red-commit' field"
+    """AC7: template fields, doctor and setup recipes, and exact .gitignore membership."""
+    template = (REPO_ROOT / ".github" / "PULL_REQUEST_TEMPLATE.md").read_text()
+    titles = headings(template)
+    assert any("red-commit sha" in title for title in titles), f"no red-commit SHA field: {titles}"
+    assert any("files" in title and "glob" in title for title in titles), (
+        f"no files globs field: {titles}"
+    )
+    assert any("docs" in title and "fragment" in title for title in titles), (
+        f"no docs-and-fragment field: {titles}"
     )
 
-    assert "files" in template_content.lower() or "glob" in template_content.lower(), (
-        "PR template should contain 'files' or 'glob' field"
-    )
+    assert "python -m clinicloop.setup.doctor" in make_dry_run("doctor")
+    assert "python -m clinicloop.setup.install" in make_dry_run("setup")
 
-    template_lower = template_content.lower()
-    has_doc_field = (
-        "doc" in template_lower or "changelog" in template_lower or "fragment" in template_lower
-    )
-    assert has_doc_field, "PR template should contain documentation/changelog field"
-
-    # Check Makefile targets
-    makefile_path = get_makefile_path()
-    assert makefile_path.exists(), "Makefile not found"
-
-    makefile_content = makefile_path.read_text()
-
-    # Check for doctor target
-    assert ".PHONY: doctor" in makefile_content or "doctor:" in makefile_content, (
-        "Makefile should declare doctor target"
-    )
-    assert "python -m clinicloop.setup.doctor" in makefile_content, (
-        "doctor target should invoke python -m clinicloop.setup.doctor"
-    )
-
-    # Check for setup target
-    assert ".PHONY: setup" in makefile_content or "setup:" in makefile_content, (
-        "Makefile should declare setup target"
-    )
-    assert "python -m clinicloop.setup.install" in makefile_content, (
-        "setup target should invoke python -m clinicloop.setup.install"
-    )
-
-    # Check .gitignore entries
-    gitignore_path = get_gitignore_path()
-    assert gitignore_path.exists(), f".gitignore not found at {gitignore_path}"
-
-    gitignore_content = gitignore_path.read_text()
-    gitignore_lines = set(
+    lines = {
         line.strip()
-        for line in gitignore_content.split("\n")
+        for line in (REPO_ROOT / ".gitignore").read_text().splitlines()
         if line.strip() and not line.strip().startswith("#")
-    )
-
-    required_entries = {"data/", "runs/", "corpus/rendered/", ".venv", "evals/local/"}
-    for entry in required_entries:
-        assert entry in gitignore_lines, f"'{entry}' not found in .gitignore"
+    }
+    assert REQUIRED_IGNORES <= lines, f"missing entries: {REQUIRED_IGNORES - lines}"
+    extra = lines - ORDINARY_IGNORES - REQUIRED_IGNORES
+    assert not extra, f"unexpected entries beyond the five declared: {extra}"
+    assert "uv.lock" not in lines, "uv.lock must not be ignored"

@@ -1,83 +1,64 @@
-"""Tests for fragment.sh check script."""
+"""Tests for the checks/fragment.sh changelog and documentation check."""
 
 import subprocess
-import tempfile
 from pathlib import Path
 
+CHECK = Path(__file__).resolve().parents[2] / "checks" / "fragment.sh"
 
-def get_fragment_check_path() -> Path:
-    """Get the path to fragment.sh."""
-    return Path(__file__).parent.parent.parent / "checks" / "fragment.sh"
+FRAGMENT_MESSAGE = "changelog fragment"
+DOCS_MESSAGE = "documentation"
+
+
+def run_check(*names: str, labels: str | None = None) -> subprocess.CompletedProcess[str]:
+    """Run checks/fragment.sh against a fixture list of changed file names.
+
+    Args:
+        *names: The changed paths against the merge base.
+        labels: An optional comma-separated label list.
+
+    Returns:
+        The completed process.
+    """
+    command = [str(CHECK)]
+    if labels is not None:
+        command += ["--labels", labels]
+    return subprocess.run([*command, *names], capture_output=True, text=True, check=False)
 
 
 def test_fragment_and_docs_are_required_unless_labelled() -> None:
-    """Test that fragment.sh requires changelog and docs.
+    """AC8: exit 1 naming the unmet requirement, exit 0 with both or with no-changelog."""
+    assert CHECK.is_file(), "checks/fragment.sh is missing"
 
-    AC8: checks/fragment.sh, given a fixture diff name list against the
-    merge base, exits 1 when the list contains no path matching
-    changes/<digits>.<one of feat, fix, docs, chore, test>.md or no
-    path under docs/, exits 0 when it contains one of each, and exits 0
-    regardless when the supplied label list contains no-changelog; its
-    output names which of the two requirements was unmet.
-    """
-    fragment_check_path = get_fragment_check_path()
-    assert fragment_check_path.exists(), f"fragment.sh not found at {fragment_check_path}"
+    neither = run_check("src/clinicloop/a.py")
+    assert neither.returncode == 1, neither.stdout + neither.stderr
+    assert FRAGMENT_MESSAGE in neither.stdout and DOCS_MESSAGE in neither.stdout
 
-    # Test 1: No fragment, no docs -> should exit 1
-    with tempfile.TemporaryDirectory() as tmpdir:
-        tmpdir_path = Path(tmpdir)
+    docs_only = run_check("src/clinicloop/a.py", "docs/process/shared-files.md")
+    assert docs_only.returncode == 1
+    assert FRAGMENT_MESSAGE in docs_only.stdout and DOCS_MESSAGE not in docs_only.stdout
 
-        # Create a mock diff list with no fragment and no docs
-        diff_files = ["src/clinicloop/some_file.py"]
+    fragment_only = run_check("src/clinicloop/a.py", "changes/12.feat.md")
+    assert fragment_only.returncode == 1
+    assert DOCS_MESSAGE in fragment_only.stdout and FRAGMENT_MESSAGE not in fragment_only.stdout
 
-        result = subprocess.run(
-            [str(fragment_check_path)] + diff_files,
-            capture_output=True,
-            text=True,
-            cwd=str(tmpdir_path),
-        )
+    for kind in ("feat", "fix", "docs", "chore", "test"):
+        both = run_check(f"changes/7.{kind}.md", "docs/index.md")
+        assert both.returncode == 0, f"{kind}: {both.stdout}"
 
-        assert result.returncode != 0, (
-            "fragment.sh should exit non-zero when no fragment and no docs"
-        )
+    for bad in (
+        "changes/7.bogus.md",
+        "changes/x.feat.md",
+        "changes/7.feat.txt",
+        "changes/README.md",
+    ):
+        rejected = run_check(bad, "docs/index.md")
+        assert rejected.returncode == 1, f"{bad} was accepted as a fragment"
+        assert FRAGMENT_MESSAGE in rejected.stdout
 
-    # Test 2: Has fragment and docs -> should exit 0
-    with tempfile.TemporaryDirectory() as tmpdir:
-        tmpdir_path = Path(tmpdir)
+    assert run_check("src/clinicloop/a.py", labels="no-changelog").returncode == 0
+    assert run_check("src/clinicloop/a.py", labels="bug, no-changelog").returncode == 0
+    assert run_check("src/clinicloop/a.py", labels="bug,no-changelogs").returncode == 1
+    assert run_check("src/clinicloop/a.py", labels="bug").returncode == 1
 
-        # Create a mock diff list with fragment and docs
-        diff_files = [
-            "changes/1.feat.md",
-            "docs/process/shared-files.md",
-        ]
-
-        result = subprocess.run(
-            [str(fragment_check_path)] + diff_files,
-            capture_output=True,
-            text=True,
-            cwd=str(tmpdir_path),
-        )
-
-        assert result.returncode == 0, (
-            f"fragment.sh should exit 0 when has fragment and docs. "
-            f"Output: {result.stdout}\n{result.stderr}"
-        )
-
-    # Test 3: no-changelog label -> should exit 0 even without fragment
-    with tempfile.TemporaryDirectory() as tmpdir:
-        tmpdir_path = Path(tmpdir)
-
-        # Create a mock diff list without fragment
-        diff_files = ["src/clinicloop/some_file.py"]
-
-        # Add no-changelog label
-        result = subprocess.run(
-            [str(fragment_check_path), "--labels", "no-changelog"] + diff_files,
-            capture_output=True,
-            text=True,
-            cwd=str(tmpdir_path),
-        )
-
-        # Should exit 0 with no-changelog label
-        # (or might not be implemented yet for red commit)
-        pass
+    skipped = run_check()
+    assert skipped.returncode == 0 and "skipped" in skipped.stdout.lower()
