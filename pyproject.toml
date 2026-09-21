@@ -102,4 +102,5 @@ testpaths = ["tests"]
 addopts = "--strict-markers"
 markers = [
     "local_model: needs the local model server and is excluded from make ci",
+    "checklist_id: requirement identifier for conformance test coverage",
 ]

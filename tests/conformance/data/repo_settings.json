@@ -1,0 +1,11 @@
+{
+  "name": "clinic-loop",
+  "visibility": "public",
+  "default_branch": "main",
+  "pages": {
+    "build_type": "legacy",
+    "source": {
+      "branch": "gh-pages"
+    }
+  }
+}
