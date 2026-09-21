@@ -70,4 +70,4 @@ def test_staffing_config_has_mean_service_minutes() -> None:
     assert staffing["intake"].mean_service_minutes == 2
     assert staffing["prescriber_review"].mean_service_minutes == 8
     assert staffing["pharmacy_fulfilment"].mean_service_minutes == 4
-    assert staffing["support_inbox"].mean_service_minutes == 10
+    assert staffing["support_inbox"].mean_service_minutes == 14
