@@ -31,9 +31,7 @@ def test_every_case_validates_against_guard_case_model() -> None:
     except ValidationError:
         with_error_block = True
 
-    assert (
-        with_error_block
-    ), "block verdict without expected_rule_id should fail validation"
+    assert with_error_block, "block verdict without expected_rule_id should fail validation"
 
     # Test negative: allow case with expected_rule_id should fail
     bad_allow = {
@@ -54,9 +52,7 @@ def test_every_case_validates_against_guard_case_model() -> None:
     except ValidationError:
         with_error_allow = True
 
-    assert (
-        with_error_allow
-    ), "allow verdict with expected_rule_id should fail validation"
+    assert with_error_allow, "allow verdict with expected_rule_id should fail validation"
 
     # All loaded cases should pass
     invalid = []

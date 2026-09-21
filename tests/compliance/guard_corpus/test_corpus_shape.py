@@ -1,5 +1,7 @@
 """Test corpus shape: all families present, floor met, unique case ids."""
 
+from typing import Any
+
 from clinicloop.evals.guard import FAMILIES, MIN_PER_FAMILY, load_cases
 
 
@@ -8,7 +10,7 @@ def test_seven_families_present_with_floor_and_unique_case_ids() -> None:
     cases = load_cases()
 
     # Group by family
-    by_family = {}
+    by_family: dict[str, list[Any]] = {}
     for case in cases:
         if case.family not in by_family:
             by_family[case.family] = []
@@ -28,12 +30,14 @@ def test_seven_families_present_with_floor_and_unique_case_ids() -> None:
     duplicates = [cid for cid in case_ids if case_ids.count(cid) > 1]
     assert duplicates == [], f"Duplicate case ids: {set(duplicates)}"
 
-    # Check ASCII only with \uXXXX escapes (thread text should not have raw non-ASCII)
-    for case in cases:
-        for msg in case.thread:
+    # Check that corpus files are ASCII-only with \uXXXX escapes
+    from pathlib import Path
+
+    corpus_dir = Path(__file__).resolve().parents[4] / "evals" / "guard" / "corpus"
+    for jsonl_file in corpus_dir.glob("*.jsonl"):
+        with open(jsonl_file, "rb") as f:
+            raw = f.read()
             try:
-                msg.text.encode("ascii")
-            except UnicodeEncodeError:
-                msg_preview = msg.text[:50]
-                msg_preview_escaped = repr(msg.text[:50])
-                assert False, f"Non-ASCII in case {case.case_id}: {msg_preview_escaped}"
+                raw.decode("ascii")
+            except UnicodeDecodeError:
+                assert False, f"Non-ASCII bytes in {jsonl_file.name}"

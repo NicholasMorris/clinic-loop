@@ -30,9 +30,9 @@ def test_R1_corpus_covers_all_rule_families() -> None:
     # Check each family has >=12 block cases
     for family in FAMILIES:
         family_blocks = [c for c in block_cases if c.family == family]
-        assert (
-            len(family_blocks) >= MIN_PER_FAMILY
-        ), f"{family}: {len(family_blocks)} < {MIN_PER_FAMILY}"
+        assert len(family_blocks) >= MIN_PER_FAMILY, (
+            f"{family}: {len(family_blocks)} < {MIN_PER_FAMILY}"
+        )
 
 
 @pytest.mark.checklist_id("E1")

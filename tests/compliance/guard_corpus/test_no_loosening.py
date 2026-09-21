@@ -1,5 +1,6 @@
 """Test no-loosening check for thresholds."""
 
+import os
 from pathlib import Path
 
 from clinicloop.evals.core.thresholds import check_no_loosening
@@ -26,18 +27,31 @@ def test_raising_guard_threshold_above_zero_fails_the_check(tmp_path: Path) -> N
                 return current_toml_loosened
         return None
 
-    # Should fail (return 1)
-    exit_code = check_no_loosening("origin/main", "HEAD", reader=reader_loosened)
-    assert exit_code == 1, f"Expected exit code 1 for loosened threshold, got {exit_code}"
+    # Create the directory structure and file in tmp_path
+    original_cwd = os.getcwd()
+    try:
+        os.chdir(tmp_path)
 
-    # Test unchanged (should pass)
-    current_toml_unchanged = prior_toml
+        # Create evals/guard/ directory and thresholds file
+        evals_dir = tmp_path / "evals" / "guard"
+        evals_dir.mkdir(parents=True)
+        thresholds_file = evals_dir / "thresholds.toml"
+        thresholds_file.write_text(current_toml_loosened)
 
-    def reader_unchanged(revision: str, path: str) -> str | None:
-        """Reader: both prior and current at 0.0 (unchanged)."""
-        if path == "evals/guard/thresholds.toml":
-            return prior_toml
-        return None
+        # Should fail (return 1)
+        exit_code = check_no_loosening("origin/main", "HEAD", reader=reader_loosened)
+        assert exit_code == 1, f"Expected exit code 1 for loosened threshold, got {exit_code}"
 
-    exit_code = check_no_loosening("origin/main", "HEAD", reader=reader_unchanged)
-    assert exit_code == 0, f"Expected exit code 0 for unchanged, got {exit_code}"
+        # Test unchanged (should pass)
+        thresholds_file.write_text(prior_toml)
+
+        def reader_unchanged(revision: str, path: str) -> str | None:
+            """Reader: both prior and current at 0.0 (unchanged)."""
+            if path == "evals/guard/thresholds.toml":
+                return prior_toml
+            return None
+
+        exit_code = check_no_loosening("origin/main", "HEAD", reader=reader_unchanged)
+        assert exit_code == 0, f"Expected exit code 0 for unchanged, got {exit_code}"
+    finally:
+        os.chdir(original_cwd)

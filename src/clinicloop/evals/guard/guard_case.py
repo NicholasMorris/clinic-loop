@@ -68,7 +68,7 @@ class GuardCase(BaseModel):
 
     @field_validator("expected_rule_id")
     @classmethod
-    def validate_rule_id(cls, v: str | None, info):
+    def validate_rule_id(cls, v: str | None, info):  # type: ignore[no-untyped-def]
         """Validate rule_id presence matches expected_verdict."""
         expected_verdict = info.data.get("expected_verdict")
         valid_ids = {

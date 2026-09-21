@@ -21,9 +21,7 @@ def test_removed_or_reversed_case_ids_fail_the_diff() -> None:
     # Test reversal: case's verdict changed
     prior_with_reversal = current_manifest.copy()
     first_case = cases[0]
-    reversed_verdict = (
-        "allow" if first_case.expected_verdict == "block" else "block"
-    )
+    reversed_verdict = "allow" if first_case.expected_verdict == "block" else "block"
     prior_with_reversal[first_case.case_id] = reversed_verdict
 
     with pytest.raises(AppendOnlyViolation):

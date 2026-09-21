@@ -31,9 +31,40 @@ def load_cases(corpus_dir: Path | None = None) -> list[GuardCase]:
 
     Raises:
         ValueError: If any case_id appears more than once in the corpus.
-        NotImplementedError: Stub not yet implemented.
     """
-    raise NotImplementedError("load_cases stub")
+    if corpus_dir is None:
+        corpus_dir = CORPUS_DIR
+
+    import json
+
+    cases = []
+    case_ids_seen = set()
+
+    # Load all *.jsonl files in sorted order
+    jsonl_files = sorted(corpus_dir.glob("*.jsonl"))
+
+    for jsonl_path in jsonl_files:
+        with open(jsonl_path, "r", encoding="utf-8") as f:
+            for line_num, line in enumerate(f, 1):
+                line = line.rstrip("\n")
+                if not line or line.startswith("#"):
+                    continue
+
+                obj = json.loads(line)
+                case = GuardCase.model_validate(obj)
+
+                # Check for duplicate case_id
+                if case.case_id in case_ids_seen:
+                    msg = f"Duplicate case_id: {case.case_id!r} in {jsonl_path}"
+                    raise ValueError(msg)
+                case_ids_seen.add(case.case_id)
+
+                cases.append(case)
+
+    # Sort by case_id for stable ordering
+    cases.sort(key=lambda c: c.case_id)
+
+    return cases
 
 
 def manifest_of(cases: list[GuardCase]) -> dict[str, str]:
