@@ -19,7 +19,7 @@ def test_run_hash_stable_across_runs(tmp_path: str) -> None:
 
     # Run the engine for 1440 minutes (24 hours)
     engine1 = Engine(world1, regime_key="au")
-    result1 = engine1.run(1440)
+    engine1.run(1440)
     hash1 = engine1.run_hash()
 
     # Generate another world with the same seed and run it
@@ -29,7 +29,7 @@ def test_run_hash_stable_across_runs(tmp_path: str) -> None:
         span_days=1,
     )
     engine2 = Engine(world2, regime_key="au")
-    result2 = engine2.run(1440)
+    engine2.run(1440)
     hash2 = engine2.run_hash()
 
     # Same seed should produce the same hash
@@ -42,7 +42,7 @@ def test_run_hash_stable_across_runs(tmp_path: str) -> None:
         span_days=1,
     )
     engine3 = Engine(world3, regime_key="au")
-    result3 = engine3.run(1440)
+    engine3.run(1440)
     hash3 = engine3.run_hash()
 
     # Different seed should produce a different hash
@@ -98,15 +98,13 @@ def test_staffing_override_affects_hash() -> None:
     )
 
     engine1 = Engine(world, regime_key="au")
-    result1 = engine1.run(1440)
+    engine1.run(1440)
     hash1 = engine1.run_hash()
 
     # Run with a staffing override (reduce prescriber_review staff to 1)
     engine2 = Engine(world, regime_key="au", staffing_overrides={"prescriber_review": 1})
-    result2 = engine2.run(1440)
+    engine2.run(1440)
     hash2 = engine2.run_hash()
 
     # Different staffing levels should produce different hashes
-    assert hash1 != hash2, (
-        "Different staffing levels should produce different run hashes"
-    )
+    assert hash1 != hash2, "Different staffing levels should produce different run hashes"

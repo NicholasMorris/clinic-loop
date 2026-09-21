@@ -42,7 +42,7 @@ def test_sla_rules_cite_inventory_ids() -> None:
     )
 
     engine = Engine(world, regime_key="au")
-    result = engine.run(1440)
+    engine.run(1440)
 
     # Verify the engine runs without error
     hash_value = engine.run_hash()

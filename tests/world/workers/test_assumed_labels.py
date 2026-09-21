@@ -14,7 +14,8 @@ def test_staffing_config_is_labelled_assumed_and_required(tmp_path: Path) -> Non
 
     Tests:
     1. Every pool in staffing.toml has assumed=true and non-empty assumption_note
-    2. Every pool has required: service_time_family, staffing_level, hourly_cost, mean_service_minutes
+    2. Every pool has required keys: service_time_family, staffing_level, hourly_cost,
+       mean_service_minutes
     3. Missing required parameter raises StaffingParameterMissing with pool and key
     4. load_staffing signature has no default values for staffing, cost, or distribution
     """

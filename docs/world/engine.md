@@ -43,7 +43,8 @@ Configuration is loaded from `src/clinicloop/world/config/staffing.toml` using t
 The staffing file is structured as TOML with one table per worker pool. Every pool table must include:
 - `assumed = true`: marker that these are starter values, not measured
 - `assumption_note`: plain-English description of the assumption (e.g., "Based on typical intake processing: 1-2 minutes per questionnaire")
-- `service_time_family`: distribution family identifier
+- `service_time_family`: distribution family identifier (`exponential` or `normal`)
+- `mean_service_minutes`: mean service time in minutes (float; used to draw service durations)
 - `staffing_level`: number of workers (integer)
 - `hourly_cost`: cost in currency units per hour (float)
 
@@ -53,11 +54,29 @@ Example:
 assumed = true
 assumption_note = "Based on typical intake processing: 1-2 minutes per questionnaire with field validation"
 service_time_family = "exponential"
+mean_service_minutes = 2
 staffing_level = 2
 hourly_cost = 28.0
 ```
 
 These values are labelled "assumed" to signal that they should be measured or updated before any real deployment.
+
+### Service Time Distribution
+
+Service times are drawn from per-queue distributions using seeded random number generators (one per queue, keyed by `[world.seed, queue_index]`):
+- **Exponential family**: `duration = rng.exponential(mean_service_minutes)`
+- **Normal family**: `duration = max(0.5, rng.normal(mean, 0.25 * mean))` (clipped at 0.5)
+
+Final duration is always `max(1, ceil(value))` minutes, ensuring at least 1 minute of service.
+
+### Staffing Overrides
+
+At runtime, staffing levels can be overridden by passing `staffing_overrides` to the Engine constructor:
+```python
+engine = Engine(world, regime_key="au", staffing_overrides={"prescriber_review": 1})
+```
+
+This is used to simulate scenarios with reduced staff (e.g., "what if we reduced prescriber_review staff from 3 to 1?"). Any override level must be >= 1, and all queue names must be valid.
 
 ## SLA Rules
 
@@ -132,20 +151,39 @@ from clinicloop.world.generator import generate_world
 # Generate a deterministic world
 world = generate_world(seed=42, population_size=500, span_days=30)
 
-# Create and run the engine
+# Create and run the engine (duration in minutes; 1440 * 30 = 30 days)
 engine = Engine(world, regime_key="au")
-engine.run(duration_minutes=1440 * 30)  # 30 days
+result = engine.run(duration_minutes=43200)  # 30 days
 
-# Get the run hash for reproducibility checks
-run_hash = engine.run_hash()
+# RunResult contains:
+# - result.records: tuple of ItemRecords (queue, item_id, enqueued_at, started_at, finished_at, server)
+# - result.queue_depth: dict[queue_name] -> tuple of (timestamp, depth) samples
+# - result.duration_minutes: simulation duration
+# - result.staffing: dict[queue_name] -> actual staffing level used
+# - result.run_hash: SHA256 hash for reproducibility checking
 
-# Access queues for metrics (downstream in M1-5)
-from clinicloop.world.queues import queues
+# Access records for detailed analysis
+for record in result.records:
+    if record.finished_at is not None:
+        wait_time = record.started_at - record.enqueued_at
+        service_time = record.finished_at - record.started_at
+        print(f"{record.item_id}: wait={wait_time}min, service={service_time}min")
 
-all_queues = queues()
-for queue_name, queue in all_queues.items():
-    print(f"{queue_name}: {len(queue.items)} items")
+# Check queue depths at 60-minute intervals
+for queue_name, samples in result.queue_depth.items():
+    max_depth = max((depth for timestamp, depth in samples), default=0)
+    print(f"{queue_name}: max queue depth = {max_depth}")
+
+# Compare two runs for reproducibility
+world2 = generate_world(seed=42, population_size=500, span_days=30)
+engine2 = Engine(world2, regime_key="au")
+result2 = engine2.run(duration_minutes=43200)
+assert result.run_hash == result2.run_hash, "Same seed should produce same hash"
 ```
+
+## Staff Work Schedule
+
+Workers in all queues operate **24/7** throughout the simulation duration. There are no shift changes, breaks, or scheduling constraints. Staff availability is modeled simply as a pool of `staffing_level` concurrent workers per queue, continuously available to service items.
 
 ## Testing
 
