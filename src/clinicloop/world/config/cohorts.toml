@@ -1,0 +1,5 @@
+[cohorts]
+cohort_count = 4
+cases_per_cohort = 2000
+assumed = true
+assumption_note = "Starter values sized for bootstrap intervals in M3-4 bias evaluation (cohort_count=4, cases_per_cohort=2000). The bias evaluation edits this file to change counts for statistical power."
