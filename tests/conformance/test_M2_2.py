@@ -78,20 +78,22 @@ def test_r7_au_yaml_contains_no_forbidden_words() -> None:
     Do not reference any company's regulatory or enforcement history; do not name
     any specific clinic anywhere in the repo. Naming lint enforces this.
 
-    Verify: au.yaml text contains none of the naming lint's forbidden words
-    (fraud, drug seeker, abuse).
+    Verify: au.yaml text contains none of the naming lint's forbidden words.
     """
     from pathlib import Path
+
+    from clinicloop.naminglint.lint import load_i6_words
 
     repo_root = Path(__file__).resolve().parents[2]
     au_yaml_path = repo_root / "src" / "clinicloop" / "compliance" / "rules" / "au.yaml"
 
     au_content = au_yaml_path.read_text()
 
-    forbidden_words = {"fraud", "drug seeker", "abuse"}
+    forbidden_words = load_i6_words(repo_root)
+    assert forbidden_words, "the lint's forbidden word list must not be empty"
 
     for word in forbidden_words:
-        assert word.lower() not in au_content.lower(), f"au.yaml contains forbidden word: {word}"
+        assert word.lower() not in au_content.lower(), "au.yaml contains a forbidden word"
 
 
 @pytest.mark.checklist_id("X4")
