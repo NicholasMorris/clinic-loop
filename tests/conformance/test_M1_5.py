@@ -10,7 +10,6 @@ import pytest
 from clinicloop.world.engine import Engine, sla_rules
 from clinicloop.world.generator import generate_world
 from clinicloop.world.metrics import (
-    MetricSnapshot,
     compute_snapshot,
     read_run_snapshot,
     write_run_snapshot,
@@ -119,7 +118,9 @@ def test_m1_5_cost_per_order() -> None:
     # If there are completed orders, cost_per_order should be positive
     if snapshot.throughput.orders_completed > 0:
         assert snapshot.cost_per_order is not None
-        assert snapshot.cost_per_order > 0, "Cost per order should be positive when orders completed"
+        assert snapshot.cost_per_order > 0, (
+            "Cost per order should be positive when orders completed"
+        )
     else:
         assert snapshot.cost_per_order is None
 
@@ -246,7 +247,9 @@ def test_m1_5_staffing_impact_on_metrics() -> None:
 
     # Verify that reduced staffing causes changes:
     # - Fewer orders completed
-    assert snapshot_reduced.throughput.orders_completed < snapshot_default.throughput.orders_completed
+    assert (
+        snapshot_reduced.throughput.orders_completed < snapshot_default.throughput.orders_completed
+    )
 
     # - Higher wait times in prescriber_review
     wait_default = snapshot_default.median_wait_minutes.get("prescriber_review")

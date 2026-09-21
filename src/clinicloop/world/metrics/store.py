@@ -7,9 +7,7 @@ from .models import MetricSnapshot
 
 
 def write_run_snapshot(
-    snapshot: MetricSnapshot,
-    seed: int,
-    snapshots_dir: Path | str | None = None
+    snapshot: MetricSnapshot, seed: int, snapshots_dir: Path | str | None = None
 ) -> None:
     """Write a MetricSnapshot to a JSON file.
 
@@ -59,6 +57,7 @@ def read_run_snapshot(path: Path | str) -> MetricSnapshot:
     # Reconstruct SLABreach objects from dicts if needed
     if "sla_breaches" in data and isinstance(data["sla_breaches"], dict):
         from .models import SLABreach
+
         sla_breaches = {}
         for rule_id, breach_data in data["sla_breaches"].items():
             if isinstance(breach_data, dict):

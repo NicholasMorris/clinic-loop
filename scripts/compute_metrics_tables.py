@@ -50,8 +50,12 @@ def main() -> None:
     print(f"{'Metric':<40} {'Default':<20} {'Override (PR=1)':<20}")
     print("-" * 80)
 
-    print(f"{'Orders completed':<40} {snapshot_default.throughput.orders_completed:<20} {snapshot_override.throughput.orders_completed:<20}")
-    print(f"{'Throughput (orders/hour)':<40} {snapshot_default.throughput.orders_per_simulated_hour:<20.2f} {snapshot_override.throughput.orders_per_simulated_hour:<20.2f}")
+    print(
+        f"{'Orders completed':<40} {snapshot_default.throughput.orders_completed:<20} {snapshot_override.throughput.orders_completed:<20}"
+    )
+    print(
+        f"{'Throughput (orders/hour)':<40} {snapshot_default.throughput.orders_per_simulated_hour:<20.2f} {snapshot_override.throughput.orders_per_simulated_hour:<20.2f}"
+    )
     print()
 
     print("Median wait times (minutes):")
@@ -71,13 +75,19 @@ def main() -> None:
         depths_override = result_override.queue_depth.get(queue, ())
 
         max_depth_default = max((d for _, d in depths_default), default=0) if depths_default else 0
-        max_depth_override = max((d for _, d in depths_override), default=0) if depths_override else 0
+        max_depth_override = (
+            max((d for _, d in depths_override), default=0) if depths_override else 0
+        )
 
         print(f"  {queue:<36} {max_depth_default:<20} {max_depth_override:<20}")
 
     print()
     print("SLA Breaches:")
-    for rule_id in sorted(set(list(snapshot_default.sla_breaches.keys()) + list(snapshot_override.sla_breaches.keys()))):
+    for rule_id in sorted(
+        set(
+            list(snapshot_default.sla_breaches.keys()) + list(snapshot_override.sla_breaches.keys())
+        )
+    ):
         breach_default = snapshot_default.sla_breaches.get(rule_id)
         breach_override = snapshot_override.sla_breaches.get(rule_id)
 
@@ -87,7 +97,9 @@ def main() -> None:
         print(f"  {rule_id:<36} {count_default:<20} {count_override:<20}")
 
     print()
-    print(f"{'Cost per order':<40} {snapshot_default.cost_per_order:<20.2f} {snapshot_override.cost_per_order:<20.2f}")
+    print(
+        f"{'Cost per order':<40} {snapshot_default.cost_per_order:<20.2f} {snapshot_override.cost_per_order:<20.2f}"
+    )
     print()
 
     # Assertions for test verification
@@ -116,9 +128,15 @@ def main() -> None:
     print("✓ Determinism verified: same input produces identical metrics")
 
     # Assert cost calculation
-    assert snapshot_default.cost_per_order is not None, "Default run should have non-zero cost per order"
-    assert snapshot_override.cost_per_order is not None, "Override run should have non-zero cost per order"
-    print(f"✓ Cost per order computed: default={snapshot_default.cost_per_order:.2f}, override={snapshot_override.cost_per_order:.2f}")
+    assert snapshot_default.cost_per_order is not None, (
+        "Default run should have non-zero cost per order"
+    )
+    assert snapshot_override.cost_per_order is not None, (
+        "Override run should have non-zero cost per order"
+    )
+    print(
+        f"✓ Cost per order computed: default={snapshot_default.cost_per_order:.2f}, override={snapshot_override.cost_per_order:.2f}"
+    )
 
     print()
     print("=" * 80)

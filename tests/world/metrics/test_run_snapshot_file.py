@@ -4,7 +4,11 @@ import json
 from pathlib import Path
 
 from clinicloop.world.engine import ItemRecord, RunResult
-from clinicloop.world.metrics import MetricSnapshot, compute_snapshot, read_run_snapshot, write_run_snapshot
+from clinicloop.world.metrics import (
+    compute_snapshot,
+    read_run_snapshot,
+    write_run_snapshot,
+)
 
 
 def test_run_snapshot_path_and_round_trip(tmp_path: Path) -> None:
@@ -36,7 +40,12 @@ def test_run_snapshot_path_and_round_trip(tmp_path: Path) -> None:
             "support_inbox": ((0, 0),),
         },
         duration_minutes=60,
-        staffing={"intake": 1, "prescriber_review": 1, "pharmacy_fulfilment": 1, "support_inbox": 1},
+        staffing={
+            "intake": 1,
+            "prescriber_review": 1,
+            "pharmacy_fulfilment": 1,
+            "support_inbox": 1,
+        },
         run_hash="test_hash_file",
     )
 

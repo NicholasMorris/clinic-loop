@@ -6,7 +6,7 @@ import pytest
 from pydantic import ValidationError
 
 from clinicloop.world.engine import ItemRecord, RunResult
-from clinicloop.world.metrics import MetricSnapshot, compute_snapshot
+from clinicloop.world.metrics import compute_snapshot
 
 
 def test_snapshot_is_frozen_and_versioned() -> None:
@@ -35,7 +35,12 @@ def test_snapshot_is_frozen_and_versioned() -> None:
             "support_inbox": ((0, 0),),
         },
         duration_minutes=60,
-        staffing={"intake": 1, "prescriber_review": 1, "pharmacy_fulfilment": 1, "support_inbox": 1},
+        staffing={
+            "intake": 1,
+            "prescriber_review": 1,
+            "pharmacy_fulfilment": 1,
+            "support_inbox": 1,
+        },
         run_hash="test_hash",
     )
 
@@ -79,7 +84,12 @@ def test_snapshot_is_deterministic_and_empty_run_cost_is_none() -> None:
             "support_inbox": ((0, 0),),
         },
         duration_minutes=60,
-        staffing={"intake": 1, "prescriber_review": 1, "pharmacy_fulfilment": 1, "support_inbox": 1},
+        staffing={
+            "intake": 1,
+            "prescriber_review": 1,
+            "pharmacy_fulfilment": 1,
+            "support_inbox": 1,
+        },
         run_hash="test_hash_determinism",
     )
 
@@ -114,11 +124,18 @@ def test_snapshot_is_deterministic_and_empty_run_cost_is_none() -> None:
             "support_inbox": ((0, 0),),
         },
         duration_minutes=60,
-        staffing={"intake": 1, "prescriber_review": 1, "pharmacy_fulfilment": 1, "support_inbox": 1},
+        staffing={
+            "intake": 1,
+            "prescriber_review": 1,
+            "pharmacy_fulfilment": 1,
+            "support_inbox": 1,
+        },
         run_hash="test_hash_empty",
     )
 
     empty_snapshot = compute_snapshot(empty_run_result)
 
     # Should not raise ZeroDivisionError; cost_per_order should be None
-    assert empty_snapshot.cost_per_order is None, "Cost per order should be None for zero completed orders"
+    assert empty_snapshot.cost_per_order is None, (
+        "Cost per order should be None for zero completed orders"
+    )

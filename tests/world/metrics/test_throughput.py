@@ -90,12 +90,33 @@ def test_throughput_on_fixture_log() -> None:
         records=records,
         queue_depth={
             "intake": ((0, 1), (60, 2), (120, 2), (180, 0), (240, 1), (300, 0), (360, 0)),
-            "prescriber_review": ((0, 0), (60, 1), (120, 2), (180, 1), (240, 1), (300, 0), (360, 0)),
-            "pharmacy_fulfilment": ((0, 0), (60, 0), (120, 1), (180, 1), (240, 1), (300, 0), (360, 0)),
+            "prescriber_review": (
+                (0, 0),
+                (60, 1),
+                (120, 2),
+                (180, 1),
+                (240, 1),
+                (300, 0),
+                (360, 0),
+            ),
+            "pharmacy_fulfilment": (
+                (0, 0),
+                (60, 0),
+                (120, 1),
+                (180, 1),
+                (240, 1),
+                (300, 0),
+                (360, 0),
+            ),
             "support_inbox": ((0, 0), (60, 0), (120, 0), (180, 0), (240, 0), (300, 0), (360, 0)),
         },
         duration_minutes=360,
-        staffing={"intake": 1, "prescriber_review": 4, "pharmacy_fulfilment": 1, "support_inbox": 1},
+        staffing={
+            "intake": 1,
+            "prescriber_review": 4,
+            "pharmacy_fulfilment": 1,
+            "support_inbox": 1,
+        },
         run_hash="test_hash_123",
     )
 

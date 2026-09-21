@@ -149,7 +149,12 @@ def test_cost_per_order_on_fixture_log() -> None:
             "support_inbox": ((0, 0),),
         },
         duration_minutes=300,
-        staffing={"intake": 1, "prescriber_review": 1, "pharmacy_fulfilment": 1, "support_inbox": 1},
+        staffing={
+            "intake": 1,
+            "prescriber_review": 1,
+            "pharmacy_fulfilment": 1,
+            "support_inbox": 1,
+        },
         run_hash="test_hash_cost",
     )
 
@@ -209,7 +214,12 @@ def test_cost_per_order_with_idle_time() -> None:
             "support_inbox": ((0, 0),),
         },
         duration_minutes=120,
-        staffing={"intake": 1, "prescriber_review": 1, "pharmacy_fulfilment": 1, "support_inbox": 1},
+        staffing={
+            "intake": 1,
+            "prescriber_review": 1,
+            "pharmacy_fulfilment": 1,
+            "support_inbox": 1,
+        },
         run_hash="test_hash_idle",
     )
 

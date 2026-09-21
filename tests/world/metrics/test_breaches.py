@@ -41,7 +41,12 @@ def test_breach_entries_carry_rule_and_inventory_ids() -> None:
             "support_inbox": ((0, 0),),
         },
         duration_minutes=120,
-        staffing={"intake": 1, "prescriber_review": 1, "pharmacy_fulfilment": 1, "support_inbox": 1},
+        staffing={
+            "intake": 1,
+            "prescriber_review": 1,
+            "pharmacy_fulfilment": 1,
+            "support_inbox": 1,
+        },
         run_hash="test_hash_breach",
     )
 
@@ -52,6 +57,7 @@ def test_breach_entries_carry_rule_and_inventory_ids() -> None:
 
     # All keys should be valid rule IDs
     from clinicloop.world.engine import sla_rules
+
     valid_rule_ids = set(sla_rules().keys())
 
     for rule_id in snapshot.sla_breaches.keys():

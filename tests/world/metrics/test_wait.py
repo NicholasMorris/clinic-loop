@@ -49,7 +49,12 @@ def test_median_wait_matches_hand_computed_values() -> None:
             "support_inbox": ((0, 0),),
         },
         duration_minutes=180,
-        staffing={"intake": 1, "prescriber_review": 1, "pharmacy_fulfilment": 1, "support_inbox": 1},
+        staffing={
+            "intake": 1,
+            "prescriber_review": 1,
+            "pharmacy_fulfilment": 1,
+            "support_inbox": 1,
+        },
         run_hash="test_hash_odd",
     )
 
@@ -57,7 +62,10 @@ def test_median_wait_matches_hand_computed_values() -> None:
 
     # For odd number of items: (10, 20, 60) -> sorted is (10, 20, 60) -> median is 20
     assert snapshot_odd.median_wait_minutes["intake"] == 20.0
-    assert "prescriber_review" not in snapshot_odd.median_wait_minutes or snapshot_odd.median_wait_minutes["prescriber_review"] is None
+    assert (
+        "prescriber_review" not in snapshot_odd.median_wait_minutes
+        or snapshot_odd.median_wait_minutes["prescriber_review"] is None
+    )
 
     # Check no combined median field exists
     assert not hasattr(snapshot_odd, "combined_median_wait_minutes")
@@ -108,7 +116,12 @@ def test_median_wait_matches_hand_computed_values() -> None:
             "support_inbox": ((0, 0),),
         },
         duration_minutes=180,
-        staffing={"intake": 1, "prescriber_review": 1, "pharmacy_fulfilment": 1, "support_inbox": 1},
+        staffing={
+            "intake": 1,
+            "prescriber_review": 1,
+            "pharmacy_fulfilment": 1,
+            "support_inbox": 1,
+        },
         run_hash="test_hash_even",
     )
 

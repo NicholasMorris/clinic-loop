@@ -53,7 +53,8 @@ def _compute_throughput(run_result: RunResult) -> ThroughputMetrics:
     """
     # Count completed orders (items finished in pharmacy_fulfilment)
     completed_orders = sum(
-        1 for record in run_result.records
+        1
+        for record in run_result.records
         if record.queue == "pharmacy_fulfilment" and record.finished_at is not None
     )
 
@@ -148,7 +149,7 @@ def _compute_sla_breaches(run_result: RunResult) -> dict[str, SLABreach]:
         target = sla_targets[queue]["target_minutes"]
 
         # Check if breach
-        if wait > target:
+        if wait > target:  # type: ignore[operator]
             # Determine which rule this breach belongs to
             # Map based on the queue and the issue description
             if queue == "pharmacy_fulfilment":
@@ -200,7 +201,8 @@ def _compute_cost_per_order(run_result: RunResult) -> float | None:
     """
     # Count completed orders
     completed_orders = sum(
-        1 for record in run_result.records
+        1
+        for record in run_result.records
         if record.queue == "pharmacy_fulfilment" and record.finished_at is not None
     )
 
@@ -216,7 +218,11 @@ def _compute_cost_per_order(run_result: RunResult) -> float | None:
     for queue in ["intake", "prescriber_review", "pharmacy_fulfilment", "support_inbox"]:
         busy_minutes = 0
         for record in run_result.records:
-            if record.queue == queue and record.started_at is not None and record.finished_at is not None:
+            if (
+                record.queue == queue
+                and record.started_at is not None
+                and record.finished_at is not None
+            ):
                 # Busy time for this item in this queue
                 service_time = record.finished_at - record.started_at
                 busy_minutes += service_time
