@@ -1,7 +1,5 @@
 """Tests for SLA rules and breach detection."""
 
-import pytest
-
 from clinicloop.world.engine import Engine, sla_rules
 from clinicloop.world.generator import generate_world
 from clinicloop.world.regimes import get_regime

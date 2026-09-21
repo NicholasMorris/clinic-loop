@@ -1,7 +1,5 @@
 """Tests for simulated clock independence from wall clock."""
 
-import time
-from datetime import datetime
 from unittest.mock import patch
 
 import pytest
@@ -17,7 +15,6 @@ def test_engine_never_reads_wall_clock() -> None:
     The engine should complete a 24-hour run without reading:
     - time.time()
     - time.monotonic()
-    - datetime.datetime.now()
 
     When these are patched to raise AssertionError, the engine should
     succeed without calling them.
@@ -27,10 +24,11 @@ def test_engine_never_reads_wall_clock() -> None:
         """Raise error if wall-clock functions are called."""
         raise AssertionError("Engine called a wall-clock time function")
 
-    # Patch all wall-clock functions
-    with patch("time.time", side_effect=wall_clock_blocker), patch(
-        "time.monotonic", side_effect=wall_clock_blocker
-    ), patch("datetime.datetime.now", side_effect=wall_clock_blocker):
+    # Patch wall-clock functions (datetime.now can't be patched directly due to immutability)
+    with (
+        patch("time.time", side_effect=wall_clock_blocker),
+        patch("time.monotonic", side_effect=wall_clock_blocker),
+    ):
         # Generate a world and run the engine
         world = generate_world(
             seed=789,

@@ -1,1 +1,1 @@
-"""World module tests."""
+"""Tests for world module."""

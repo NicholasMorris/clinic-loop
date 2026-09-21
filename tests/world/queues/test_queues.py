@@ -1,7 +1,5 @@
 """Tests for queue functionality."""
 
-import pytest
-
 from clinicloop.world.queues import queues
 
 
@@ -44,4 +42,5 @@ def test_four_queues_record_enqueue_and_dequeue_times() -> None:
 
         # Verify the item now has the dequeued_at timestamp
         assert queue.items[0].dequeued_at == 150
+        assert queue.items[0].dequeued_at is not None
         assert queue.items[0].dequeued_at >= queue.items[0].enqueued_at

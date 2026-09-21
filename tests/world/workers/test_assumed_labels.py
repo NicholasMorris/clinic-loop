@@ -24,12 +24,10 @@ def test_staffing_config_is_labelled_assumed_and_required(tmp_path: Path) -> Non
     # Check that all pools are marked as assumed
     for pool_name, config in default_config.items():
         assert config.assumed is True, f"Pool '{pool_name}' should have assumed=true"
-        assert (
-            config.assumption_note and len(config.assumption_note) > 0
-        ), f"Pool '{pool_name}' should have non-empty assumption_note"
-        assert (
-            config.service_time_family
-        ), f"Pool '{pool_name}' should have service_time_family"
+        assert config.assumption_note and len(config.assumption_note) > 0, (
+            f"Pool '{pool_name}' should have non-empty assumption_note"
+        )
+        assert config.service_time_family, f"Pool '{pool_name}' should have service_time_family"
         assert config.staffing_level > 0, f"Pool '{pool_name}' should have staffing_level > 0"
         assert config.hourly_cost > 0, f"Pool '{pool_name}' should have hourly_cost > 0"
 

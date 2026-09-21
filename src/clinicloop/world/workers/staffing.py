@@ -1,10 +1,9 @@
 """Staffing configuration and worker pool management."""
 
+import tomllib
 from pathlib import Path
-from typing import Any
 
-import tomli
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class StaffingParameterMissing(Exception):
@@ -56,7 +55,44 @@ def load_staffing(config_path: str | Path | None = None) -> dict[str, WorkerPool
         A dictionary mapping pool names to their configuration.
 
     Raises:
-        NotImplementedError: Stub implementation.
         StaffingParameterMissing: If a required parameter is missing.
     """
-    raise NotImplementedError("load_staffing")
+    # Use default path if not provided
+    if config_path is None:
+        # Get the path to the default staffing.toml
+        current_file = Path(__file__).resolve()
+        config_path = current_file.parent.parent / "config" / "staffing.toml"
+    else:
+        config_path = Path(config_path)
+
+    # Read the TOML file
+    with open(config_path, "rb") as f:
+        config_data = tomllib.load(f)
+
+    # Parse each pool configuration
+    result: dict[str, WorkerPoolConfig] = {}
+    required_keys = {
+        "assumed",
+        "assumption_note",
+        "service_time_family",
+        "staffing_level",
+        "hourly_cost",
+    }
+
+    for pool_name, pool_data in config_data.items():
+        # Check for missing required keys
+        missing_keys = required_keys - set(pool_data.keys())
+        if missing_keys:
+            missing_key = next(iter(missing_keys))
+            raise StaffingParameterMissing(pool_name, missing_key)
+
+        # Create WorkerPoolConfig
+        result[pool_name] = WorkerPoolConfig(
+            assumed=pool_data["assumed"],
+            assumption_note=pool_data["assumption_note"],
+            service_time_family=pool_data["service_time_family"],
+            staffing_level=pool_data["staffing_level"],
+            hourly_cost=pool_data["hourly_cost"],
+        )
+
+    return result

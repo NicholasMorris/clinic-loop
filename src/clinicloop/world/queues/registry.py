@@ -60,8 +60,10 @@ def queues() -> dict[str, Queue]:
 
     Returns:
         A dictionary mapping queue names to Queue instances.
-
-    Raises:
-        NotImplementedError: Stub implementation.
     """
-    raise NotImplementedError("queues")
+    return {
+        "intake": Queue("intake"),
+        "prescriber_review": Queue("prescriber_review"),
+        "pharmacy_fulfilment": Queue("pharmacy_fulfilment"),
+        "support_inbox": Queue("support_inbox"),
+    }

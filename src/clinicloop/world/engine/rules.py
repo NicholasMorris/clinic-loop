@@ -6,9 +6,10 @@ def sla_rules() -> dict[str, str]:
 
     Returns:
         A dictionary mapping rule IDs to their cited inventory IDs.
-        Expected keys: "termination_cutoff", "damage_report_window", "dispatch_commitment".
-
-    Raises:
-        NotImplementedError: Stub implementation.
+        Keys: "termination_cutoff", "damage_report_window", "dispatch_commitment".
     """
-    raise NotImplementedError("sla_rules")
+    return {
+        "termination_cutoff": "ps-03",
+        "damage_report_window": "ps-04",
+        "dispatch_commitment": "po-01",
+    }

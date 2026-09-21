@@ -30,18 +30,20 @@ class TestM1_2Conformance:
     def test_four_queues_exist(self) -> None:
         """AC3: Four named queues with timestamp tracking.
 
-        Requirement: C0 - Four queues (intake, prescriber_review, pharmacy_fulfilment, support_inbox).
+        Requirement: C0 - Four queues (intake, prescriber_review,
+        pharmacy_fulfilment, support_inbox).
         """
-        # This requirement is satisfied by test_queues.py::test_four_queues_record_enqueue_and_dequeue_times
+        # Satisfied by test_queues.py::test_four_queues_record_enqueue_and_dequeue_times
         pass
 
     @pytest.mark.checklist_id("C0")
     def test_sla_rules_configured(self) -> None:
         """AC5: SLA rules defined with rule IDs and inventory IDs.
 
-        Requirement: C0 - SLA rules for termination cutoff, damage report window, dispatch commitment.
+        Requirement: C0 - SLA rules for termination cutoff, damage report,
+        dispatch commitment.
         """
-        # This requirement is satisfied by test_sla_rules.py::test_sla_rules_cite_inventory_ids
+        # Satisfied by test_sla_rules.py::test_sla_rules_cite_inventory_ids
         pass
 
     @pytest.mark.checklist_id("G1")
@@ -50,7 +52,7 @@ class TestM1_2Conformance:
 
         Requirement: G1 - Operational parameters loaded from configuration.
         """
-        # This requirement is satisfied by test_assumed_labels.py::test_staffing_config_is_labelled_assumed_and_required
+        # Satisfied by test_assumed_labels.py::test_staffing_config_is_labelled_assumed_and_required
         pass
 
     @pytest.mark.checklist_id("G2")

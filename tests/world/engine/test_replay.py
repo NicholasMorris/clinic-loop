@@ -1,7 +1,5 @@
 """Tests for event log replay functionality."""
 
-import pytest
-
 from clinicloop.world.engine import Engine
 from clinicloop.world.generator import generate_world
 
