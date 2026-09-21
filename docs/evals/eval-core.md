@@ -9,8 +9,10 @@ The **metric registry** enables components to register named metrics with thresh
 ```python
 from clinicloop.evals.core.registry import register_metric, DuplicateMetric
 
+
 def accuracy_metric(predictions, ground_truth):
     return sum(p == g for p, g in zip(predictions, ground_truth)) / len(predictions)
+
 
 # Register the metric
 register_metric("triage", "intent_accuracy", accuracy_metric, threshold=0.95)
@@ -31,7 +33,7 @@ artifact = CaseArtifact(
     component="triage",
     tree_hash="abc123def456...",
     seed=42,
-    outputs={"intent": "urgent", "confidence": 0.98}
+    outputs={"intent": "urgent", "confidence": 0.98},
 )
 
 write_case(Path("evals/results/triage/abc123def456.../test_001.json"), artifact)
@@ -133,7 +135,7 @@ key = cassette_key(
     model_id="unsloth/Qwen3-30B-A3B-Instruct-2507-GGUF",
     prompt_hash="abc123def456...",
     sample_index=0,
-    seed=42
+    seed=42,
 )
 
 # Record a response

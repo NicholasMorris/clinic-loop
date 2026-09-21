@@ -48,9 +48,7 @@ def register_metric(
     _METRIC_REGISTRY[key] = (metric_func, threshold)
 
 
-def get_metric(
-    component: str, name: str
-) -> tuple[Callable[..., Any], float] | None:
+def get_metric(component: str, name: str) -> tuple[Callable[..., Any], float] | None:
     """Retrieve a registered metric.
 
     Args:
