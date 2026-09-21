@@ -31,7 +31,7 @@ def compile_rules() -> CompiledRules:
     """
     # Distress: suicidal ideation, self-harm, hopelessness
     distress_pattern = (
-        r"\b(suicid\w*|self[- ]?harm\w*|kill myself|end (my life|it all)|"
+        r"\b(suicid\w*|self[- ]?harm\w*|kill myself|end(?:ing)? (my life|it all)|"
         r"hurt myself|want to die|no reason to live|can'?t go on|"
         r"better off dead|hopeless)\b"
     )
@@ -46,7 +46,7 @@ def compile_rules() -> CompiledRules:
     # Adverse event: serious symptoms (always) + context-dependent ones
     adverse_event_always = (
         r"\b(side effects?|allergic reactions?|overdos\w*|took too many|hives|"
-        r"swollen (face|lips|tongue)|can'?t breathe|trouble breathing|"
+        r"swollen (face|lips|tongue)|swell(?:ed|ing) up|can'?t breathe|trouble breathing|"
         r"chest pain|palpitations|fainted|passed out|seizure|blurred vision)\b"
     )
     # Context: (rash|nausea|vomiting|dizzy|headache) near medicine context

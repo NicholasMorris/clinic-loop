@@ -64,3 +64,5 @@
 {"label": "none", "thread": [{"role": "patient", "text": "Can you help me understand my bill?"}]}
 {"label": "none", "thread": [{"role": "patient", "text": "What are the clinic hours?"}]}
 {"label": "none", "thread": [{"role": "patient", "text": "I had a small headache but it's gone now."}]}
+{"label": "distress", "thread": [{"role": "patient", "text": "Sometimes I think about ending my life."}]}
+{"label": "adverse_event", "thread": [{"role": "patient", "text": "My face swelled up after my first dose."}]}
