@@ -9,7 +9,7 @@ from unittest import mock
 # Add scripts directory to path so we can import the checker module
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "scripts"))
 
-from repo_settings.check import check_protection, check_settings  # type: ignore
+from repo_settings.check import check_protection, check_settings, check_token_scopes  # type: ignore
 from repo_settings.review_contexts import REQUIRED_STATUS_CONTEXTS  # type: ignore
 
 FIXTURES_DIR = Path(__file__).resolve().parent / "fixtures"
@@ -122,4 +122,16 @@ def test_no_socket_is_opened_during_a_check() -> None:
     assert monkeypatched_exit_prot == normal_exit_prot, (
         f"Protection exit code changed when socket blocked: normal="
         f"{normal_exit_prot}, monkeypatched={monkeypatched_exit_prot}"
+    )
+
+    # Test check_token_scopes as well
+    scopes_path = FIXTURES_DIR / "compliant_scopes.txt"
+    normal_exit_scopes = check_token_scopes(str(scopes_path))
+
+    with mock.patch("socket.socket", side_effect=RuntimeError("Socket blocked")):
+        monkeypatched_exit_scopes = check_token_scopes(str(scopes_path))
+
+    assert monkeypatched_exit_scopes == normal_exit_scopes, (
+        f"Token scopes exit code changed when socket blocked: normal="
+        f"{normal_exit_scopes}, monkeypatched={monkeypatched_exit_scopes}"
     )
