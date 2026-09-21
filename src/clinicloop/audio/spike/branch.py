@@ -31,10 +31,7 @@ def select_branch(report: SpikeReport) -> str:
         return "C"
 
     # Branch A: Disclaimer repeats and cannot be excluded
-    if (
-        report.disclaimer_occurrences_per_generation > 1
-        and not report.disclaimer_excludable
-    ):
+    if report.disclaimer_occurrences_per_generation > 1 and not report.disclaimer_excludable:
         return "A"
 
     # Branch B: Default - metrics permit per-turn synthesis

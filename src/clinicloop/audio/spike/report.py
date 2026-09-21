@@ -9,18 +9,14 @@ class SpikeReport(BaseModel):
     These measurements drive the branching decision for audio generation strategy.
     """
 
-    real_time_factor: float = Field(
-        ..., description="Real-time factor for TTS processing"
-    )
+    real_time_factor: float = Field(..., description="Real-time factor for TTS processing")
     peak_rss_bytes: int = Field(..., description="Peak RSS memory in bytes")
     disclaimer_offset_s: float = Field(..., description="Disclaimer offset in seconds")
     disclaimer_duration_s: float = Field(..., description="Disclaimer duration in seconds")
     disclaimer_occurrences_per_generation: int = Field(
         ..., description="Number of disclaimer occurrences per generation"
     )
-    disclaimer_excludable: bool = Field(
-        ..., description="Whether the disclaimer can be excluded"
-    )
+    disclaimer_excludable: bool = Field(..., description="Whether the disclaimer can be excluded")
     three_minute_render_seconds: float = Field(
         ..., description="Time to render a 3-minute consult in seconds"
     )

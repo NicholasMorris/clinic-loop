@@ -9,7 +9,7 @@ import pytest
 from pydantic import ValidationError
 
 from clinicloop.audio.spike.branch import select_branch
-from clinicloop.audio.spike.report import ManifestEntry, SampleManifest, SpikeReport
+from clinicloop.audio.spike.report import ManifestEntry, SpikeReport
 from clinicloop.audio.spike.worker import (
     DisclaimerAudioAltered,
     NonSpikeAudioInput,
@@ -25,7 +25,7 @@ class TestSpikeReportSchema:
         """AC1: SpikeReport requires all measured fields."""
         # Should fail when missing real_time_factor
         with pytest.raises(ValidationError) as exc_info:
-            SpikeReport(
+            SpikeReport(  # type: ignore[call-arg]
                 peak_rss_bytes=1024000,
                 disclaimer_offset_s=0.5,
                 disclaimer_duration_s=2.0,
@@ -40,7 +40,7 @@ class TestSpikeReportSchema:
 
         # Should fail when missing peak_rss_bytes
         with pytest.raises(ValidationError) as exc_info:
-            SpikeReport(
+            SpikeReport(  # type: ignore[call-arg]
                 real_time_factor=2.0,
                 disclaimer_offset_s=0.5,
                 disclaimer_duration_s=2.0,
@@ -55,7 +55,7 @@ class TestSpikeReportSchema:
 
         # Should fail when missing disclaimer_offset_s
         with pytest.raises(ValidationError) as exc_info:
-            SpikeReport(
+            SpikeReport(  # type: ignore[call-arg]
                 real_time_factor=2.0,
                 peak_rss_bytes=1024000,
                 disclaimer_duration_s=2.0,
@@ -70,7 +70,7 @@ class TestSpikeReportSchema:
 
         # Should fail when missing disclaimer_duration_s
         with pytest.raises(ValidationError) as exc_info:
-            SpikeReport(
+            SpikeReport(  # type: ignore[call-arg]
                 real_time_factor=2.0,
                 peak_rss_bytes=1024000,
                 disclaimer_offset_s=0.5,
@@ -85,7 +85,7 @@ class TestSpikeReportSchema:
 
         # Should fail when missing disclaimer_occurrences_per_generation
         with pytest.raises(ValidationError) as exc_info:
-            SpikeReport(
+            SpikeReport(  # type: ignore[call-arg]
                 real_time_factor=2.0,
                 peak_rss_bytes=1024000,
                 disclaimer_offset_s=0.5,
@@ -100,7 +100,7 @@ class TestSpikeReportSchema:
 
         # Should fail when missing disclaimer_excludable
         with pytest.raises(ValidationError) as exc_info:
-            SpikeReport(
+            SpikeReport(  # type: ignore[call-arg]
                 real_time_factor=2.0,
                 peak_rss_bytes=1024000,
                 disclaimer_offset_s=0.5,
@@ -115,7 +115,7 @@ class TestSpikeReportSchema:
 
         # Should fail when missing three_minute_render_seconds
         with pytest.raises(ValidationError) as exc_info:
-            SpikeReport(
+            SpikeReport(  # type: ignore[call-arg]
                 real_time_factor=2.0,
                 peak_rss_bytes=1024000,
                 disclaimer_offset_s=0.5,
@@ -130,7 +130,7 @@ class TestSpikeReportSchema:
 
         # Should fail when missing corpus_size
         with pytest.raises(ValidationError) as exc_info:
-            SpikeReport(
+            SpikeReport(  # type: ignore[call-arg]
                 real_time_factor=2.0,
                 peak_rss_bytes=1024000,
                 disclaimer_offset_s=0.5,
@@ -145,7 +145,7 @@ class TestSpikeReportSchema:
 
         # Should fail when missing per_turn_samples
         with pytest.raises(ValidationError) as exc_info:
-            SpikeReport(
+            SpikeReport(  # type: ignore[call-arg]
                 real_time_factor=2.0,
                 peak_rss_bytes=1024000,
                 disclaimer_offset_s=0.5,
@@ -160,7 +160,7 @@ class TestSpikeReportSchema:
 
         # Should fail when missing measured_sample_duration_s
         with pytest.raises(ValidationError) as exc_info:
-            SpikeReport(
+            SpikeReport(  # type: ignore[call-arg]
                 real_time_factor=2.0,
                 peak_rss_bytes=1024000,
                 disclaimer_offset_s=0.5,
@@ -297,7 +297,8 @@ class TestRunIsolatedWorker:
 
             # Verify subprocess was called with --no-project
             call_args = mock_subprocess_run.call_args
-            argv = call_args[0][0]  # type: ignore
+            assert call_args is not None
+            argv = call_args[0][0]  # First positional arg to subprocess.run
 
             assert "--no-project" in argv
             assert "abc1234" in argv
@@ -311,7 +312,7 @@ class TestManifestEntry:
         """AC5: ManifestEntry requires sha256 and synthetic marker."""
         # Should fail when missing sha256
         with pytest.raises(ValidationError) as exc_info:
-            ManifestEntry(
+            ManifestEntry(  # type: ignore[call-arg]
                 clip_id="clip_001",
                 path="/runs/s2_tts/samples/clip_001.wav",
                 speaker_count=2,
