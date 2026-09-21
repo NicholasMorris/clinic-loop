@@ -1,7 +1,5 @@
 """Test that cohort labels are separated from case records."""
 
-import pytest
-
 from clinicloop.world.cohorts import generate_cohorts
 
 

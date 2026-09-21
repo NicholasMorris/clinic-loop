@@ -3,8 +3,6 @@
 import hashlib
 import json
 
-import pytest
-
 from clinicloop.world.cohorts import generate_cohorts
 
 
@@ -38,6 +36,4 @@ def test_cohort_set_is_seed_reproducible() -> None:
     assert digest1 == digest2, (
         f"Same seed (20260921) produced different digests: {digest1} != {digest2}"
     )
-    assert digest1 != digest3, (
-        f"Different seeds produced same digest: {digest1} == {digest3}"
-    )
+    assert digest1 != digest3, f"Different seeds produced same digest: {digest1} == {digest3}"

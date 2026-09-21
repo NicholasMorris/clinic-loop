@@ -1,7 +1,5 @@
 """Test that cohorts have equal true base rates for planted signals."""
 
-import pytest
-
 from clinicloop.world.cohorts import generate_cohorts
 
 
@@ -45,16 +43,16 @@ def test_cohorts_have_equal_true_base_rates() -> None:
 
     for patient_id, signals_set, confounds_set in ground_truth:
         # Find which cohort this patient belongs to
-        cohort_idx = None
+        patient_cohort_idx: int | None = None
         for idx, cohort_data in enumerate(cohorts):
             if any(case["patient_id"] == patient_id for case in cohort_data["cases"]):
-                cohort_idx = idx
+                patient_cohort_idx = idx
                 break
 
-        if cohort_idx is not None:
+        if patient_cohort_idx is not None:
             for signal in signals_set:
                 if signal in signal_types:
-                    signal_counts[cohort_idx][signal] += 1
+                    signal_counts[patient_cohort_idx][signal] += 1
 
     # Calculate rates
     for cohort_idx in range(len(cohorts)):

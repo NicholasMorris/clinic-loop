@@ -1,7 +1,5 @@
 """Test that message corpus is templated and labelled."""
 
-import pytest
-
 from clinicloop.world.corpus import build_corpus
 
 
@@ -17,12 +15,12 @@ def test_every_message_is_labelled_templated_with_a_resolvable_template() -> Non
 
     # Check that every message is templated
     for message in messages:
-        assert (
-            message.get("generation_method") == "templated"
-        ), f"Message {message.get('message_id')} is not templated"
-        assert (
-            message.get("template_id") is not None
-        ), f"Message {message.get('message_id')} has no template_id"
+        assert message.get("generation_method") == "templated", (
+            f"Message {message.get('message_id')} is not templated"
+        )
+        assert message.get("template_id") is not None, (
+            f"Message {message.get('message_id')} has no template_id"
+        )
 
     # Collect all template IDs
     template_ids = set()

@@ -1,7 +1,5 @@
 """Test that all five confound kinds are planted in cohorts."""
 
-import pytest
-
 from clinicloop.world.cohorts import generate_cohorts
 
 

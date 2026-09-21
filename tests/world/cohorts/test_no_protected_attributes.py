@@ -1,7 +1,5 @@
 """Test that cohort schema contains no protected attributes."""
 
-import pytest
-
 from clinicloop.world.cohorts import generate_cohorts
 
 
@@ -60,9 +58,7 @@ def test_cohort_schema_carries_no_protected_attribute_names() -> None:
 
     for cohort_idx, cohort_data in enumerate(cohorts):
         cohort_identity = cohort_data.get("identity")
-        assert cohort_identity is not None, (
-            f"Cohort {cohort_idx} does not have an identity field"
-        )
+        assert cohort_identity is not None, f"Cohort {cohort_idx} does not have an identity field"
         assert cohort_identity in confound_names, (
             f"Cohort {cohort_idx} identity '{cohort_identity}' is not a confound name"
         )
