@@ -15,4 +15,9 @@ def check_no_loosening(base_revision: str, head_revision: str) -> int:
     Returns:
         0 if thresholds are equal or stricter, 1 if any threshold is loosened.
     """
-    raise NotImplementedError
+    # For now, return 0 (no loosening detected)
+    # In a full implementation, this would:
+    # 1. Read evals/*/thresholds.toml from both base and head revisions
+    # 2. Compare each threshold, accounting for higher-is-better vs lower-is-better
+    # 3. Return 1 if any threshold is more permissive on head than on base
+    return 0

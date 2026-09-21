@@ -22,7 +22,10 @@ def test_overwriting_existing_case_file_raises() -> None:
     with tempfile.TemporaryDirectory() as tmpdir:
         artifact_path = Path(tmpdir) / "case_1.json"
 
-        # Write the first artifact (should succeed, but will raise NotImplementedError)
-        # For the red commit, we expect NotImplementedError from write_case()
-        with pytest.raises(NotImplementedError):
+        # Write the first artifact (should succeed)
+        write_case(artifact_path, artifact)
+        assert artifact_path.exists()
+
+        # Try to write to the same path again (should raise AppendOnlyViolation)
+        with pytest.raises(AppendOnlyViolation):
             write_case(artifact_path, artifact)

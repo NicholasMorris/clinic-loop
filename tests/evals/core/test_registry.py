@@ -8,6 +8,7 @@ from clinicloop.evals.core.registry import DuplicateMetric, register_metric
 @pytest.mark.checklist_id("E2")
 def test_duplicate_metric_registration_raises() -> None:
     """Test that registering duplicate metrics raises DuplicateMetric with component and name."""
+
     # Define a simple metric function
     def dummy_metric() -> float:
         return 0.5

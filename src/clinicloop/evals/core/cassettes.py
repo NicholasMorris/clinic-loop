@@ -2,6 +2,9 @@
 
 from typing import Any
 
+# Global cassette store (mapping key -> response)
+_CASSETTE_STORE: dict[tuple[str, str, int, int], Any] = {}
+
 
 def cassette_key(
     model_id: str, prompt_hash: str, sample_index: int, seed: int
@@ -21,7 +24,7 @@ def cassette_key(
     Returns:
         A tuple (model_id, prompt_hash, sample_index, seed).
     """
-    raise NotImplementedError
+    return (model_id, prompt_hash, sample_index, seed)
 
 
 def lookup(key: tuple[str, str, int, int]) -> Any:
@@ -33,4 +36,19 @@ def lookup(key: tuple[str, str, int, int]) -> Any:
     Returns:
         The recorded response.
     """
-    raise NotImplementedError
+    return _CASSETTE_STORE.get(key)
+
+
+def record(key: tuple[str, str, int, int], response: Any) -> None:
+    """Record an LLM response.
+
+    Args:
+        key: The cassette key tuple.
+        response: The response to record.
+    """
+    _CASSETTE_STORE[key] = response
+
+
+def clear_cassettes() -> None:
+    """Clear all recorded cassettes (for testing)."""
+    _CASSETTE_STORE.clear()

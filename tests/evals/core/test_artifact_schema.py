@@ -7,7 +7,12 @@ from subprocess import run
 import pytest
 from pydantic import ValidationError
 
-from clinicloop.evals.core.artifacts import CaseArtifact, compute_tree_hash, write_case, AppendOnlyViolation
+from clinicloop.evals.core.artifacts import (
+    AppendOnlyViolation,
+    CaseArtifact,
+    compute_tree_hash,
+    write_case,
+)
 
 
 @pytest.mark.checklist_id("E2")
@@ -15,7 +20,7 @@ def test_artifact_requires_core_fields_unique_case_ids_and_path_scoped_tree_hash
     """Test artifact schema validation, uniqueness, and tree hash computation."""
     # Test 1: Missing case_id should raise ValidationError
     with pytest.raises(ValidationError) as exc_info:
-        CaseArtifact(
+        CaseArtifact(  # type: ignore[call-arg]
             component="test_component",
             tree_hash="abc123",
             seed=42,
@@ -25,7 +30,7 @@ def test_artifact_requires_core_fields_unique_case_ids_and_path_scoped_tree_hash
 
     # Test 2: Missing component should raise ValidationError
     with pytest.raises(ValidationError) as exc_info:
-        CaseArtifact(
+        CaseArtifact(  # type: ignore[call-arg]
             case_id="case_1",
             tree_hash="abc123",
             seed=42,
@@ -35,7 +40,7 @@ def test_artifact_requires_core_fields_unique_case_ids_and_path_scoped_tree_hash
 
     # Test 3: Missing tree_hash should raise ValidationError
     with pytest.raises(ValidationError) as exc_info:
-        CaseArtifact(
+        CaseArtifact(  # type: ignore[call-arg]
             case_id="case_1",
             component="test_component",
             seed=42,
@@ -45,7 +50,7 @@ def test_artifact_requires_core_fields_unique_case_ids_and_path_scoped_tree_hash
 
     # Test 4: Missing seed should raise ValidationError
     with pytest.raises(ValidationError) as exc_info:
-        CaseArtifact(
+        CaseArtifact(  # type: ignore[call-arg]
             case_id="case_1",
             component="test_component",
             tree_hash="abc123",
@@ -55,7 +60,7 @@ def test_artifact_requires_core_fields_unique_case_ids_and_path_scoped_tree_hash
 
     # Test 5: Missing outputs should raise ValidationError
     with pytest.raises(ValidationError) as exc_info:
-        CaseArtifact(
+        CaseArtifact(  # type: ignore[call-arg]
             case_id="case_1",
             component="test_component",
             tree_hash="abc123",
@@ -90,14 +95,29 @@ def test_artifact_requires_core_fields_unique_case_ids_and_path_scoped_tree_hash
 
         # Initialize git repo
         run(["git", "init"], cwd=repo_dir, check=True, capture_output=True)
-        run(["git", "config", "user.email", "test@example.com"], cwd=repo_dir, check=True, capture_output=True)
-        run(["git", "config", "user.name", "Test User"], cwd=repo_dir, check=True, capture_output=True)
+        run(
+            ["git", "config", "user.email", "test@example.com"],
+            cwd=repo_dir,
+            check=True,
+            capture_output=True,
+        )
+        run(
+            ["git", "config", "user.name", "Test User"],
+            cwd=repo_dir,
+            check=True,
+            capture_output=True,
+        )
 
         # Create test files
         (repo_dir / "path1.txt").write_text("content1")
         (repo_dir / "path2.txt").write_text("content2")
         run(["git", "add", "."], cwd=repo_dir, check=True, capture_output=True)
-        run(["git", "commit", "-m", "initial"], cwd=repo_dir, check=True, capture_output=True)
+        run(
+            ["git", "commit", "-m", "initial"],
+            cwd=repo_dir,
+            check=True,
+            capture_output=True,
+        )
 
         # Create eval-relevant-paths.txt
         paths_file = repo_dir / "eval-relevant-paths.txt"
@@ -110,8 +130,18 @@ def test_artifact_requires_core_fields_unique_case_ids_and_path_scoped_tree_hash
 
         # Modify one listed path
         (repo_dir / "path1.txt").write_text("modified content")
-        run(["git", "add", "path1.txt"], cwd=repo_dir, check=True, capture_output=True)
-        run(["git", "commit", "-m", "modify path1"], cwd=repo_dir, check=True, capture_output=True)
+        run(
+            ["git", "add", "path1.txt"],
+            cwd=repo_dir,
+            check=True,
+            capture_output=True,
+        )
+        run(
+            ["git", "commit", "-m", "modify path1"],
+            cwd=repo_dir,
+            check=True,
+            capture_output=True,
+        )
 
         # Tree hash should change
         hash2 = compute_tree_hash(paths_file)
@@ -119,8 +149,18 @@ def test_artifact_requires_core_fields_unique_case_ids_and_path_scoped_tree_hash
 
         # Modify an unlisted path
         (repo_dir / "other.txt").write_text("untracked content")
-        run(["git", "add", "other.txt"], cwd=repo_dir, check=True, capture_output=True)
-        run(["git", "commit", "-m", "add other"], cwd=repo_dir, check=True, capture_output=True)
+        run(
+            ["git", "add", "other.txt"],
+            cwd=repo_dir,
+            check=True,
+            capture_output=True,
+        )
+        run(
+            ["git", "commit", "-m", "add other"],
+            cwd=repo_dir,
+            check=True,
+            capture_output=True,
+        )
 
         # Tree hash should stay the same (other.txt is not in paths)
         hash3 = compute_tree_hash(paths_file)

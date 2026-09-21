@@ -12,11 +12,13 @@ def test_sample_index_is_part_of_the_cassette_key() -> None:
     prompt_hash = "abc123def456"
     seed = 42
 
-    # For red commit: cassette_key() raises NotImplementedError
-    # The actual test will:
-    # 1. Generate key1 with sample_index=0
-    # 2. Generate key2 with sample_index=1
-    # 3. Assert that key1 != key2
+    # Generate two keys with different sample indices
+    first = cassette_key(model_id, prompt_hash, 0, seed)
+    second = cassette_key(model_id, prompt_hash, 1, seed)
 
-    with pytest.raises(NotImplementedError):
-        cassette_key(model_id, prompt_hash, 0, seed)
+    # They should be different because sample_index is part of the key
+    assert first != second
+
+    # But if we change it back, they should match
+    third = cassette_key(model_id, prompt_hash, 0, seed)
+    assert first == third
