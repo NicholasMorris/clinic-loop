@@ -98,8 +98,11 @@ def recompute_adr_from_records(
     if not all_models:
         raise ValueError("No valid results to process")
 
-    # Sort by pass count descending
-    sorted_models = sorted(all_models.values(), key=lambda x: x["pass_count"], reverse=True)
+    # Sort by pass count descending, then by model_id for deterministic tie-breaking
+    sorted_models = sorted(
+        all_models.values(),
+        key=lambda x: (-x["pass_count"], x["model_id"])
+    )
 
     # Select models for roles
     primary = sorted_models[0]
