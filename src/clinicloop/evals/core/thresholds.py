@@ -117,12 +117,12 @@ def check_no_loosening(
         if not thresholds_path.exists():
             continue
 
-        # Read current thresholds
-        with open(thresholds_path, "r") as f:
-            current_text = f.read()
-
-        # Read base thresholds
         relative_path = str(thresholds_path)
+        # Head side comes from the head revision; the working-tree file is only a fallback
+        # for a threshold file that is not committed yet.
+        current_text = reader(head_revision, relative_path)
+        if current_text is None:
+            current_text = thresholds_path.read_text()
         prior_text = reader(base_revision, relative_path)
 
         component = component_dir.name

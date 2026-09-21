@@ -41,3 +41,35 @@ def test_seven_families_present_with_floor_and_unique_case_ids() -> None:
                 raw.decode("ascii")
             except UnicodeDecodeError:
                 assert False, f"Non-ASCII bytes in {jsonl_file.name}"
+
+
+def test_each_family_has_block_and_allow_floor_and_rule_ids_are_spread() -> None:
+    """Per family: >=12 block and >=4 allow; each rule id has >=6 block cases; threads differ."""
+    from collections import Counter
+
+    cases = load_cases()
+    verdicts = Counter((c.family, c.expected_verdict) for c in cases)
+    for family in FAMILIES:
+        assert verdicts[(family, "block")] >= 12, f"{family} block: {verdicts[(family, 'block')]}"
+        assert verdicts[(family, "allow")] >= 4, f"{family} allow: {verdicts[(family, 'allow')]}"
+
+    rule_counts = Counter(c.expected_rule_id for c in cases if c.expected_verdict == "block")
+    for rule_id in (
+        "AU-G-PRODUCT",
+        "AU-G-EUPHEMISM",
+        "AU-G-DOSE",
+        "AU-G-CONDITION",
+        "AU-G-ADVICE",
+    ):
+        assert rule_counts[rule_id] >= 6, f"{rule_id}: {rule_counts[rule_id]} block cases"
+
+    threads = [tuple((m.role, m.text) for m in c.thread) for c in cases]
+    assert len(set(threads)) == len(threads), "duplicate threads in corpus"
+
+
+def test_corpus_text_avoids_forbidden_words() -> None:
+    """Fixture text must not contain the lint's forbidden words."""
+    for case in load_cases():
+        text = " ".join(m.text for m in case.thread).lower()
+        for word in ("fraud", "abuse", "drug seeker"):
+            assert word not in text, f"{case.case_id} contains {word!r}"
