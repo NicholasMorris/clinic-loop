@@ -5,7 +5,7 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-import yaml  # type: ignore[import-untyped]
+import yaml
 
 
 def extract_nav_entries(nav_config: Any) -> set[str]:
@@ -44,7 +44,7 @@ def get_nav_from_mkdocs(docs_dir: Path) -> set[str]:
     nav_entries: set[str] = set()
 
     # Create a custom YAML loader that handles !include tags
-    class IncludeLoader(yaml.SafeLoader):  # type: ignore[misc]
+    class IncludeLoader(yaml.SafeLoader):
         pass
 
     def include_constructor(loader: Any, node: Any) -> str:
