@@ -35,7 +35,23 @@ def test_every_parameter_cites_a_manifest_inventory_id() -> None:
 
     # Collect all inventory_ids from parameters
     all_cited_ids = set()
+    for param_name, (value, ids) in au._params.items():
+        assert isinstance(ids, tuple), f"Parameter {param_name} ids should be a tuple"
+        assert len(ids) >= 1, f"Parameter {param_name} must cite at least one inventory ID"
+        for inventory_id in ids:
+            assert id_pattern.match(
+                inventory_id
+            ), f"Parameter {param_name} cites invalid ID {inventory_id}"
+            assert inventory_id in KNOWN_INVENTORY_IDS, (
+                f"Parameter {param_name} cites unknown ID {inventory_id}"
+            )
+            all_cited_ids.add(inventory_id)
 
-    # We'll need to introspect the regime object to find parameters
-    # For now, this is a placeholder that will be expanded once regimes are implemented
-    pytest.skip("Regime parameter introspection not yet fully implemented")
+    # Collect inventory_ids from recorded conflicts
+    for conflict in au.recorded_conflicts:
+        all_cited_ids.add(conflict.inventory_id)
+
+    # Verify at least the required IDs are cited or in conflicts
+    assert required_ids.issubset(
+        all_cited_ids
+    ), f"Not all required IDs are cited or in conflicts: {required_ids - all_cited_ids}"

@@ -1,6 +1,6 @@
 """Entity models for SimClinic world."""
 
-from typing import Literal
+from typing import Literal, Optional
 
 from pydantic import BaseModel, ConfigDict
 
@@ -11,6 +11,9 @@ class Patient(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     synthetic: Literal[True]
+    phone_number: Optional[str] = None
+    email_domain: Optional[str] = None
+    health_identifier: Optional[str] = None
 
 
 class Questionnaire(BaseModel):
