@@ -1,6 +1,8 @@
 """Fault profile loading and validation."""
 
-from pathlib import Path
+from __future__ import annotations
+
+from typing import Any
 
 from pydantic import BaseModel
 
@@ -75,7 +77,7 @@ class UnknownFaultRoute(Exception):
     pass
 
 
-def load_profile(profile_data: dict, app_routes: set[str]) -> FaultProfile:
+def load_profile(profile_data: dict[str, Any], app_routes: set[str]) -> FaultProfile:
     """Load and validate a fault profile configuration.
 
     Validates that all routes specified in the profile exist in the app.
@@ -89,9 +91,15 @@ def load_profile(profile_data: dict, app_routes: set[str]) -> FaultProfile:
 
     Raises:
         UnknownFaultRoute: If a route in the profile is not in app_routes.
-        NotImplementedError: Stub implementation.
     """
-    raise NotImplementedError("load_profile stub")
+    # Validate all routes exist
+    for route in profile_data.get("routes", {}).keys():
+        if route not in app_routes:
+            raise UnknownFaultRoute(f"Unknown route in fault profile: {route}")
+
+    # Parse and validate the profile
+    profile = FaultProfile(**profile_data)
+    return profile
 
 
 # Update forward references for pydantic models

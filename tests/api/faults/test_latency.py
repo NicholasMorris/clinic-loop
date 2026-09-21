@@ -6,8 +6,8 @@ import pytest
 from fastapi.testclient import TestClient
 
 from clinicloop.api.app import create_app
-from clinicloop.api.faults.profile import FaultProfile, LatencyRule, RouteFaultRules
 from clinicloop.api.faults.middleware import attach_fault_middleware
+from clinicloop.api.faults.profile import FaultProfile, LatencyRule, RouteFaultRules
 from clinicloop.world.generator.snapshot import write_world_snapshot
 
 

@@ -6,13 +6,13 @@ import pytest
 from fastapi.testclient import TestClient
 
 from clinicloop.api.app import create_app
+from clinicloop.api.faults.middleware import attach_fault_middleware
 from clinicloop.api.faults.profile import (
     FaultProfile,
-    ServerErrorRule,
     LatencyRule,
     RouteFaultRules,
+    ServerErrorRule,
 )
-from clinicloop.api.faults.middleware import attach_fault_middleware
 from clinicloop.world.generator.snapshot import write_world_snapshot
 
 
@@ -111,13 +111,12 @@ def test_fault_sequence_is_seed_reproducible(world_snapshot: Path) -> None:
     # Check that the sequence is different from seed 7
     if len(log_seed_9) == len(log_seed_7_run1):
         # If same length, check that the sequences differ
-        sequences_differ = False
         for entry1, entry9 in zip(log_seed_7_run1, log_seed_9):
             if entry1.get("fault_kind") != entry9.get("fault_kind"):
-                sequences_differ = True
+                # Sequences differ as expected
                 break
-        # It's possible but unlikely that 100 requests produce the same fault pattern with different seeds
-        # So we only assert this if lengths are equal
+        # It's possible but unlikely that 100 requests produce the
+        # same fault pattern with different seeds
         if len(log_seed_7_run1) > 0:
             # If there are faults, the sequences should differ
             pass  # We accept that the sequences might coincidentally match
