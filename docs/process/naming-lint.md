@@ -150,5 +150,5 @@ Both tests run as part of `make ci`.
 
 ## References
 
-- Requirement I6: [brief-checklist.md](../repo-docs/brief-checklist.md#I6)
-- Requirement R7: [brief-checklist.md](../repo-docs/brief-checklist.md#R7)
+- Requirement I6: [brief-checklist.md](../brief-checklist.md#I6)
+- Requirement R7: [brief-checklist.md](../brief-checklist.md#R7)
