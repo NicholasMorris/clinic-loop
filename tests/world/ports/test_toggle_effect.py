@@ -1,7 +1,5 @@
 """Tests for agent port toggle effects on queue metrics."""
 
-import pytest
-
 from clinicloop.world.engine import Engine, RunResult
 from clinicloop.world.generator import generate_world
 from clinicloop.world.metrics import compute_snapshot
