@@ -1,10 +1,8 @@
 # ADR: Text-to-Speech Engine and Version Pins
 
-**Status:** Accepted
+## Status
 
-**Date:** 2026-09-21
-
-**Decider:** Spike S2 measurement harness
+Accepted
 
 ## Context
 
@@ -56,7 +54,7 @@ The spike measurement (S2) checked 4 clips for disclaimer phrases using Whisper-
 
 AutoModelForTextToWaveform is natively available in transformers 5.17.0. Microsoft's official VibeVoice-TTS repository was removed for responsible-use reasons; the transformers port is the active, publicly available implementation.
 
-## Alternatives Considered
+## Alternatives considered
 
 1. **PyTorch direct implementation**: Increases maintenance burden; transformers integration is standard.
 2. **Kokoro-82M or Piper**: Smaller, faster models; not evaluated against the clinic-loop requirements in S2. Could be revisited in future spikes.

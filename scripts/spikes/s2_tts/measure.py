@@ -34,20 +34,24 @@ def _derive_report() -> dict[str, Any]:
     with open(records_dir / "generation_per_turn_and_extra_pairs.json") as f:
         per_turn_records = json.load(f)
 
+    # Disclaimer check records confirm no disclaimer phrases found in any clips
     with open(records_dir / "disclaimer_check_asr.json") as f:
-        disclaimer_records = json.load(f)
+        _ = json.load(f)
 
     with open(records_dir / "sample_facts.json") as f:
         sample_facts = json.load(f)
 
     # Calculate real_time_factor from three whole-dialogue runs
     rtf_single = single_record["real_time_factor"]
-    rtf_s2 = next(r for r in per_turn_records if r.get("mode") == "whole_dialogue" and r.get("script") == "s2")[
-        "real_time_factor"
-    ]
-    rtf_s3 = next(r for r in per_turn_records if r.get("mode") == "whole_dialogue" and r.get("script") == "s3")[
-        "real_time_factor"
-    ]
+
+    def get_by_mode_script(mode: str, script: str) -> dict[str, Any]:
+        """Find record by mode and script."""
+        return next(
+            r for r in per_turn_records if r.get("mode") == mode and r.get("script") == script
+        )
+
+    rtf_s2 = get_by_mode_script("whole_dialogue", "s2")["real_time_factor"]
+    rtf_s3 = get_by_mode_script("whole_dialogue", "s3")["real_time_factor"]
     real_time_factor = round((rtf_single + rtf_s2 + rtf_s3) / 3, 3)
 
     # Peak RSS from single whole-dialogue run
@@ -105,15 +109,17 @@ def _derive_manifest() -> dict[str, Any]:
 
     entries = []
     for sample in sample_facts:
-        entries.append({
-            "clip_id": sample["clip_id"],
-            "path": f"runs/s2_tts/samples/{sample['clip_id']}.wav",
-            "sha256": sample["sha256"],
-            "speaker_count": 2,  # All spike samples are 2-speaker
-            "duration_s": sample["duration_s"],
-            "is_synthetic": True,
-            "produced_by": produced_by,
-        })
+        entries.append(
+            {
+                "clip_id": sample["clip_id"],
+                "path": f"runs/s2_tts/samples/{sample['clip_id']}.wav",
+                "sha256": sample["sha256"],
+                "speaker_count": 2,  # All spike samples are 2-speaker
+                "duration_s": sample["duration_s"],
+                "is_synthetic": True,
+                "produced_by": produced_by,
+            }
+        )
 
     return {"entries": entries}
 
@@ -127,11 +133,11 @@ def run_measurement() -> None:
     raise NotImplementedError
 
 
-def load_committed_report() -> dict:
+def load_committed_report() -> dict[str, Any]:
     """Load the committed spike report from JSON.
 
     Returns:
-        dict: Parsed report dictionary.
+        dict[str, Any]: Parsed report dictionary.
 
     Raises:
         FileNotFoundError: If report.json does not exist.
@@ -139,14 +145,14 @@ def load_committed_report() -> dict:
     project_root = _get_project_root()
     report_path = project_root / "scripts" / "spikes" / "s2_tts" / "report.json"
     with open(report_path) as f:
-        return json.load(f)
+        return dict(json.load(f))
 
 
-def load_committed_manifest() -> dict:
+def load_committed_manifest() -> dict[str, Any]:
     """Load the committed sample manifest from JSON.
 
     Returns:
-        dict: Parsed manifest dictionary.
+        dict[str, Any]: Parsed manifest dictionary.
 
     Raises:
         FileNotFoundError: If manifest.json does not exist.
@@ -154,14 +160,14 @@ def load_committed_manifest() -> dict:
     project_root = _get_project_root()
     manifest_path = project_root / "scripts" / "spikes" / "s2_tts" / "samples" / "manifest.json"
     with open(manifest_path) as f:
-        return json.load(f)
+        return dict(json.load(f))
 
 
-def parse_spike_docs() -> tuple[str, dict]:
+def parse_spike_docs() -> tuple[str, dict[str, Any]]:
     """Parse the spike documentation and ADR files.
 
     Returns:
-        tuple[str, dict]: (documented_branch, pins_dict) where documented_branch
+        tuple[str, dict[str, Any]]: (documented_branch, pins_dict) where documented_branch
             is the single-character branch letter from tts-spike.md and pins_dict
             contains the fork_commit from pins.toml.
 
@@ -173,7 +179,8 @@ def parse_spike_docs() -> tuple[str, dict]:
     # Parse pins.toml
     pins_path = project_root / "scripts" / "spikes" / "s2_tts" / "pins.toml"
     with open(pins_path, "rb") as f:
-        pins_dict = tomllib.load(f).get("pins", {})
+        pins_data: dict[str, Any] = tomllib.load(f)
+        pins_dict = pins_data.get("pins", {})
 
     # Parse tts-spike.md to extract branch
     docs_path = project_root / "docs" / "audio" / "tts-spike.md"
@@ -181,6 +188,7 @@ def parse_spike_docs() -> tuple[str, dict]:
 
     # Extract branch letter from docs (look for "Branch B:" or similar pattern)
     import re
+
     match = re.search(r"[Bb]ranch\s+([ABC])", docs_content)
     if not match:
         raise ValueError("Could not find branch letter in tts-spike.md")

@@ -1,0 +1,26 @@
+{
+ "t1_fp16": {
+  "transcript": "Good afternoon. This is Dr Hughes from the clinic. Am I speaking with Sam? Yes, that's me. Thanks for calling back. No worries. I've read your questionnaire, and I'd like to ask a few more questions before we go on. Sure. I've been getting headaches most afternoons for about three months now. Understood. Are you taking any medication at the moment, or have any allergies I should know about? Just paracetamol now and then, and I'm allergic to penicillin.",
+  "first_word_start_s": 0.0,
+  "disclaimer_phrase_found": false,
+  "audio_seconds": 27.87
+ },
+ "whole_s2": {
+  "transcript": "Hello, it's Dr. Wynn. Is this a good time to talk about your review? Yeah, that's fine. I've got about ten minutes. Great. How has your sleep been since we last spoke? A bit better, maybe six hours a night, but I still wake up around three. OK. I'll note that and we'll book a follow-up in four weeks. Thank you. That works for me.",
+  "first_word_start_s": 0.0,
+  "disclaimer_phrase_found": false,
+  "audio_seconds": 21.6
+ },
+ "whole_s3": {
+  "transcript": "Hi, this is Dr. Patel, returning your call about the delivery. Oh good, yes, the parcel was meant to arrive on Tuesday, and it hasn't. I'm sorry about that. I'll pass it to the pharmacy team, and someone will contact you today. Thanks. Can you also confirm my next consult time? Of course, it's Friday at 2.30 in the afternoons. Perfect, thank you.",
+  "first_word_start_s": 0.0,
+  "disclaimer_phrase_found": false,
+  "audio_seconds": 22.53
+ },
+ "perturn_0": {
+  "transcript": "Good afternoon, this is Dr Hughes from the clinic. Am I speaking with Sam?",
+  "first_word_start_s": 0.0,
+  "disclaimer_phrase_found": false,
+  "audio_seconds": 4.4
+ }
+}

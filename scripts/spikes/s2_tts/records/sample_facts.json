@@ -1,0 +1,23 @@
+[
+ {
+  "clip_id": "clip_001",
+  "source_run": "t1_fp16",
+  "voices": "6097 Phil Benson / 17483 Laurie Banza",
+  "duration_s": 27.87,
+  "sha256": "78d426be7c09a0171b036d77503e884de3fa1a13b75cd7d6bc503c5733c04f29"
+ },
+ {
+  "clip_id": "clip_002",
+  "source_run": "whole_s2",
+  "voices": "3906 tabithat / 13963 Brianna Chiles",
+  "duration_s": 21.6,
+  "sha256": "cee8b11a4f8197ddfd507ff2b4c58c456547181a301fe0b53715c0f57b460f8d"
+ },
+ {
+  "clip_id": "clip_003",
+  "source_run": "whole_s3",
+  "voices": "6097 Phil Benson / 13963 Brianna Chiles",
+  "duration_s": 22.53,
+  "sha256": "1f89ec4dd69657bbfc7016201c7a8e72b0b837d2dfc05cc1d6f90449f6510eaa"
+ }
+]

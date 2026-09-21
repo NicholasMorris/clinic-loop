@@ -1,51 +1,18 @@
 """Tests for text-to-speech spike measurement and reporting."""
 
 import hashlib
-import json
+import re
 from pathlib import Path
 
 import pytest
 
 from clinicloop.audio.spike.branch import select_branch
 from clinicloop.audio.spike.report import SampleManifest, SpikeReport
-
-
-def load_committed_report() -> SpikeReport:
-    """Load the committed spike report from JSON.
-
-    Returns:
-        SpikeReport: Parsed report with all measured fields.
-
-    Raises:
-        NotImplementedError: When the function body is not yet implemented.
-    """
-    raise NotImplementedError
-
-
-def load_committed_manifest() -> SampleManifest:
-    """Load the committed sample manifest from JSON.
-
-    Returns:
-        SampleManifest: Manifest with all spike sample entries.
-
-    Raises:
-        NotImplementedError: When the function body is not yet implemented.
-    """
-    raise NotImplementedError
-
-
-def parse_spike_docs() -> tuple[str, dict]:
-    """Parse the spike documentation and ADR files.
-
-    Returns:
-        tuple[str, dict]: (documented_branch, pins_dict) where documented_branch
-            is the single-character branch letter from tts-spike.md and pins_dict
-            contains the fork_commit from pins.toml.
-
-    Raises:
-        NotImplementedError: When the function body is not yet implemented.
-    """
-    raise NotImplementedError
+from scripts.spikes.s2_tts.measure import (
+    load_committed_manifest,
+    load_committed_report,
+    parse_spike_docs,
+)
 
 
 class TestCommittedReportValidatesAndIsFullyPopulated:
@@ -53,7 +20,8 @@ class TestCommittedReportValidatesAndIsFullyPopulated:
 
     def test_committed_report_validates_and_is_fully_populated(self) -> None:
         """Test that committed report validates against SpikeReport schema."""
-        report = load_committed_report()
+        report_data = load_committed_report()
+        report = SpikeReport(**report_data)
         assert report.corpus_size > 0
         assert report.real_time_factor > 0
         assert report.disclaimer_offset_s >= 0.0
@@ -64,7 +32,8 @@ class TestDocumentedBranchEqualsRuleOutput:
 
     def test_documented_branch_equals_rule_output(self) -> None:
         """Test that documented branch matches the branching rule."""
-        report = load_committed_report()
+        report_data = load_committed_report()
+        report = SpikeReport(**report_data)
         documented_branch, _ = parse_spike_docs()
         assert documented_branch == select_branch(report)
         assert documented_branch in ["A", "B", "C"]
@@ -75,15 +44,18 @@ class TestDocumentedCorpusSizeEqualsReport:
 
     def test_documented_corpus_size_equals_report(self) -> None:
         """Test that documented corpus size matches reported value."""
-        report = load_committed_report()
+        report_data = load_committed_report()
+        report = SpikeReport(**report_data)
         # Parse tts-spike.md to extract corpus size
-        spike_docs_path = Path(__file__).parent.parent.parent.parent / "docs" / "audio" / "tts-spike.md"
+        project_root = Path(__file__).parent.parent.parent.parent
+        spike_docs_path = project_root / "docs" / "audio" / "tts-spike.md"
         spike_docs_content = spike_docs_path.read_text()
 
-        # Extract corpus size from documentation (should be mentioned in the docs)
-        # For now, just verify the report has the field
-        assert report.corpus_size > 0
-        assert report.corpus_size == 40  # Default target
+        # Extract corpus size from documentation
+        match = re.search(r"(\d+)\s+consult", spike_docs_content)
+        assert match, "Could not find corpus size in tts-spike.md"
+        doc_corpus_size = int(match.group(1))
+        assert doc_corpus_size == report.corpus_size
 
 
 class TestManifestListsThreeCleanTwoSpeakerSyntheticClips:
@@ -91,13 +63,12 @@ class TestManifestListsThreeCleanTwoSpeakerSyntheticClips:
 
     def test_manifest_lists_three_clean_two_speaker_synthetic_clips(self) -> None:
         """Test that manifest has required clean two-speaker synthetic clips."""
-        manifest = load_committed_manifest()
+        manifest_data = load_committed_manifest()
+        manifest = SampleManifest(**manifest_data)
         assert len(manifest.entries) >= 3
 
         clean_two_speaker = [
-            entry
-            for entry in manifest.entries
-            if entry.speaker_count == 2 and entry.is_synthetic
+            entry for entry in manifest.entries if entry.speaker_count == 2 and entry.is_synthetic
         ]
         assert len(clean_two_speaker) >= 3
 
@@ -115,7 +86,6 @@ class TestTtsEngineAndPinAdrValidatesAndMatchesPins:
         """Test that ADR and pins.toml are consistent."""
         _, pins_dict = parse_spike_docs()
         assert "fork_commit" in pins_dict
-        # Additional validation will be done when parsing actual files
 
 
 class TestLocalTierRunRecomputesEveryManifestHash:
@@ -124,7 +94,8 @@ class TestLocalTierRunRecomputesEveryManifestHash:
     @pytest.mark.local_model
     def test_local_tier_run_recomputes_every_manifest_hash(self) -> None:
         """Test that manifest hashes can be recomputed from committed files."""
-        manifest = load_committed_manifest()
+        manifest_data = load_committed_manifest()
+        manifest = SampleManifest(**manifest_data)
         samples_dir = Path(__file__).parent.parent.parent.parent / "runs" / "s2_tts" / "samples"
 
         for entry in manifest.entries:
