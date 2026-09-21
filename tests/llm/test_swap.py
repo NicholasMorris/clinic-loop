@@ -2,6 +2,9 @@
 
 import tempfile
 from pathlib import Path
+from typing import cast
+
+from langchain_openai import ChatOpenAI
 
 from clinicloop.llm.config import load_models_config
 from clinicloop.llm.factory import build_chat_model
@@ -65,7 +68,7 @@ seed = 42
         config_file.write_text(toml_fixture1)
         load_models_config(config_file)
 
-        built1 = build_chat_model("primary")
+        built1 = cast(ChatOpenAI, build_chat_model("primary"))
 
         assert built1.model_name == "unsloth/Qwen3-30B-A3B-Instruct-2507-GGUF"
         assert built1.openai_api_base == "http://127.0.0.1:1234/v1"
@@ -127,7 +130,7 @@ seed = 42
         config_file.write_text(toml_fixture2)
         load_models_config(config_file)
 
-        built2 = build_chat_model("primary")
+        built2 = cast(ChatOpenAI, build_chat_model("primary"))
 
         assert built2.model_name == "different/model"
         assert built2.openai_api_base == "http://127.0.0.1:5678/v1"

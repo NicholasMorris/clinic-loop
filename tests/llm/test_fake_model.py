@@ -2,11 +2,13 @@
 
 import tempfile
 from pathlib import Path
+from typing import cast
 
 import pytest
 
 from clinicloop.llm.config import load_models_config
 from clinicloop.llm.factory import build_chat_model
+from clinicloop.llm.fake import FakeChatModel
 
 
 @pytest.mark.local_model
@@ -68,7 +70,7 @@ seed = 42
         load_models_config(config_file)
 
         # Get the fake model
-        fake_model = build_chat_model("fake")
+        fake_model = cast(FakeChatModel, build_chat_model("fake"))
 
         # Set scripted responses
         fake_model.set_responses(["first", "second"])

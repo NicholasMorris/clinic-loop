@@ -2,7 +2,6 @@
 
 import tempfile
 from pathlib import Path
-from typing import Any
 
 import pytest
 from pydantic import ValidationError
@@ -133,11 +132,11 @@ seed = 42
         config_file = Path(tmpdir) / "models.toml"
         config_file.write_text(toml_missing_field)
 
-        with pytest.raises(ValidationError) as exc_info:
+        with pytest.raises(ValidationError) as exc_info_missing:
             load_models_config(config_file)
 
         # Should name the missing field
-        assert "seed" in str(exc_info.value).lower()
+        assert "seed" in str(exc_info_missing.value).lower()
 
     # Test revision = "main" (should fail)
     toml_main_revision = """
@@ -194,10 +193,10 @@ seed = 42
         config_file = Path(tmpdir) / "models.toml"
         config_file.write_text(toml_main_revision)
 
-        with pytest.raises(ValidationError) as exc_info:
+        with pytest.raises(ValidationError) as exc_info_revision:
             load_models_config(config_file)
 
-        assert "revision" in str(exc_info.value).lower()
+        assert "revision" in str(exc_info_revision.value).lower()
 
     # Test quant = "" (should fail)
     toml_empty_quant = """
@@ -254,10 +253,10 @@ seed = 42
         config_file = Path(tmpdir) / "models.toml"
         config_file.write_text(toml_empty_quant)
 
-        with pytest.raises(ValidationError) as exc_info:
+        with pytest.raises(ValidationError) as exc_info_quant:
             load_models_config(config_file)
 
-        assert "quant" in str(exc_info.value).lower()
+        assert "quant" in str(exc_info_quant.value).lower()
 
     # Test fake row with repo_id (should fail)
     toml_fake_with_repo_id = """
@@ -315,8 +314,8 @@ seed = 42
         config_file = Path(tmpdir) / "models.toml"
         config_file.write_text(toml_fake_with_repo_id)
 
-        with pytest.raises(FakeRowHasServerFields) as exc_info:
+        with pytest.raises(FakeRowHasServerFields) as exc_info_fake:
             load_models_config(config_file)
 
         # Should name the offending field
-        assert "repo_id" in str(exc_info.value).lower()
+        assert "repo_id" in str(exc_info_fake.value).lower()

@@ -2,10 +2,10 @@
 
 import tempfile
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 from unittest.mock import MagicMock, patch
 
-import pytest
+from langchain_openai import ChatOpenAI
 from pydantic import BaseModel
 
 from clinicloop.llm.config import load_models_config
@@ -77,33 +77,31 @@ seed = 42
         config_file.write_text(toml_content)
         load_models_config(config_file)
 
-        model = build_chat_model("primary")
+        model = cast(ChatOpenAI, build_chat_model("primary"))
 
-        # Mock the model's with_structured_output method to capture the payload
-        sent_payload: dict[str, Any] = {}
-
-        original_with_structured = model.with_structured_output
+        # Track what method was requested
+        called_methods: list[str] = []
 
         def mock_with_structured(schema: Any, **kwargs: Any) -> Any:
-            # Simulate what langchain does - calling create with tools or json_schema
-            if "method" in kwargs and kwargs["method"] == "json_schema":
-                sent_payload["method"] = "json_schema"
-                # Simulate successful response
-                instance = SimpleSchema(name="test", value=42)
-                mock_response = MagicMock()
-                mock_response.invoke.return_value = instance
-                return mock_response
-            return original_with_structured(schema, **kwargs)
+            method = kwargs.get("method", "unknown")
+            called_methods.append(method)
 
-        model.with_structured_output = mock_with_structured
+            # Create a mock runnable that returns the instance
+            instance = SimpleSchema(name="test", value=42)
+            mock_response = MagicMock()
+            mock_response.invoke.return_value = instance
+            return mock_response
 
-        # Call structured_output
-        result = structured_output(model, SimpleSchema, "Extract test data")
+        # Patch ChatOpenAI.with_structured_output at the class level
+        with patch.object(type(model), "with_structured_output", side_effect=mock_with_structured):
+            # Call structured_output
+            result = structured_output(model, SimpleSchema, "Extract test data")
 
-        # Verify no tools key was sent
-        assert "tools" not in sent_payload
-        # Verify the method was json_schema
-        assert sent_payload.get("method") == "json_schema"
+        # Verify no tools method was called
+        assert "tools" not in called_methods
+        # Verify json_schema was used
+        assert "json_schema" in called_methods
+        assert isinstance(result, SimpleSchema)
 
 
 def test_tool_call_failure_falls_back_to_json_schema_exactly_once() -> None:
@@ -163,38 +161,36 @@ seed = 42
         config_file.write_text(toml_content)
         load_models_config(config_file)
 
-        model = build_chat_model("primary")
+        model = cast(ChatOpenAI, build_chat_model("primary"))
 
         # Track call attempts
-        call_count = 0
+        called_methods: list[str] = []
 
         def mock_with_structured(schema: Any, **kwargs: Any) -> Any:
-            nonlocal call_count
-            call_count += 1
+            method = kwargs.get("method", "unknown")
+            called_methods.append(method)
 
-            # First call (tools) should fail
-            if call_count == 1 and kwargs.get("method") == "tools":
+            # First call (function_calling) should fail
+            if method == "function_calling":
                 mock_response = MagicMock()
                 mock_response.invoke.side_effect = Exception("Tool calling failed")
                 return mock_response
             # Second call (json_schema) should succeed
-            elif call_count == 2 and kwargs.get("method") == "json_schema":
+            elif method == "json_schema":
                 instance = SimpleSchema(name="test", value=42)
                 mock_response = MagicMock()
                 mock_response.invoke.return_value = instance
                 return mock_response
-            # If there's a third call, that's a failure
-            elif call_count > 2:
-                raise AssertionError(f"Too many attempts: {call_count}")
+            else:
+                raise AssertionError(f"Unexpected method: {method}")
 
-            return MagicMock()
-
-        model.with_structured_output = mock_with_structured
-
-        # Call structured_output
-        result = structured_output(model, SimpleSchema, "Extract test data")
+        # Patch ChatOpenAI.with_structured_output at the class level
+        with patch.object(type(model), "with_structured_output", side_effect=mock_with_structured):
+            # Call structured_output
+            result = structured_output(model, SimpleSchema, "Extract test data")
 
         # Verify result is correct
         assert isinstance(result, SimpleSchema)
-        # Verify exactly 2 attempts were made
-        assert call_count == 2
+        # Verify exactly 2 attempts were made: function_calling first, then json_schema
+        assert called_methods == ["function_calling", "json_schema"]
+        assert len(called_methods) == 2

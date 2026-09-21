@@ -115,8 +115,8 @@ seed = 42
         load_models_config(config_file)
 
         # Now test that unknown role raises UnknownModelRole
-        with pytest.raises(UnknownModelRole) as exc_info:
+        with pytest.raises(UnknownModelRole) as exc_info_unknown:
             build_chat_model("reviewer")
 
         # Exception message should contain the unknown role name
-        assert "reviewer" in str(exc_info.value).lower()
+        assert "reviewer" in str(exc_info_unknown.value).lower()
