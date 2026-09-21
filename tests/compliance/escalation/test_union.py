@@ -1,18 +1,20 @@
 """Test union rule: rules OR classifier."""
 
+from __future__ import annotations
+
 import pytest
 
 from clinicloop.compliance.escalation.detector import detect
-from clinicloop.compliance.rulesets import load_ruleset
+from clinicloop.compliance.rulesets import Ruleset, load_ruleset
 
 
 @pytest.fixture
-def ruleset():
+def ruleset() -> Ruleset:
     """Load AU ruleset."""
     return load_ruleset("au")
 
 
-def test_either_detector_firing_escalates(ruleset):
+def test_either_detector_firing_escalates(ruleset: Ruleset) -> None:
     """AC2: Union rule holds in both directions.
 
     If rules match but classifier clears, result is non-none.
@@ -32,7 +34,9 @@ def test_either_detector_firing_escalates(ruleset):
         return None
 
     result = detect(thread_adverse, ruleset, classifier=classifier_clears)
-    assert result.category == "adverse_event", "Rules match should escalate even if classifier clears"
+    assert result.category == "adverse_event", (
+        "Rules match should escalate even if classifier clears"
+    )
 
     # Case 2: Rules miss, classifier flags distress
     thread_benign = [{"role": "patient", "text": "What time is my appointment?"}]
@@ -67,6 +71,4 @@ def test_either_detector_firing_escalates(ruleset):
 
     result = detect(thread_adverse, ruleset, classifier=classifier_raises)
     assert result.category == "adverse_event", "Rules should escalate even if classifier raises"
-    assert any(
-        s.source == "error" for s in result.evidence
-    ), "Error evidence should be recorded"
+    assert any(s.source == "error" for s in result.evidence), "Error evidence should be recorded"

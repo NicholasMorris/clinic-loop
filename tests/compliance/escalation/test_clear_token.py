@@ -1,22 +1,26 @@
 """Test escalation clear token mechanics."""
 
-import json
+from __future__ import annotations
 
 import pytest
 
 from clinicloop.compliance.escalation.detector import detect
 from clinicloop.compliance.escalation.gate import draft
-from clinicloop.compliance.escalation.result import EscalationClear, EscalationClearForbidden, EscalationRequired
-from clinicloop.compliance.rulesets import load_ruleset
+from clinicloop.compliance.escalation.result import (
+    EscalationClear,
+    EscalationClearForbidden,
+    EscalationRequired,
+)
+from clinicloop.compliance.rulesets import Ruleset, load_ruleset
 
 
 @pytest.fixture
-def ruleset():
+def ruleset() -> Ruleset:
     """Load AU ruleset."""
     return load_ruleset("au")
 
 
-def test_clear_token_is_detector_only_and_required_by_draft(ruleset):
+def test_clear_token_is_detector_only_and_required_by_draft(ruleset: Ruleset) -> None:
     """AC3: Direct construction of EscalationClear raises.
 
     The draft entry point requires a matching token or raises EscalationRequired.
@@ -53,7 +57,7 @@ def test_clear_token_is_detector_only_and_required_by_draft(ruleset):
         draft(escalated_thread, None, dummy_drafter)
 
 
-def test_token_bound_to_thread_hash(ruleset):
+def test_token_bound_to_thread_hash(ruleset: Ruleset) -> None:
     """AC4: Token's text_sha256 must match the thread being drafted.
 
     A token from thread A cannot be used for thread B.

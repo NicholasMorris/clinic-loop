@@ -1,20 +1,24 @@
 """Test escalation result routing from ruleset."""
 
+from __future__ import annotations
+
 import dataclasses
 
 import pytest
 
 from clinicloop.compliance.escalation.detector import detect
-from clinicloop.compliance.rulesets import RulesetValidationError, load_ruleset
+from clinicloop.compliance.rulesets import Ruleset, RulesetValidationError, load_ruleset
 
 
 @pytest.fixture
-def ruleset():
+def ruleset() -> Ruleset:
     """Load AU ruleset."""
     return load_ruleset("au")
 
 
-def test_result_carries_queue_and_target_response_time_from_ruleset(ruleset):
+def test_result_carries_queue_and_target_response_time_from_ruleset(
+    ruleset: Ruleset,
+) -> None:
     """AC6: Result carries queue and target_response_minutes from ruleset.
 
     For the AU ruleset:

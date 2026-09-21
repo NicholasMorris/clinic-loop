@@ -1,6 +1,6 @@
 """Test reachability analysis for escalation graphs."""
 
-import pytest
+from __future__ import annotations
 
 from clinicloop.compliance.escalation.reachability import paths_from_escalation_to_draft
 from tests.compliance.escalation.fixtures.graphs import (
@@ -9,7 +9,7 @@ from tests.compliance.escalation.fixtures.graphs import (
 )
 
 
-def test_no_path_from_escalation_edge_to_draft():
+def test_no_path_from_escalation_edge_to_draft() -> None:
     """AC5: Reachability returns empty list for correct graph.
 
     For a mis-wired graph with an unconditional edge from escalation_check
@@ -32,11 +32,12 @@ def test_no_path_from_escalation_edge_to_draft():
     ), f"Path should be (escalation_check, draft), got {paths[0]}"
 
 
-def test_reachability_with_two_hop_path():
+def test_reachability_with_two_hop_path() -> None:
     """Additional test: A path that reaches draft via another node."""
     # Create a graph where escalate_to_clinician -> draft (wrong!)
-    from langgraph.graph import StateGraph
     from typing import TypedDict
+
+    from langgraph.graph import StateGraph
 
     class GraphState(TypedDict):
         value: int

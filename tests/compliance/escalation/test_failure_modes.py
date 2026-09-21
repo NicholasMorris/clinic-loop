@@ -1,20 +1,24 @@
 """Test failure modes: classifier errors and timeouts."""
 
+from __future__ import annotations
+
 import time
 
 import pytest
 
 from clinicloop.compliance.escalation.detector import detect
-from clinicloop.compliance.rulesets import load_ruleset
+from clinicloop.compliance.rulesets import Ruleset, load_ruleset
 
 
 @pytest.fixture
-def ruleset():
+def ruleset() -> Ruleset:
     """Load AU ruleset."""
     return load_ruleset("au")
 
 
-def test_classifier_error_and_timeout_escalate_as_detector_error(ruleset):
+def test_classifier_error_and_timeout_escalate_as_detector_error(
+    ruleset: Ruleset,
+) -> None:
     """AC7: Classifier exceptions and timeouts return detector_error category.
 
     No EscalationClear token is produced for detector_error.
@@ -42,9 +46,7 @@ def test_classifier_error_and_timeout_escalate_as_detector_error(ruleset):
     result = detect(thread, ruleset, classifier=classifier_sleeps, timeout_seconds=0.05)
     assert result.category == "detector_error"
     assert result.clear is None
-    assert any(
-        "timeout" in s.detail.lower() for s in result.evidence if s.source == "error"
-    )
+    assert any("timeout" in s.detail.lower() for s in result.evidence if s.source == "error")
 
     # Test 3: Slow classifier (should complete within 1 second)
     start = time.time()

@@ -30,21 +30,57 @@ def compile_rules() -> CompiledRules:
         CompiledRules with all patterns compiled.
     """
     # Distress: suicidal ideation, self-harm, hopelessness
-    distress_pattern = r"\b(suicid\w*|self[- ]?harm\w*|kill myself|end (my life|it all)|hurt myself|want to die|no reason to live|can'?t go on|better off dead|hopeless)\b"
+    distress_pattern = (
+        r"\b(suicid\w*|self[- ]?harm\w*|kill myself|end (my life|it all)|"
+        r"hurt myself|want to die|no reason to live|can'?t go on|"
+        r"better off dead|hopeless)\b"
+    )
 
     # Pregnancy: pregnancy, expecting, breastfeeding, conception attempts
-    pregnancy_pattern = r"\b(pregnan\w*|expecting a baby|breast[- ]?feeding|trying (to conceive|for a baby)|might be pregnant|missed (my )?period)\b"
+    pregnancy_pattern = (
+        r"\b(pregnan\w*|expecting a baby|breast[- ]?feeding|"
+        r"trying (to conceive|for a baby)|might be pregnant|"
+        r"missed (my )?period)\b"
+    )
 
-    # Adverse event: side effects, allergic reactions, overdose, serious symptoms
-    adverse_event_base = r"\b(side effects?|allergic reaction|overdos\w*|took too many|hives|swollen (face|lips|tongue)|can'?t breathe|trouble breathing|chest pain|palpitations|fainted|passed out|seizure|blurred vision)\b"
-    # Also: rash, nausea, vomiting, dizzy, dizziness, headache, swelling within 12 words of since/after/dose context
-    adverse_event_pattern = adverse_event_base
+    # Adverse event: serious symptoms (always) + context-dependent ones
+    adverse_event_always = (
+        r"\b(side effects?|allergic reactions?|overdos\w*|took too many|hives|"
+        r"swollen (face|lips|tongue)|can'?t breathe|trouble breathing|"
+        r"chest pain|palpitations|fainted|passed out|seizure|blurred vision)\b"
+    )
+    # Context: (rash|nausea|vomiting|dizzy|headache) near medicine context
+    adverse_event_context = (
+        r"\b(rash|nausea|vomiting|dizzy|dizziness|headache|swelling)\b"
+        r"(?=.{0,100}(since|after|my (dose|tablets|pills|medicine|medication|"
+        r"treatment)))"
+    )
+    adverse_event_pattern = f"(?:{adverse_event_always}|{adverse_event_context})"
 
-    # Suspected misuse: extra doses, lost/ran out, sharing, someone else's script
-    suspected_misuse_pattern = r"\b(took|taking|take) (double|extra|more than|too much)\b|\b(lost|ran out of) (my|the) (tablets|pills|medication|medicine|script)\b(?=.{0,60}(early|another|again|more))|\b(sharing|share|gave|give|giving|selling|sell) (my|the) (tablets|pills|medication|medicine)\b|someone else'?s (name|script|prescription)"
+    # Suspected misuse: extra doses, lost/ran out, sharing, someone else's
+    suspected_misuse_pattern = (
+        r"\b(took|taking|take) (double|extra|more than|too much)\b|"
+        r"\b(lost|ran out of) (my|the) "
+        r"(tablets|pills|medication|medicine|script)\b"
+        r"(?=.{0,60}(early|another|again|more))|"
+        r"\b(sharing|share|gave|give|giving|selling|sell)\b"
+        r".{0,30}\b(tablets|pills|medication|medicine)\b|"
+        r"\basked for\b.{0,30}\b(tablets|pills|medication|medicine)\b|"
+        r"someone else'?s (name|script|prescription)"
+    )
 
-    # Clinical advice: should I take/stop/start/increase, is it safe, what dose, how much
-    clinical_advice_pattern = r"\bshould i (take|stop|start|increase|decrease|double|switch|combine|skip|mix)\b|\bis it (safe|ok|okay) to (take|combine|mix|drink|have)\b|\bwhat (dose|dosage|amount)\b|\bhow (much|many) (should|do) i (take|need)\b|\bcan i (take|mix|combine) .{0,40} with\b|\bwhich (medicine|medication|tablet|treatment) (is best|should i)\b"
+    # Clinical advice: should I, is it safe, what/which, how much, can I
+    clinical_advice_pattern = (
+        r"\bshould i (take|stop|start|increase|decrease|double|"
+        r"switch|combine|skip|mix)\b|"
+        r"\bis it (safe|ok|okay) to (take|combine|mix|drink|have|skip)\b|"
+        r"\bwhat (dose|dosage|amount)\b|"
+        r"\bhow (much|many).{0,40}\b(take|need)\b|"
+        r"\bcan i (take|mix|combine).{0,40} with\b|"
+        r"\bwhich (medicine|medication|tablet|treatment).{0,20}"
+        r"(best|should)\b|"
+        r"\bcan i (take|give|have|drink|start|stop)\b"
+    )
 
     return CompiledRules(
         distress=re.compile(distress_pattern, re.IGNORECASE),

@@ -2,6 +2,7 @@
 
 from typing import Callable, Optional, TypeVar
 
+from clinicloop.compliance.escalation.detector import thread_sha256
 from clinicloop.compliance.escalation.result import EscalationClear, EscalationRequired
 
 T = TypeVar("T")
@@ -27,6 +28,16 @@ def draft(
 
     Raises:
         EscalationRequired: If clear is None or does not match thread.
-        NotImplementedError: Stub.
     """
-    raise NotImplementedError("draft() not yet implemented")
+    if clear is None:
+        raise EscalationRequired("Escalation check required; no clear token provided")
+
+    # Validate token matches thread
+    current_hash = thread_sha256(thread)
+    if clear.text_sha256 != current_hash:
+        raise EscalationRequired(
+            f"Clear token mismatch: token is for {clear.text_sha256}, thread is {current_hash}"
+        )
+
+    # Token is valid; proceed with drafting
+    return drafter(thread)

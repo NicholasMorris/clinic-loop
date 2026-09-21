@@ -11,7 +11,7 @@ class GraphState(TypedDict):
     value: int
 
 
-def build_correct_graph() -> StateGraph:
+def build_correct_graph() -> StateGraph[GraphState]:
     """Build a correctly wired escalation graph.
 
     Edges:
@@ -67,7 +67,7 @@ def build_correct_graph() -> StateGraph:
     return graph
 
 
-def build_miswired_graph() -> StateGraph:
+def build_miswired_graph() -> StateGraph[GraphState]:
     """Build a deliberately mis-wired escalation graph.
 
     Has an unconditional edge directly from escalation_check to draft,
@@ -99,19 +99,8 @@ def build_miswired_graph() -> StateGraph:
     graph.add_node("escalate_to_clinician", escalate_node)
     graph.add_node("final", final_node)
 
-    # DANGEROUS: unconditional edge directly to draft
+    # DANGEROUS: unconditional edge directly to draft (wrong!)
     graph.add_edge("escalation_check", "draft")
-
-    # Also add the conditional edges (but they are unreachable)
-    graph.add_conditional_edges(
-        "escalation_check",
-        lambda state: "clear" if state["value"] == 0 else "escalate",
-        {
-            "clear": "draft",
-            "escalate": "escalate_to_clinician",
-        },
-    )
-
     graph.add_edge("draft", "final")
     graph.add_edge("escalate_to_clinician", "final")
 

@@ -3,22 +3,24 @@
 Tests R2 (escalation) and R1 (clinical advice refusal).
 """
 
+from __future__ import annotations
+
 import pytest
 
 from clinicloop.compliance.escalation.detector import detect
 from clinicloop.compliance.escalation.gate import draft
 from clinicloop.compliance.escalation.result import EscalationRequired
-from clinicloop.compliance.rulesets import load_ruleset
+from clinicloop.compliance.rulesets import Ruleset, load_ruleset
 
 
 @pytest.fixture
-def ruleset():
+def ruleset() -> Ruleset:
     """Load AU ruleset."""
     return load_ruleset("au")
 
 
-@pytest.mark.r2
-def test_r2_adverse_event_escalation_recall(ruleset):
+@pytest.mark.checklist_id("R2")
+def test_r2_adverse_event_escalation_recall(ruleset: Ruleset) -> None:
     """R2: Adverse events escalate immediately, never drafted.
 
     Requirement: Adverse events, suspected misuse, mental-health distress,
@@ -47,8 +49,8 @@ def test_r2_adverse_event_escalation_recall(ruleset):
         draft(thread, None, dummy_drafter)
 
 
-@pytest.mark.r1
-def test_r1_clinical_advice_escalation(ruleset):
+@pytest.mark.checklist_id("R1")
+def test_r1_clinical_advice_escalation(ruleset: Ruleset) -> None:
     """R1: Clinical advice requests escalate, never drafted.
 
     Requirement: No agent produces clinical or dosing advice.
