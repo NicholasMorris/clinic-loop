@@ -1,14 +1,17 @@
 """Test AC1: blocked POST /messages returns 422 and is not stored."""
 
+from pathlib import Path
+
 import pytest
 from fastapi.testclient import TestClient
 
 from clinicloop.evals.guard.corpus_loader import load_cases
+from clinicloop.evals.guard.guard_case import GuardCase
 from clinicloop.world.generator.snapshot import read_world_snapshot
 
 
 @pytest.fixture
-def corpus_cases() -> list[dict[str, str]]:
+def corpus_cases() -> list[GuardCase]:
     """Load guard corpus cases.
 
     Returns:
@@ -17,7 +20,7 @@ def corpus_cases() -> list[dict[str, str]]:
     cases = load_cases()
     # Filter for block cases, at least one from each of 6 families
     families_covered = set()
-    block_cases = []
+    block_cases: list[GuardCase] = []
     for case in cases:
         if case.expected_verdict == "block" and case.family not in families_covered:
             block_cases.append(case)
@@ -29,8 +32,8 @@ def corpus_cases() -> list[dict[str, str]]:
 
 def test_blocked_message_returns_422_with_rule_id_and_is_not_stored(
     client: TestClient,
-    world_snapshot,
-    corpus_cases,
+    world_snapshot: Path,
+    corpus_cases: list[GuardCase],
 ) -> None:
     """Test that blocked messages return 422 and are not stored.
 
@@ -67,7 +70,9 @@ def test_blocked_message_returns_422_with_rule_id_and_is_not_stored(
         response = client.post("/messages", json=payload)
 
         # Should return 422
-        assert response.status_code == 422, f"Case {case.case_id}: expected 422, got {response.status_code}"
+        assert response.status_code == 422, (
+            f"Case {case.case_id}: expected 422, got {response.status_code}"
+        )
 
         # Check response body structure
         response_body = response.json()
@@ -102,12 +107,14 @@ def test_blocked_message_returns_422_with_rule_id_and_is_not_stored(
                 assert "text" not in match, f"Case {case.case_id}: match should not have 'text' key"
 
             # Ensure the body text and any lexicon terms are not in the response
-            assert body not in str(response_body), f"Case {case.case_id}: message text leaked into response"
+            assert body not in str(response_body), (
+                f"Case {case.case_id}: message text leaked into response"
+            )
 
         # Verify message count unchanged
         response = client.get("/messages")
         assert response.status_code == 200
         final_count = len(response.json())
-        assert (
-            final_count == initial_count
-        ), f"Case {case.case_id}: message count changed (was {initial_count}, now {final_count})"
+        assert final_count == initial_count, (
+            f"Case {case.case_id}: message count changed (was {initial_count}, now {final_count})"
+        )

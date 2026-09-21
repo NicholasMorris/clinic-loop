@@ -1,5 +1,7 @@
 """Test AC4: blocked cases store zero rows, allow cases store one each."""
 
+from pathlib import Path
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -24,7 +26,7 @@ def test_zero_blocked_cases_reach_storage() -> None:
     allow_count = sum(1 for case in cases if case.expected_verdict == "allow")
 
     # Print counts for debugging
-    print(f"\nCorpus summary:")
+    print("\nCorpus summary:")
     print(f"  Block cases: {block_count}")
     print(f"  Allow cases: {allow_count}")
     print(f"  Total: {len(cases)}")
@@ -37,7 +39,7 @@ def test_zero_blocked_cases_reach_storage() -> None:
 @pytest.mark.parametrize("case_index", range(len(load_cases())))
 def test_each_corpus_case_stores_correctly(
     client: TestClient,
-    world_snapshot,
+    world_snapshot: Path,
     case_index: int,
 ) -> None:
     """Test each corpus case stores (or doesn't) as expected.

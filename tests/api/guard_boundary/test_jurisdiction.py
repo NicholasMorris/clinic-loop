@@ -1,6 +1,7 @@
 """Test AC3: jurisdiction handling."""
 
-import pytest
+from pathlib import Path
+
 from fastapi.testclient import TestClient
 
 from clinicloop.api.guard_boundary import JURISDICTION_SOURCE_HEADER
@@ -9,7 +10,7 @@ from clinicloop.world.generator.snapshot import read_world_snapshot
 
 def test_explicit_unimplemented_region_returns_501_and_default_is_flagged(
     client: TestClient,
-    world_snapshot,
+    world_snapshot: Path,
 ) -> None:
     """Test jurisdiction handling.
 
@@ -92,9 +93,8 @@ def test_explicit_unimplemented_region_returns_501_and_default_is_flagged(
         f"Explicit AU: expected 201 or 422, got {response.status_code}"
     )
     body = response.json()
-    assert body.get("jurisdiction_source") == "request", (
-        f"Explicit AU: expected jurisdiction_source 'request', got {body.get('jurisdiction_source')}"
-    )
+    source = body.get("jurisdiction_source")
+    assert source == "request", f"Explicit AU: expected jurisdiction_source 'request', got {source}"
     assert JURISDICTION_SOURCE_HEADER in response.headers
     assert response.headers[JURISDICTION_SOURCE_HEADER] == "request"
 

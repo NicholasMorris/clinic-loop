@@ -78,7 +78,7 @@ class FaultInjectingMiddleware(BaseHTTPMiddleware):
         self.call_order = call_order
 
     async def dispatch(self, request: Request, call_next: Callable[..., Any]) -> Response:
-        """Process request and inject faults.
+        """Process request and inject faults on POST /messages only.
 
         Args:
             request: The request.
@@ -89,15 +89,18 @@ class FaultInjectingMiddleware(BaseHTTPMiddleware):
         """
         import asyncio
 
+        # Only inject faults on POST /messages
+        if request.method != "POST" or request.url.path != "/messages":
+            return await call_next(request)  # type: ignore[no-any-return]
+
         if self.mode == "latency":
             # Add latency and let the real response through
             await asyncio.sleep(0.05)
-            response = await call_next(request)
-            return response
+            return await call_next(request)  # type: ignore[no-any-return]
 
         if self.mode in ("http_500", "http_429"):
             # Let the guard run first (so it records in app.state.guard_trace)
-            response = await call_next(request)
+            await call_next(request)
 
             # Record the fault injection
             fault_name = "http_500" if self.mode == "http_500" else "http_429"
@@ -107,11 +110,12 @@ class FaultInjectingMiddleware(BaseHTTPMiddleware):
             from starlette.responses import JSONResponse
 
             status_code = 500 if self.mode == "http_500" else 429
-            return JSONResponse({"detail": f"Fault injected: {fault_name}"}, status_code=status_code)
+            return JSONResponse(
+                {"detail": f"Fault injected: {fault_name}"}, status_code=status_code
+            )
 
         # No fault
-        response = await call_next(request)
-        return response
+        return await call_next(request)  # type: ignore[no-any-return]
 
 
 @pytest.fixture
@@ -133,26 +137,33 @@ def fault_app(app: Any) -> tuple[Any, list[str]]:
 
 
 @pytest.fixture
-def fault_client(fault_app: tuple[Any, list[str]], request: Any) -> tuple[TestClient, list[str]]:
-    """Create a test client for the fault app with the specified mode.
-
-    The mode is specified via the 'fault_mode' marker on the test:
-    @pytest.mark.parametrize('fault_mode', ['latency', 'http_500', 'http_429'])
+def fault_client_factory(fault_app: tuple[Any, list[str]]) -> Any:
+    """Create a factory for fault clients with different modes.
 
     Args:
         fault_app: Tuple of (app, call_order list).
-        request: The pytest request object.
 
     Returns:
-        Tuple of (TestClient, call_order list).
+        A function that creates a client with a specific fault mode.
     """
     app, call_order = fault_app
 
-    # Get the fault mode from the test's marker or parameter
-    fault_mode = getattr(request, "param", None) or "latency"
+    def make_client(mode: str) -> tuple[TestClient, list[str]]:
+        """Create a client with the specified fault mode.
 
-    # Create a new app with the fault middleware
-    middleware_app = FaultInjectingMiddleware(app, fault_mode, call_order)
-    app.add_middleware(FaultInjectingMiddleware, mode=fault_mode, call_order=call_order)
+        Args:
+            mode: The fault mode ('latency', 'http_500', or 'http_429').
 
-    return TestClient(app), call_order
+        Returns:
+            Tuple of (TestClient, call_order list).
+        """
+        # Reset the call_order for this client
+        call_order.clear()
+        app.state.guard_trace = call_order
+
+        # Add the middleware
+        app.add_middleware(FaultInjectingMiddleware, mode=mode, call_order=call_order)
+
+        return TestClient(app), call_order
+
+    return make_client

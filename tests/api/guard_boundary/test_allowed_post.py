@@ -1,16 +1,18 @@
 """Test AC2: allowed POST /messages returns 201 with text_sha256."""
 
 import hashlib
+from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
 
 from clinicloop.evals.guard.corpus_loader import load_cases
+from clinicloop.evals.guard.guard_case import GuardCase
 from clinicloop.world.generator.snapshot import read_world_snapshot
 
 
 @pytest.fixture
-def allow_cases() -> list[dict[str, str]]:
+def allow_cases() -> list[GuardCase]:
     """Load guard corpus cases.
 
     Returns:
@@ -24,8 +26,8 @@ def allow_cases() -> list[dict[str, str]]:
 
 def test_allowed_message_returns_201_with_text_sha256(
     client: TestClient,
-    world_snapshot,
-    allow_cases,
+    world_snapshot: Path,
+    allow_cases: list[GuardCase],
 ) -> None:
     """Test that allowed messages return 201 with text_sha256.
 
@@ -55,8 +57,7 @@ def test_allowed_message_returns_201_with_text_sha256(
 
         # Should return 201
         assert response.status_code == 201, (
-            f"Case {case.case_id}: expected 201, got {response.status_code}. "
-            f"Body: {response.text}"
+            f"Case {case.case_id}: expected 201, got {response.status_code}. Body: {response.text}"
         )
 
         # Check response body structure

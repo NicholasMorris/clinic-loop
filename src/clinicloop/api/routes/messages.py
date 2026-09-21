@@ -3,10 +3,11 @@
 from typing import cast
 
 from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import JSONResponse
 
 from clinicloop.world.generator.build import World
 
-from ..guard_boundary import enforce_guard
+from ..guard_boundary import JURISDICTION_SOURCE_HEADER, enforce_guard
 from ..schemas.message import MessageCreate, MessageCreated, MessageRead
 
 router = APIRouter(prefix="/messages", tags=["messages"])
@@ -94,12 +95,12 @@ def get_message(
     )
 
 
-@router.post("", response_model=MessageCreated, status_code=201, dependencies=[Depends(enforce_guard)])
+@router.post("", status_code=201, dependencies=[Depends(enforce_guard)])
 def create_message(
     request: Request,
     payload: MessageCreate,
     world: World = Depends(get_world),
-) -> MessageCreated:
+) -> JSONResponse:
     """Create a new message.
 
     Args:
@@ -108,7 +109,7 @@ def create_message(
         request: The request object (for accessing app state).
 
     Returns:
-        The created MessageCreated schema.
+        JSONResponse with the created message and the jurisdiction_source header.
 
     Raises:
         HTTPException: 404 if patient not found.
@@ -142,4 +143,10 @@ def create_message(
     )
 
     request.app.state.created_messages[message_id] = message
-    return message
+
+    # Return JSONResponse with header set
+    return JSONResponse(
+        content=message.model_dump(),
+        status_code=201,
+        headers={JURISDICTION_SOURCE_HEADER: guard_decision.jurisdiction_source},
+    )
