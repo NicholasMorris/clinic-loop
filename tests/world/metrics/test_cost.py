@@ -163,8 +163,9 @@ def test_cost_per_order_on_fixture_log() -> None:
     # Cost calculation:
     # We need to know the actual hourly costs from staffing config
     # For this test, we assert that the calculation is correct
-    # Cost per order = (intake_busy_hours × 28 + prescriber_review_busy_hours × 85
-    #                  + pharmacy_fulfilment_busy_hours × 32 + support_inbox_busy_hours × 30) / completed_orders
+    # Cost per order = (intake_busy_hours × 28 + prescriber_busy_hours × 85
+    #                  + pharmacy_busy_hours × 32 + support_busy_hours × 30)
+    #                  / completed_orders
     # = (3 × 28 + 1 × 85 + 0 × 32 + 0 × 30) / 4
     # = (84 + 85) / 4
     # = 169 / 4

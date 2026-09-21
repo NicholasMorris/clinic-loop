@@ -48,7 +48,7 @@ def test_snapshot_is_frozen_and_versioned() -> None:
 
     # Verify snapshot is frozen (direct assignment to snapshot field fails)
     with pytest.raises(ValidationError):
-        snapshot.cost_per_order = 999.0  # type: ignore
+        snapshot.cost_per_order = 999.0
 
     # Verify JSON export contains schema_version
     snapshot_dict = snapshot.model_dump()

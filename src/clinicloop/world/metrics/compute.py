@@ -119,14 +119,6 @@ def _compute_sla_breaches(run_result: RunResult) -> dict[str, SLABreach]:
     # Get the mapping of rule IDs to inventory IDs
     rule_to_inventory = sla_rules()
 
-    # Count breaches per rule (per queue)
-    queue_to_rule = {
-        "intake": None,  # No specific rule for intake
-        "prescriber_review": "dispatch_commitment",  # prescriber review -> order dispatch
-        "pharmacy_fulfilment": "dispatch_commitment",  # pharmacy -> order dispatch
-        "support_inbox": None,  # No specific rule for support
-    }
-
     breaches: dict[str, SLABreach] = {}
 
     # For now, we'll map queues to SLA rules based on the issue description

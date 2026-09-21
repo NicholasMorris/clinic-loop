@@ -38,9 +38,9 @@ class MetricSnapshot(BaseModel):
     Attributes:
         schema_version: Version of this snapshot schema (currently "1").
         throughput: ThroughputMetrics with orders_completed and orders_per_simulated_hour.
-        median_wait_minutes: Dict mapping queue names to median wait in minutes (None if no items in queue).
+        median_wait_minutes: Dict of queue names to median wait minutes (None if no items).
         sla_breaches: List of SLABreach entries keyed by rule_id.
-        cost_per_order: Cost per order (busy hours × hourly cost / completed orders), or None if zero orders.
+        cost_per_order: Cost per order (busy hours × hourly_cost / orders), or None if zero.
     """
 
     model_config = ConfigDict(frozen=True)

@@ -4,6 +4,7 @@ This module tests the metrics module and its satisfaction of checklist ID: C0.
 """
 
 import json
+from pathlib import Path
 
 import pytest
 
@@ -142,7 +143,7 @@ def test_m1_5_snapshot_frozen_and_versioned() -> None:
     from pydantic import ValidationError
 
     with pytest.raises(ValidationError):
-        snapshot.cost_per_order = 999.0  # type: ignore
+        snapshot.cost_per_order = 999.0
 
     # Verify schema_version is present and correct
     snapshot_dict = snapshot.model_dump()
@@ -191,7 +192,7 @@ def test_m1_5_snapshot_deterministic_and_empty_cost_none() -> None:
 
 
 @pytest.mark.checklist_id("C0")
-def test_m1_5_run_snapshot_file_round_trip(tmp_path) -> None:
+def test_m1_5_run_snapshot_file_round_trip(tmp_path: Path) -> None:
     """Test run snapshot file I/O round-trip.
 
     AC7: write_run_snapshot creates var/snapshots/run-<seed>.json with

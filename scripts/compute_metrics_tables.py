@@ -50,12 +50,13 @@ def main() -> None:
     print(f"{'Metric':<40} {'Default':<20} {'Override (PR=1)':<20}")
     print("-" * 80)
 
-    print(
-        f"{'Orders completed':<40} {snapshot_default.throughput.orders_completed:<20} {snapshot_override.throughput.orders_completed:<20}"
-    )
-    print(
-        f"{'Throughput (orders/hour)':<40} {snapshot_default.throughput.orders_per_simulated_hour:<20.2f} {snapshot_override.throughput.orders_per_simulated_hour:<20.2f}"
-    )
+    orders_default = snapshot_default.throughput.orders_completed
+    orders_override = snapshot_override.throughput.orders_completed
+    print(f"{'Orders completed':<40} {orders_default:<20} {orders_override:<20}")
+
+    tput_default = snapshot_default.throughput.orders_per_simulated_hour
+    tput_override = snapshot_override.throughput.orders_per_simulated_hour
+    print(f"{'Throughput (orders/hour)':<40} {tput_default:<20.2f} {tput_override:<20.2f}")
     print()
 
     print("Median wait times (minutes):")
@@ -97,9 +98,9 @@ def main() -> None:
         print(f"  {rule_id:<36} {count_default:<20} {count_override:<20}")
 
     print()
-    print(
-        f"{'Cost per order':<40} {snapshot_default.cost_per_order:<20.2f} {snapshot_override.cost_per_order:<20.2f}"
-    )
+    cost_default = snapshot_default.cost_per_order or 0.0
+    cost_override = snapshot_override.cost_per_order or 0.0
+    print(f"{'Cost per order':<40} {cost_default:<20.2f} {cost_override:<20.2f}")
     print()
 
     # Assertions for test verification
@@ -134,9 +135,9 @@ def main() -> None:
     assert snapshot_override.cost_per_order is not None, (
         "Override run should have non-zero cost per order"
     )
-    print(
-        f"✓ Cost per order computed: default={snapshot_default.cost_per_order:.2f}, override={snapshot_override.cost_per_order:.2f}"
-    )
+    default_cost_str = f"{snapshot_default.cost_per_order:.2f}"
+    override_cost_str = f"{snapshot_override.cost_per_order:.2f}"
+    print(f"✓ Cost per order computed: default={default_cost_str}, override={override_cost_str}")
 
     print()
     print("=" * 80)
