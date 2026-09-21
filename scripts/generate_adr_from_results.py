@@ -212,12 +212,14 @@ Measurement Results Summary:
 
 ## Alternatives considered
 
-1. **Primary model selection:** Selected {primary["model_id"]} with {primary["pass_count"]}/30 passing cases,
-   the highest measured pass count.
-2. **Judge model selection:** Selected {judge["model_id"]} from the {judge["family"]} family (differs from primary's
-   {primary["family"]} family) to ensure independent grading.
-3. **Fallback model selection:** Selected {fallback["model_id"]} with {fallback["pass_count"]}/30 passing cases
-   to handle resource-constrained environments.
+1. **Primary model selection:** Selected {primary["model_id"]} with
+   {primary["pass_count"]}/30 passing cases, the highest measured pass count.
+2. **Judge model selection:** Selected {judge["model_id"]} from the
+   {judge["family"]} family (differs from primary's {primary["family"]} family)
+   to ensure independent grading.
+3. **Fallback model selection:** Selected {fallback["model_id"]} with
+   {fallback["pass_count"]}/30 passing cases to handle resource-constrained
+   environments.
 
 ## Decision
 
@@ -248,10 +250,13 @@ satisfying the no-self-grading constraint.)
 ## Rationale
 
 - The primary model ({primary["model_id"]}) passes {primary["pass_count"]}/30 cases,
-  {"exceeding" if primary["pass_count"] >= 27 else "approaching"} the promotion bar of 27/30.
-- The judge model ({judge["model_id"]}) from a different family ensures independent grading.
-- The fallback model ({fallback["model_id"]}) meets the fallback threshold of 24/30 and handles resource constraints.
-- All selected models are currently installed and measured on the evaluation machine.
+  {"exceeding" if primary["pass_count"] >= 27 else "approaching"} the promotion bar.
+- The judge model ({judge["model_id"]}) from a different family ensures
+  independent grading.
+- The fallback model ({fallback["model_id"]}) meets the fallback threshold
+  of 24/30 and handles resource constraints.
+- All selected models are currently installed and measured on the evaluation
+  machine.
 
 ## Consequences
 
@@ -278,13 +283,16 @@ Test date: {Path(output_file).parent.name if "results" in str(output_file) else 
     output_file.write_text(adr_content)
     print(f"\nADR generated: {output_file}")
     print(
-        f"Primary: {primary['model_id']} ({primary['pass_count']}/30, {primary['tokens_per_second']:.1f} tps)"
+        f"Primary: {primary['model_id']} "
+        f"({primary['pass_count']}/30, {primary['tokens_per_second']:.1f} tps)"
     )
     print(
-        f"Judge: {judge['model_id']} ({judge['pass_count']}/30, {judge['tokens_per_second']:.1f} tps)"
+        f"Judge: {judge['model_id']} "
+        f"({judge['pass_count']}/30, {judge['tokens_per_second']:.1f} tps)"
     )
     print(
-        f"Fallback: {fallback['model_id']} ({fallback['pass_count']}/30, {fallback['tokens_per_second']:.1f} tps)"
+        f"Fallback: {fallback['model_id']} "
+        f"({fallback['pass_count']}/30, {fallback['tokens_per_second']:.1f} tps)"
     )
 
 
