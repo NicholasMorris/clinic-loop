@@ -72,6 +72,9 @@ def normalise(text: str) -> str:
     for char in zero_width_chars:
         text = text.replace(char, "")
 
+    # Step 3b: Collapse whitespace runs (double spaces, tabs, newlines) to one space
+    text = re.sub(r"\s+", " ", text)
+
     # Step 4: Fold confusables
     for cyrillic, latin in CONFUSABLES.items():
         text = text.replace(cyrillic, latin)

@@ -40,7 +40,7 @@ def build_patterns(ruleset):  # type: ignore[no-untyped-def]
         r"(?:mg|mcg|ug|µg|g|ml|iu|units|tablet|tablets|tab|tabs|"
         r"capsule|capsules|pill|pills)"
     )
-    patterns["AU-G-DOSE"] = re.compile(r"\d+(?:\.\d+)?\s?" + units)
+    patterns["AU-G-DOSE"] = re.compile(r"\d+(?:\.\d+)?\s?" + units + r"\b")
 
     # CONDITION: Condition claim pattern
     # Pattern 1: "you have|you've got|you are suffering from|..." followed

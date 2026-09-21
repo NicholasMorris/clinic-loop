@@ -97,3 +97,15 @@ def test_obfuscated_variants_yield_same_rule_ids() -> None:
                 f"Obfuscated '{obfuscated}' yielded {obf_rule_ids}, "
                 f"but plain '{plain_text}' yielded {plain_rule_ids}"
             )
+
+
+def test_whitespace_runs_cannot_hide_a_euphemism_or_dose() -> None:
+    """Double spaces, tabs and newlines inside a phrase or dose do not evade the rules."""
+    ruleset = load_ruleset("au")
+    for text, rule_id in (
+        ("The usual  medicine", "AU-G-EUPHEMISM"),
+        ("the\tusual\nmedicine", "AU-G-EUPHEMISM"),
+        ("Take 20   mg", "AU-G-DOSE"),
+    ):
+        verdict = check([{"role": "assistant", "text": text}], "au", ruleset)
+        assert rule_id in verdict.rule_ids, text

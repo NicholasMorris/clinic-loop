@@ -86,3 +86,10 @@ def test_patient_injection_with_product_draft_is_blocked() -> None:
     verdict = check(thread, "au", ruleset)
     assert not verdict.allowed, "Product name should be blocked despite injection"
     assert "AU-G-PRODUCT" in verdict.rule_ids
+
+
+def test_unit_lookalike_words_are_not_doses() -> None:
+    """A unit that is only the start of a longer word must not read as a dose."""
+    ruleset = load_ruleset("au")
+    thread = [{"role": "assistant", "text": "Here are 5 mgmt tips for stress."}]
+    assert check(thread, "au", ruleset).allowed is True
