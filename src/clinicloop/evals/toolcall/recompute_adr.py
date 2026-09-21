@@ -40,30 +40,10 @@ def recompute_adr_from_records(
         if not lines or not lines[-1]:
             continue
 
-        # Parse all runs and find the best (highest pass count)
-        best_record = None
-        best_pass_count = -1
-
-        for line in lines:
-            if not line.strip():
-                continue
-            record = json.loads(line)
-            per_case_results = record.get("per_case_results", [])
-
-            passed_count = sum(
-                1
-                for r in per_case_results
-                if r.get("emitted_tool_call")
-                and r.get("tool_name_matches")
-                and r.get("arguments_valid")
-            )
-
-            if passed_count > best_pass_count:
-                best_pass_count = passed_count
-                best_record = record
-
-        if best_record is None:
-            continue
+        # Use the FIRST recorded run: the serial protocol run (warm-up call, one model at a
+        # time). Later lines are extra unattended runs and are reported, not selected.
+        first_line = next(line for line in lines if line.strip())
+        best_record = json.loads(first_line)
 
         model_id = best_record["model_id"]
         per_case_results = best_record.get("per_case_results", [])

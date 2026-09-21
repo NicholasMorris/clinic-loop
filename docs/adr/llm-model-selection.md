@@ -16,7 +16,7 @@ Tool calling is a hard constraint: if the primary model cannot emit tool calls r
 
 Real measurements from the 30-case tool-call harness recorded in `evals/results/toolcall/`:
 
-Models measured serially with a warm-up call, one run of 30 cases each. A 28 versus 28 tie is not evidence of a difference.
+Models measured serially with a warm-up call, one run of 30 cases each. A 28 versus 28 tie is not evidence of a difference. The figures below are the first (protocol) run of each model; extra unattended harness runs are also committed and agree closely: qwen3-30b-a3b-instruct-2507 30 and 30, google/gemma-4-e4b 28, 29 and 29, openai/gpt-oss-20b 28 and 29, both medgemma models 0 and 0. A one-case difference between runs is noise.
 
 - **qwen3-30b-a3b-instruct-2507**: 30/30 passing (family: qwen)
 - **google/gemma-4-e4b**: 28/30 passing (family: gemma)
