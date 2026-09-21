@@ -19,9 +19,9 @@ def test_every_parameter_cites_a_manifest_inventory_id() -> None:
     """
     # Check that KNOWN_INVENTORY_IDS contains required entries
     required_ids = {"ps-03", "ps-04", "po-01", "po-02", "po-06", "x-01"}
-    assert required_ids.issubset(
-        KNOWN_INVENTORY_IDS
-    ), f"KNOWN_INVENTORY_IDS missing required IDs: {required_ids - KNOWN_INVENTORY_IDS}"
+    assert required_ids.issubset(KNOWN_INVENTORY_IDS), (
+        f"KNOWN_INVENTORY_IDS missing required IDs: {required_ids - KNOWN_INVENTORY_IDS}"
+    )
 
     # Pattern for valid inventory IDs
     id_pattern = re.compile(r"^(ps|cp|po|x)-\d{2}$")
@@ -39,9 +39,9 @@ def test_every_parameter_cites_a_manifest_inventory_id() -> None:
         assert isinstance(ids, tuple), f"Parameter {param_name} ids should be a tuple"
         assert len(ids) >= 1, f"Parameter {param_name} must cite at least one inventory ID"
         for inventory_id in ids:
-            assert id_pattern.match(
-                inventory_id
-            ), f"Parameter {param_name} cites invalid ID {inventory_id}"
+            assert id_pattern.match(inventory_id), (
+                f"Parameter {param_name} cites invalid ID {inventory_id}"
+            )
             assert inventory_id in KNOWN_INVENTORY_IDS, (
                 f"Parameter {param_name} cites unknown ID {inventory_id}"
             )
@@ -52,6 +52,6 @@ def test_every_parameter_cites_a_manifest_inventory_id() -> None:
         all_cited_ids.add(conflict.inventory_id)
 
     # Verify at least the required IDs are cited or in conflicts
-    assert required_ids.issubset(
-        all_cited_ids
-    ), f"Not all required IDs are cited or in conflicts: {required_ids - all_cited_ids}"
+    assert required_ids.issubset(all_cited_ids), (
+        f"Not all required IDs are cited or in conflicts: {required_ids - all_cited_ids}"
+    )

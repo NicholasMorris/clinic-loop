@@ -38,8 +38,8 @@ def test_entities_are_frozen_and_synthetic_only() -> None:
 
         # Test 2: Construction with synthetic=False raises ValidationError
         with pytest.raises(ValueError):
-            entity_cls(synthetic=False)  # type: ignore
+            entity_cls(synthetic=False)
 
         # Test 3: Instance is frozen (immutable)
         with pytest.raises(Exception):  # pydantic.ValidationError for frozen models
-            instance.synthetic = False  # type: ignore
+            instance.synthetic = False

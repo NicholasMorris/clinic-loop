@@ -4,7 +4,6 @@ import hashlib
 import json
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
 
 import pytest
@@ -74,13 +73,13 @@ def test_snapshot_is_versioned_and_seed_reproducible_across_processes(tmp_path: 
     # Test 5: Subprocess with different PYTHONHASHSEED
     script = f"""
 import sys
-sys.path.insert(0, {str(Path(__file__).parent.parent.parent.parent / 'src')!r})
+sys.path.insert(0, {str(Path(__file__).parent.parent.parent.parent / "src")!r})
 
 from clinicloop.world.generator import generate_world, write_world_snapshot
 from pathlib import Path
 
 world = generate_world(seed={seed}, population_size={population_size}, span_days={span_days})
-write_world_snapshot(world, Path({str(tmp_path / 'subprocess_output.json')!r}))
+write_world_snapshot(world, Path({str(tmp_path / "subprocess_output.json")!r}))
 """
     for hashseed in ["1", "random"]:
         env = {"PYTHONHASHSEED": hashseed}
@@ -92,4 +91,6 @@ write_world_snapshot(world, Path({str(tmp_path / 'subprocess_output.json')!r}))
         )
         subprocess_path = tmp_path / "subprocess_output.json"
         subprocess_digest = _compute_sha256(subprocess_path)
-        assert subprocess_digest == digest1, f"PYTHONHASHSEED={hashseed} should match in-process digest"
+        assert subprocess_digest == digest1, (
+            f"PYTHONHASHSEED={hashseed} should match in-process digest"
+        )

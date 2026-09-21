@@ -15,7 +15,6 @@ def test_unpopulated_regime_parameter_raises() -> None:
     3. Reading any parameter from nz/uk raises RegimeParameterNotSet
     """
     # Test that we can get all three regimes
-    au = get_regime("au")
     nz = get_regime("nz")
     uk = get_regime("uk")
 

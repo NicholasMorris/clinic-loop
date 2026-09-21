@@ -5,10 +5,8 @@ import pytest
 from clinicloop.world.generator import generate_world
 from clinicloop.world.generator.fictional_ranges import (
     EMAIL_DOMAIN_FICTIONAL,
-    HEALTH_ID_FICTIONAL_RANGE,
     HEALTH_ID_PREFIX_FICTIONAL,
     PHONE_AREA_CODE_FICTIONAL,
-    PHONE_AREA_CODE_FICTIONAL_RANGE,
 )
 
 

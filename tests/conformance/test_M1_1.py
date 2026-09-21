@@ -2,7 +2,6 @@
 
 import pytest
 
-
 # This test module registers the M1-1 acceptance criteria through conformance
 # tests. Each test is marked with the corresponding requirement ID using
 # pytest.mark.checklist_id().

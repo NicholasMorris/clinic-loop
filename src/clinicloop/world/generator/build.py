@@ -10,7 +10,6 @@ from .fictional_ranges import (
     HEALTH_ID_FICTIONAL_RANGE,
     HEALTH_ID_PREFIX_FICTIONAL,
     PHONE_AREA_CODE_FICTIONAL,
-    PHONE_AREA_CODE_FICTIONAL_RANGE,
 )
 
 
@@ -58,9 +57,6 @@ def generate_world(
     Returns:
         A World containing all generated entities.
     """
-    # Create a base RNG seeded with the provided seed
-    base_rng = np.random.Generator(np.random.PCG64(seed))
-
     # Create separate streams for each entity type by using
     # spawned generators with independent SeedSequences.
     # This ensures that consuming from one stream doesn't affect others.
@@ -68,15 +64,15 @@ def generate_world(
     child_seeds = seed_seq.spawn(6)
 
     patient_rng = np.random.Generator(np.random.PCG64(child_seeds[0]))
-    questionnaire_rng = np.random.Generator(np.random.PCG64(child_seeds[1]))
-    consult_rng = np.random.Generator(np.random.PCG64(child_seeds[2]))
-    prescription_rng = np.random.Generator(np.random.PCG64(child_seeds[3]))
-    order_rng = np.random.Generator(np.random.PCG64(child_seeds[4]))
-    message_rng = np.random.Generator(np.random.PCG64(child_seeds[5]))
+    _questionnaire_rng = np.random.Generator(np.random.PCG64(child_seeds[1]))
+    _consult_rng = np.random.Generator(np.random.PCG64(child_seeds[2]))
+    _prescription_rng = np.random.Generator(np.random.PCG64(child_seeds[3]))
+    _order_rng = np.random.Generator(np.random.PCG64(child_seeds[4]))
+    _message_rng = np.random.Generator(np.random.PCG64(child_seeds[5]))
 
     # Generate entities
     patients = []
-    for i in range(population_size):
+    for _ in range(population_size):
         # Generate phone number from fictional range
         phone_suffix = patient_rng.integers(0, 10000000)
         phone_number = f"{PHONE_AREA_CODE_FICTIONAL}{phone_suffix:07d}"
@@ -85,7 +81,9 @@ def generate_world(
         email_domain = EMAIL_DOMAIN_FICTIONAL
 
         # Generate health identifier from fictional range
-        health_id_number = patient_rng.integers(min(HEALTH_ID_FICTIONAL_RANGE), max(HEALTH_ID_FICTIONAL_RANGE))
+        health_id_number = patient_rng.integers(
+            min(HEALTH_ID_FICTIONAL_RANGE), max(HEALTH_ID_FICTIONAL_RANGE)
+        )
         health_identifier = f"{HEALTH_ID_PREFIX_FICTIONAL}{health_id_number:08d}"
 
         patient = Patient(
@@ -96,15 +94,9 @@ def generate_world(
         )
         patients.append(patient)
 
-    questionnaires = [
-        Questionnaire(synthetic=True)
-        for _ in range(population_size)
-    ]
+    questionnaires = [Questionnaire(synthetic=True) for _ in range(population_size)]
 
-    consults = [
-        Consult(synthetic=True)
-        for _ in range(population_size)
-    ]
+    consults = [Consult(synthetic=True) for _ in range(population_size)]
 
     prescriptions = [
         Prescription(synthetic=True)
@@ -119,10 +111,7 @@ def generate_world(
     # Generate messages - these should not be seeded from the patient count
     # This tests stream isolation (AC6)
     message_count = int(population_size * 0.5)  # ~50% activity level
-    messages = [
-        Message(synthetic=True)
-        for _ in range(message_count)
-    ]
+    messages = [Message(synthetic=True) for _ in range(message_count)]
 
     return World(
         patients=patients,
