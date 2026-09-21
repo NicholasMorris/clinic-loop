@@ -3,10 +3,12 @@
 from typing import cast
 
 from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import JSONResponse
 
 from clinicloop.world.generator.build import World
 
-from ..schemas.message import MessageCreate, MessageRead
+from ..guard_boundary import JURISDICTION_SOURCE_HEADER, enforce_guard
+from ..schemas.message import MessageCreate, MessageCreated, MessageRead
 
 router = APIRouter(prefix="/messages", tags=["messages"])
 
@@ -93,12 +95,12 @@ def get_message(
     )
 
 
-@router.post("", response_model=MessageRead, status_code=201)
+@router.post("", status_code=201, dependencies=[Depends(enforce_guard)])
 def create_message(
     request: Request,
     payload: MessageCreate,
     world: World = Depends(get_world),
-) -> MessageRead:
+) -> JSONResponse:
     """Create a new message.
 
     Args:
@@ -107,7 +109,7 @@ def create_message(
         request: The request object (for accessing app state).
 
     Returns:
-        The created MessageRead schema.
+        JSONResponse with the created message and the jurisdiction_source header.
 
     Raises:
         HTTPException: 404 if patient not found.
@@ -120,19 +122,31 @@ def create_message(
             detail=f"Patient {payload.patient_id} not found",
         )
 
+    # Get the guard decision from request state (set by enforce_guard dependency)
+    guard_decision = request.state.guard_decision
+
     # Create new message ID
     request.app.state.message_counter += 1
     message_id = f"M{request.app.state.message_counter:06d}"
 
-    # Create the message
-    message = MessageRead(
+    # Create the message with guard verdict information
+    message = MessageCreated(
         message_id=message_id,
         patient_id=payload.patient_id,
         channel=payload.channel,
         received_at_minute=0,  # Newly created message
         body=payload.body,
         synthetic=True,
+        text_sha256=guard_decision.verdict.text_sha256,
+        jurisdiction=guard_decision.jurisdiction,
+        jurisdiction_source=guard_decision.jurisdiction_source,
     )
 
     request.app.state.created_messages[message_id] = message
-    return message
+
+    # Return JSONResponse with header set
+    return JSONResponse(
+        content=message.model_dump(),
+        status_code=201,
+        headers={JURISDICTION_SOURCE_HEADER: guard_decision.jurisdiction_source},
+    )
