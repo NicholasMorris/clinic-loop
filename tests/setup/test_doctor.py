@@ -120,3 +120,25 @@ def test_doctor_opens_no_socket() -> None:
     assert exit_code_normal == exit_code_with_socket_patch, (
         "doctor should not open sockets - exit code should be the same"
     )
+
+
+def test_python_dash_m_runs_the_doctor_and_prints_the_tier() -> None:
+    """`python -m clinicloop.setup.doctor` (what `make doctor` runs) must actually run."""
+    import subprocess
+    import sys
+
+    result = subprocess.run(
+        [sys.executable, "-m", "clinicloop.setup.doctor"], capture_output=True, text=True
+    )
+    assert "Hardware Tier:" in result.stdout, result.stdout + result.stderr
+
+
+def test_find_binary_accepts_the_whisper_cli_name(tmp_path, monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    """whisper.cpp 1.9 installs `whisper-cli`; the doctor must find it."""
+    from clinicloop.setup import doctor
+
+    fake = tmp_path / "whisper-cli"
+    fake.write_text("#!/bin/sh\n")
+    fake.chmod(0o755)
+    monkeypatch.setenv("PATH", str(tmp_path))
+    assert doctor.find_binary("whisper.cpp") == str(fake)

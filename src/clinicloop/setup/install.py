@@ -19,11 +19,12 @@ def find_binary(name: str) -> str | None:
     """
     # Map common binary names to actual names in PATH
     if name == "whisper.cpp":
-        result = shutil.which("whisper-cpp")
-        if result:
-            return result
-        # Also try just whisper
-        return shutil.which("whisper")
+        # whisper.cpp 1.9 installs "whisper-cli"; older builds used "whisper-cpp" or "main".
+        for candidate in ("whisper-cli", "whisper-cpp", "whisper"):
+            result = shutil.which(candidate)
+            if result:
+                return result
+        return None
 
     return shutil.which(name)
 
@@ -159,3 +160,7 @@ def main() -> None:
 
     hardware_tiers_path = (Path(__file__).parent / "hardware_tiers.toml").resolve()
     exit(run_setup(str(hardware_tiers_path)))
+
+
+if __name__ == "__main__":
+    main()
