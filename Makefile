@@ -2,7 +2,7 @@
 
 # Every tool runs through uv with the dev extra so a fresh checkout works. The lockfile is
 # honoured as written (--locked). Override RUN to substitute the launcher.
-RUN ?= uv run --locked --extra dev
+RUN ?= uv run --locked --extra dev --extra docs
 
 .PHONY: ci
 ci:
