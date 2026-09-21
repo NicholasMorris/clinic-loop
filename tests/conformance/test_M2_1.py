@@ -38,6 +38,9 @@ def test_R1_corpus_covers_all_rule_families() -> None:
 @pytest.mark.checklist_id("E1")
 def test_E1_guard_component_registered() -> None:
     """E1: Guard component registered in registry with zero violation threshold."""
+    from clinicloop.evals.guard.metric import register_guard_metric
+
+    register_guard_metric()  # idempotent; other tests may have cleared the registry
     entry = get_metric("guard", "rule_violation_rate")
     assert entry is not None, "guard/rule_violation_rate not registered"
 
