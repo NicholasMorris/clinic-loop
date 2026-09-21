@@ -21,8 +21,7 @@ def test_fragment_check_exit_codes() -> None:
         text=True,
     )
     assert result.returncode == 1, (
-        f"Expected exit 1 for no fragment/docs, got {result.returncode}:\n"
-        f"{result.stdout}"
+        f"Expected exit 1 for no fragment/docs, got {result.returncode}:\n{result.stdout}"
     )
     assert "changelog fragment" in result.stdout or "documentation" in result.stdout, (
         f"Expected error about missing fragment or docs, got:\n{result.stdout}"
@@ -35,6 +34,5 @@ def test_fragment_check_exit_codes() -> None:
         text=True,
     )
     assert result.returncode == 0, (
-        f"Expected exit 0 with fragment and docs, got {result.returncode}:\n"
-        f"{result.stdout}"
+        f"Expected exit 0 with fragment and docs, got {result.returncode}:\n{result.stdout}"
     )

@@ -22,14 +22,12 @@ def test_lint_and_types_pass_with_google_docstring_rules() -> None:
 
     # Check that D rule set is selected
     selected_rules = ruff_lint.get("select", [])
-    assert "D" in selected_rules, \
-        f"D rule set not selected in ruff config. Got: {selected_rules}"
+    assert "D" in selected_rules, f"D rule set not selected in ruff config. Got: {selected_rules}"
 
     # Check that google convention is set
     pydocstyle = ruff_lint.get("pydocstyle", {})
     convention = pydocstyle.get("convention")
-    assert convention == "google", \
-        f"Expected google docstring convention, got: {convention}"
+    assert convention == "google", f"Expected google docstring convention, got: {convention}"
 
     # Run ruff check on src/ and tests/
     result = subprocess.run(
@@ -38,8 +36,7 @@ def test_lint_and_types_pass_with_google_docstring_rules() -> None:
         capture_output=True,
         text=True,
     )
-    assert result.returncode == 0, \
-        f"ruff check failed:\n{result.stdout}\n{result.stderr}"
+    assert result.returncode == 0, f"ruff check failed:\n{result.stdout}\n{result.stderr}"
 
     # Run mypy on src/ and tests/
     result = subprocess.run(
@@ -48,5 +45,4 @@ def test_lint_and_types_pass_with_google_docstring_rules() -> None:
         capture_output=True,
         text=True,
     )
-    assert result.returncode == 0, \
-        f"mypy failed:\n{result.stdout}\n{result.stderr}"
+    assert result.returncode == 0, f"mypy failed:\n{result.stdout}\n{result.stderr}"

@@ -62,9 +62,11 @@ def _extract_checklist_id(decorator: ast.expr) -> str | None:
     if isinstance(decorator, ast.Call):
         func = decorator.func
         if isinstance(func, ast.Attribute):
-            if (isinstance(func.value, ast.Attribute) and
-                func.value.attr == "mark" and
-                func.attr == "checklist_id"):
+            if (
+                isinstance(func.value, ast.Attribute)
+                and func.value.attr == "mark"
+                and func.attr == "checklist_id"
+            ):
                 # Extract the argument
                 if decorator.args:
                     arg = decorator.args[0]

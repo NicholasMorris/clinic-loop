@@ -31,8 +31,8 @@ exit 0
         cmd = (
             "export LC_ALL=C; "
             f"for check in {checks_dir}/*.sh; do "
-            "[ -x \"$check\" ] || continue; "
-            "\"$check\" || exit $?; "
+            '[ -x "$check" ] || continue; '
+            '"$check" || exit $?; '
             "done"
         )
         result = subprocess.run(

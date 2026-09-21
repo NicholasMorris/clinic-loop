@@ -27,6 +27,7 @@ Example:
 ```python
 import pytest
 
+
 @pytest.mark.checklist_id("G1")
 def test_g1_requirement() -> None:
     """Verify G1 requirement is met."""
