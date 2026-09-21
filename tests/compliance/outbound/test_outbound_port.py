@@ -9,13 +9,13 @@ which records exactly one call.
 
 import hashlib
 
+from clinicloop.compliance.guard.verdict import GuardVerdict
 from clinicloop.compliance.outbound import (
     GuardBlocked,
     GuardMismatch,
     OutboundPort,
     StaleRuleset,
 )
-from clinicloop.compliance.guard.verdict import GuardVerdict
 from clinicloop.compliance.rulesets import load_ruleset
 
 

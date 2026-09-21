@@ -15,12 +15,12 @@ def test_obfuscated_variants_yield_same_rule_ids() -> None:
 
     # Test cases: (plain_text, obfuscated_variants, expected_rule_ids)
     test_cases = [
-        # HTML entities: &#86; is 'V', &amp; is '&', &zwj; is zero-width joiner
+        # HTML entities and zero-width chars
         (
             "veltrazine",
             [
                 "&#86;eltrazine",  # HTML entity for V
-                "v&amp;eltrazine",  # HTML entity for &
+                "veltr&#97;zine",  # HTML entity for 'a'
                 "v​eltrazine",  # Zero-width space
             ],
             ("AU-G-PRODUCT",),

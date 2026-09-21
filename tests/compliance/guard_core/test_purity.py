@@ -8,8 +8,6 @@ records no connection attempt.
 
 import builtins
 
-import pytest
-
 from clinicloop.compliance.guard import check
 from clinicloop.compliance.rulesets import load_ruleset
 

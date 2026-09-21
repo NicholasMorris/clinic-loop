@@ -5,6 +5,8 @@ expected_rule_id in verdict.rule_ids, and every expected-allow case
 returns allowed=True.
 """
 
+from typing import Any
+
 import pytest
 
 from clinicloop.compliance.guard import check
@@ -23,7 +25,7 @@ def test_full_adversarial_corpus_passes() -> None:
     ruleset = load_ruleset("au")
 
     # Run metric function
-    def check_fn(thread, jurisdiction):  # type: ignore[no-untyped-def]
+    def check_fn(thread: list[Any], jurisdiction: str):  # type: ignore[no-untyped-def]
         return check(thread, jurisdiction, ruleset)
 
     violations = rule_violation_rate(check_fn, cases)
@@ -42,9 +44,7 @@ def test_full_adversarial_corpus_passes() -> None:
 
         if case.expected_verdict == "block":
             if verdict.allowed:
-                mismatches.append(
-                    (case.case_id, f"expected block, got allowed")
-                )
+                mismatches.append((case.case_id, "expected block, got allowed"))
             elif case.expected_rule_id not in verdict.rule_ids:
                 mismatches.append(
                     (

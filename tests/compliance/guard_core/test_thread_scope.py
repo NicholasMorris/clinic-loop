@@ -27,9 +27,7 @@ def test_split_dose_statement_across_thread_is_blocked() -> None:
     # Check full thread: should be blocked with dose rule
     full_verdict = check(full_thread, "au", ruleset)
     assert not full_verdict.allowed, "Split dose across thread should be blocked"
-    assert "AU-G-DOSE" in full_verdict.rule_ids, (
-        f"Expected AU-G-DOSE in {full_verdict.rule_ids}"
-    )
+    assert "AU-G-DOSE" in full_verdict.rule_ids, f"Expected AU-G-DOSE in {full_verdict.rule_ids}"
 
     # Check each assistant message alone: should be allowed
     # Message 1: "Start with 20"

@@ -44,9 +44,7 @@ def test_llm_second_opinion_defaults_off_and_can_only_add_blocks() -> None:
     assert "AU-G-PRODUCT" in verdict_disabled.rule_ids
 
     # 2. With second opinion enabled, reviewer CAN add rule ids
-    ruleset_with_opinion = dataclasses.replace(
-        ruleset, second_opinion_enabled=True
-    )
+    ruleset_with_opinion = dataclasses.replace(ruleset, second_opinion_enabled=True)
 
     # Case 2a: Reviewer returns [] on blocked thread (no extra rules)
     # Result: stays blocked with deterministic id

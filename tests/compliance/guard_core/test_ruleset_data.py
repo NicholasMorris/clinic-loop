@@ -8,8 +8,8 @@ loader raises RulesetValidationError when keys are absent; naming lint
 reports zero matches over au.yaml.
 """
 
-from pathlib import Path
 import tempfile
+from pathlib import Path
 
 import pytest
 
@@ -56,9 +56,9 @@ def test_au_rules_carry_citations_and_escalation_routing() -> None:
         assert route.value_source == "assumed", (
             f"Route {route.category} value_source should be 'assumed'"
         )
-        assert isinstance(
-            route.target_response_minutes, int
-        ), f"Route {route.category} target_response_minutes must be int"
+        assert isinstance(route.target_response_minutes, int), (
+            f"Route {route.category} target_response_minutes must be int"
+        )
         assert route.target_response_minutes > 0
 
     # Check specific values from spec
@@ -71,10 +71,12 @@ def test_au_rules_carry_citations_and_escalation_routing() -> None:
     }
 
     for category, expected_minutes_val in expected_minutes.items():
-        route = next((r for r in ruleset.escalation_routing if r.category == category), None)
-        assert route is not None, f"Missing route for {category}"
-        assert route.target_response_minutes == expected_minutes_val, (
-            f"Route {category} has {route.target_response_minutes} minutes, expected {expected_minutes_val}"
+        route_opt = next((r for r in ruleset.escalation_routing if r.category == category), None)
+        assert route_opt is not None, f"Missing route for {category}"
+        route = route_opt
+        actual_minutes = route.target_response_minutes
+        assert actual_minutes == expected_minutes_val, (
+            f"Route {category} has {actual_minutes} minutes, expected {expected_minutes_val}"
         )
 
 
@@ -134,12 +136,9 @@ rules: []
 def test_au_yaml_naming_lint_clean() -> None:
     """Test that au.yaml has zero naming lint matches."""
     from clinicloop.naminglint.lint import get_repo_root
-    from clinicloop.naminglint.scanner import scan_tree, load_denylist
 
     repo_root = get_repo_root()
     i6_words = load_i6_words(repo_root)
-    hash_file = repo_root / "src" / "clinicloop" / "naminglint" / "denylist_hashes.txt"
-    denylist = load_denylist(hash_file)
 
     # Scan just the au.yaml file
     au_yaml = repo_root / "src" / "clinicloop" / "compliance" / "rules" / "au.yaml"

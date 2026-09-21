@@ -94,6 +94,9 @@ def load_ruleset_file(filepath: Path) -> Ruleset:
     rules_data = data.get("rules", [])
 
     # Validate required fields
+    if not jurisdiction:
+        raise RulesetValidationError("Missing 'jurisdiction' in ruleset")
+
     if not version:
         raise RulesetValidationError("Missing 'version' in ruleset")
 
@@ -120,9 +123,7 @@ def load_ruleset_file(filepath: Path) -> Ruleset:
     routing_categories = {r.get("category") for r in escalation_routing_data}
     missing = required_categories - routing_categories
     if missing:
-        raise RulesetValidationError(
-            f"escalation_routing missing categories: {missing}"
-        )
+        raise RulesetValidationError(f"escalation_routing missing categories: {missing}")
 
     # Parse escalation routing
     escalation_routes = []
@@ -133,8 +134,9 @@ def load_ruleset_file(filepath: Path) -> Ruleset:
         target_response_minutes = route_data.get("target_response_minutes")
 
         if not isinstance(target_response_minutes, int):
+            minutes_type = type(target_response_minutes)
             raise RulesetValidationError(
-                f"Route {category}: target_response_minutes must be int, got {type(target_response_minutes)}"
+                f"Route {category}: target_response_minutes must be int, got {minutes_type}"
             )
 
         if value_source != "assumed":
