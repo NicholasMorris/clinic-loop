@@ -55,6 +55,10 @@ def create_app(snapshot_path: Path | str, host: str = "127.0.0.1") -> FastAPI:
         version="1.0.0",
     )
 
+    # Initialize app state for message storage
+    app.state.created_messages = {}
+    app.state.message_counter = 0
+
     # Create a function to be used as a dependency
     def get_world_impl() -> World:
         """Return the loaded world snapshot.

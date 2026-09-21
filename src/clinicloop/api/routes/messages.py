@@ -1,16 +1,14 @@
 """Message endpoints."""
 
-from fastapi import APIRouter, Depends, HTTPException
+from typing import cast
+
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 from clinicloop.world.generator.build import World
 
 from ..schemas.message import MessageCreate, MessageRead
 
 router = APIRouter(prefix="/messages", tags=["messages"])
-
-# In-memory storage for newly created messages
-_messages: dict[str, MessageRead] = {}
-_message_counter = 0
 
 
 def get_world() -> World:
@@ -23,7 +21,7 @@ def get_world() -> World:
 
 @router.get("", response_model=list[MessageRead])
 def get_messages(world: World = Depends(get_world)) -> list[MessageRead]:
-    """Get all messages from the snapshot and created messages.
+    """Get all messages from the snapshot.
 
     Args:
         world: The loaded world snapshot (injected).
@@ -31,7 +29,7 @@ def get_messages(world: World = Depends(get_world)) -> list[MessageRead]:
     Returns:
         List of MessageRead schemas.
     """
-    snapshot_messages = [
+    return [
         MessageRead(
             message_id=m.message_id,
             patient_id=m.patient_id,
@@ -42,18 +40,20 @@ def get_messages(world: World = Depends(get_world)) -> list[MessageRead]:
         )
         for m in world.messages
     ]
-    # Add any newly created messages
-    created = list(_messages.values())
-    return snapshot_messages + created
 
 
 @router.get("/{message_id}", response_model=MessageRead)
-def get_message(message_id: str, world: World = Depends(get_world)) -> MessageRead:
+def get_message(
+    message_id: str,
+    request: Request,
+    world: World = Depends(get_world),
+) -> MessageRead:
     """Get a message by ID.
 
     Args:
         message_id: The message identifier.
         world: The loaded world snapshot (injected).
+        request: The request object (for accessing app state).
 
     Returns:
         The MessageRead schema for the message.
@@ -62,8 +62,8 @@ def get_message(message_id: str, world: World = Depends(get_world)) -> MessageRe
         HTTPException: 404 if message not found.
     """
     # Check created messages first
-    if message_id in _messages:
-        return _messages[message_id]
+    if message_id in request.app.state.created_messages:
+        return cast(MessageRead, request.app.state.created_messages[message_id])
 
     # Check snapshot messages
     message = next((m for m in world.messages if m.message_id == message_id), None)
@@ -84,12 +84,17 @@ def get_message(message_id: str, world: World = Depends(get_world)) -> MessageRe
 
 
 @router.post("", response_model=MessageRead, status_code=201)
-def create_message(payload: MessageCreate, world: World = Depends(get_world)) -> MessageRead:
+def create_message(
+    request: Request,
+    payload: MessageCreate,
+    world: World = Depends(get_world),
+) -> MessageRead:
     """Create a new message.
 
     Args:
         payload: The MessageCreate request body.
         world: The loaded world snapshot (injected).
+        request: The request object (for accessing app state).
 
     Returns:
         The created MessageRead schema.
@@ -97,8 +102,6 @@ def create_message(payload: MessageCreate, world: World = Depends(get_world)) ->
     Raises:
         HTTPException: 404 if patient not found.
     """
-    global _message_counter
-
     # Verify patient exists
     patient = next((p for p in world.patients if p.patient_id == payload.patient_id), None)
     if patient is None:
@@ -108,8 +111,8 @@ def create_message(payload: MessageCreate, world: World = Depends(get_world)) ->
         )
 
     # Create new message ID
-    _message_counter += 1
-    message_id = f"M{_message_counter:06d}"
+    request.app.state.message_counter += 1
+    message_id = f"M{request.app.state.message_counter:06d}"
 
     # Create the message
     message = MessageRead(
@@ -121,5 +124,5 @@ def create_message(payload: MessageCreate, world: World = Depends(get_world)) ->
         synthetic=True,
     )
 
-    _messages[message_id] = message
+    request.app.state.created_messages[message_id] = message
     return message
