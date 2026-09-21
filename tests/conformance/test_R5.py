@@ -5,7 +5,7 @@ Tests that rulesets are jurisdiction-keyed, AU populated, UK and NZ stubbed.
 
 import pytest
 
-from clinicloop.compliance.rulesets import load_ruleset, RulesetNotImplemented
+from clinicloop.compliance.rulesets import RulesetNotImplemented, load_ruleset
 
 
 @pytest.mark.checklist_id("R5")

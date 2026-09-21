@@ -2,8 +2,6 @@
 
 import re
 
-import pytest
-
 from clinicloop.compliance.redaction import redact
 
 

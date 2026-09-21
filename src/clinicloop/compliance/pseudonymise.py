@@ -1,9 +1,7 @@
 """Per-run HMAC-based pseudonymisation."""
 
 import hashlib
-import os
 import secrets
-from typing import Optional
 
 # Per-process run keys (never written to disk)
 _RUN_KEYS: list[str] = []

@@ -47,6 +47,7 @@ dev = [
     "pytest-socket",
     "ruff",
     "mypy",
+    "types-PyYAML",
     "towncrier",
     "packaging",
 ]

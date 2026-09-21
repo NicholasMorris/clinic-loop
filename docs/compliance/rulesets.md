@@ -56,7 +56,7 @@ print(au_rules.fallback_active)  # False
 # Load with default (AU) fallback
 default_rules = load_ruleset(None)
 print(default_rules.fallback_active)  # True
-print(default_rules.fallback_banner)   # Non-empty message
+print(default_rules.fallback_banner)  # Non-empty message
 
 # Try to load unimplemented jurisdiction
 try:

@@ -2,7 +2,7 @@
 
 import pytest
 
-from clinicloop.compliance.rulesets import load_ruleset, RulesetNotImplemented
+from clinicloop.compliance.rulesets import RulesetNotImplemented, load_ruleset
 
 
 def test_jurisdiction_seam_explicit_versus_unset() -> None:

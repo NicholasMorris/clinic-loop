@@ -1,11 +1,6 @@
 """Tests for per-run HMAC pseudonymisation."""
 
-import os
-import re
-
-import pytest
-
-from clinicloop.compliance.pseudonymise import pseudonymise, current_run_key
+from clinicloop.compliance.pseudonymise import current_run_key, pseudonymise
 
 
 def test_tokens_stable_per_run_distinct_across_runs_and_key_unpersisted() -> None:

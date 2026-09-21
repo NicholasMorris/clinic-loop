@@ -1,7 +1,6 @@
 """PII redaction with nine identifier classes and checksum validators."""
 
 import re
-from typing import Callable
 
 
 # Checksum validators
@@ -188,9 +187,7 @@ def redact(text: str) -> str:
     result = re.sub(r"\+?61\s?4\d{8}|0[234567]\d{8}|04\d{8}", "[REDACTED]", result)
 
     # 4. Email addresses
-    result = re.sub(
-        r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b", "[REDACTED]", result
-    )
+    result = re.sub(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b", "[REDACTED]", result)
 
     # 5. Dates of birth (various formats: DDMMYYYY, DD/MM/YYYY, DD-MM-YYYY, YYYYMMDD)
     result = re.sub(

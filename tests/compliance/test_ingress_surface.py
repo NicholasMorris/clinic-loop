@@ -1,11 +1,6 @@
 """Tests for ingress module public surface."""
 
-import re
-
-import pytest
-
 import clinicloop.compliance.ingress as ingress
-
 
 # Expected public API from the ingress module
 EXPECTED_SURFACE = {
@@ -38,11 +33,11 @@ def test_public_surface_matches_allowlist_and_returns_no_raw_identifiers() -> No
     identifiers = [
         "1111111113",  # medicare (valid checksum)
         "0412345678",  # phone
-        "15121990",    # dob
-        "john",        # email local
-        "example",     # email domain
-        "42",          # street number
-        "Elm",         # street name
+        "15121990",  # dob
+        "john",  # email local
+        "example",  # email domain
+        "42",  # street number
+        "Elm",  # street name
     ]
 
     for identifier in identifiers:
