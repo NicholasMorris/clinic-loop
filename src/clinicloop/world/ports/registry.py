@@ -62,7 +62,7 @@ class PortRegistry:
         Returns:
             Set of scope names: {"triage", "integrity", "consult_documentation"}.
         """
-        raise NotImplementedError
+        return self.TOGGLEABLE_SCOPES.copy()
 
     def register(self, scope: str, port: AgentPort) -> None:
         """Register an agent port under a scope.
@@ -74,7 +74,9 @@ class PortRegistry:
         Raises:
             UnknownAgentScope: If scope is not in toggleable_scopes().
         """
-        raise NotImplementedError
+        if scope not in self.TOGGLEABLE_SCOPES:
+            raise UnknownAgentScope(scope)
+        self._ports[scope] = port
 
     def get(self, scope: str) -> AgentPort | None:
         """Get the registered port for a scope, if any.

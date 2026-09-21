@@ -55,8 +55,7 @@ class FakeAgentPort:
 
         Returns:
             Service time in minutes.
-
-        Raises:
-            NotImplementedError: Stub not yet implemented.
         """
-        raise NotImplementedError
+        # Stub: minimal implementation for testing protocol
+        # Real agents (M2-7, M3-3, M5-8) replace this with actual logic
+        return 1.0 * self.service_time_fraction
