@@ -7,7 +7,6 @@ from clinicloop.world.generator import generate_world
 from clinicloop.world.metrics import compute_snapshot
 
 
-@pytest.mark.skip(reason="Requires agent_toggles parameter in Engine (not yet implemented)")
 def test_disabling_fake_triage_port_increases_queue_depth_and_wait() -> None:
     """AC2: Disabling the triage port increases support_inbox queue depth and wait.
 
@@ -15,8 +14,8 @@ def test_disabling_fake_triage_port_increases_queue_depth_and_wait() -> None:
     mean_service_minutes assumed at 10, one seed shows strictly lower depth and
     median wait with the port enabled vs disabled.
 
-    This test requires Engine to support agent_toggles parameter, which will be
-    added in a future commit to enable toggle scheduling.
+    This test fails on the assertion because the Engine does not yet support
+    agent_toggles parameter, so both runs produce equal depths.
     """
     seed = 20260921
     population_size = 500
