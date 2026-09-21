@@ -179,24 +179,26 @@ def test_deploy_page_records_status_and_url() -> None:
     deploy_page = repo_root / "docs" / "process" / "docs-deploy.md"
 
     # Page should exist
-    assert deploy_page.exists(), f"docs/process/docs-deploy.md should exist"
+    assert deploy_page.exists(), "docs/process/docs-deploy.md should exist"
 
     # Read the content
     content = deploy_page.read_text(encoding="utf-8")
 
     # Should mention docs_live_check.py
-    assert "docs_live_check.py" in content, \
-        "docs-deploy.md should mention docs_live_check.py"
+    assert "docs_live_check.py" in content, "docs-deploy.md should mention docs_live_check.py"
 
     # Should mention non-required status
-    assert "non-required" in content.lower(), \
+    assert "non-required" in content.lower(), (
         "docs-deploy.md should mention non-required status until first deployment"
+    )
 
     # Should mention required status
-    assert "required" in content.lower(), \
+    assert "required" in content.lower(), (
         "docs-deploy.md should mention required status after first deployment"
+    )
 
     # Should record the published site URL
     # The URL pattern should be a GitHub Pages URL
-    assert "github.com" in content or "ghpages" in content.lower() or "pages" in content.lower(), \
+    assert "github.com" in content or "ghpages" in content.lower() or "pages" in content.lower(), (
         "docs-deploy.md should record the published site URL"
+    )

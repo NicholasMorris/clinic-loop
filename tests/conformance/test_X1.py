@@ -1,6 +1,5 @@
 """Conformance test for X1: Live check record exists."""
 
-from datetime import datetime
 from pathlib import Path
 
 import pytest
@@ -30,8 +29,9 @@ def test_live_check_record_exists() -> None:
 
     # Check for URL in the content
     # Look for a link or URL pattern
-    assert ("github.com" in content or "https://" in content or "http://" in content), \
+    assert "github.com" in content or "https://" in content or "http://" in content, (
         "docs-deploy.md should contain the published site URL"
+    )
 
     # Check for live-check record line with ISO-8601 date pattern (YYYY-MM-DD)
     # Pattern: status 200 and a date like 2026-09-21

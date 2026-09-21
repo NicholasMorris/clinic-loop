@@ -22,5 +22,6 @@ def test_site_builds_strict() -> None:
         text=True,
     )
 
-    assert result.returncode == 0, \
+    assert result.returncode == 0, (
         f"mkdocs build --strict failed with exit code {result.returncode}\n{result.stderr}"
+    )
