@@ -90,7 +90,6 @@ def test_entities_are_frozen_and_synthetic_only() -> None:
     )
 
     entities = [patient, questionnaire, consult, prescription, order, message]
-    entity_classes = [Patient, Questionnaire, Consult, Prescription, Order, Message]
 
     # Test 1: All instances have synthetic=True
     for instance in entities:
@@ -184,4 +183,4 @@ def test_entities_are_frozen_and_synthetic_only() -> None:
     # Test 3: Instances are frozen (immutable)
     for instance in entities:
         with pytest.raises(ValidationError):
-            instance.synthetic = False  # type: ignore[assignment]
+            instance.synthetic = False  # type: ignore[attr-defined]

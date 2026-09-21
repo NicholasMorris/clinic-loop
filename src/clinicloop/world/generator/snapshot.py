@@ -119,7 +119,9 @@ def read_world_snapshot(path: Path | str) -> World:
     )
 
 
-def _serialize_entity(entity: Patient | Questionnaire | Consult | Prescription | Order | Message) -> dict[str, object]:
+def _serialize_entity(
+    entity: Patient | Questionnaire | Consult | Prescription | Order | Message,
+) -> dict[str, object]:
     """Convert a pydantic entity to a serializable dict.
 
     Args:

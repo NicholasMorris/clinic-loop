@@ -195,7 +195,9 @@ def _generate_patient(rng: np.random.Generator, index: int) -> Patient:
     email = f"{local_part}@{EMAIL_DOMAIN_FICTIONAL}"
 
     # Generate health identifier
-    health_id_number = int(rng.integers(min(HEALTH_ID_FICTIONAL_RANGE), max(HEALTH_ID_FICTIONAL_RANGE)))
+    health_id_min = min(HEALTH_ID_FICTIONAL_RANGE)
+    health_id_max = max(HEALTH_ID_FICTIONAL_RANGE)
+    health_id_number = int(rng.integers(health_id_min, health_id_max))
     health_identifier = f"{HEALTH_ID_PREFIX_FICTIONAL}{health_id_number:08d}"
 
     # Generate payment instrument (small share share same instrument)
