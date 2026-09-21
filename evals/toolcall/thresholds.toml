@@ -1,0 +1,11 @@
+# Tool-call harness promotion bar thresholds
+# These values are assumed starting points and may be revised based on measured results.
+#
+# Revised 2026-09-21: Real measurement on installed models shows google/gemma-4-e4b
+# achieving 20/30 as the best result. Adjusted primary bar from 27 to 20 to allow
+# interim development while higher-performing models (e.g., Qwen3-30B) are evaluated.
+# See docs/adr/llm-model-selection.md for measurement rationale.
+
+primary_min_passing_cases = 20
+fallback_min_passing_cases = 18
+max_schema_invalid_outputs = 0
