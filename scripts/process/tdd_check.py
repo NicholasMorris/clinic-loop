@@ -17,7 +17,6 @@ Exit codes:
 
 import subprocess
 import sys
-from pathlib import Path
 
 
 def _get_files_added_in_commit(repo_path: str, commit_sha: str) -> list[str]:
@@ -115,7 +114,9 @@ def _check_failure_reason(output: str) -> bool:
             # Check if it's actually a test failure or a collection error
             if error_type == "error: collection":
                 return False
-            if error_type == "syntaxerror" and ("line" in output_lower or "invalid" in output_lower):
+            if error_type == "syntaxerror" and (
+                "line" in output_lower or "invalid" in output_lower
+            ):
                 return False
             if error_type in ["importerror", "nameerror", "attributeerror"]:
                 if "error" in output_lower or "failed" in output_lower:
@@ -165,7 +166,10 @@ def check_red_commit(repo_path: str, commit_sha: str) -> int:
         return 0
 
     # Failures are for unaccepted reasons
-    print(f"{commit_sha}: Tests fail for wrong reason (collection error or wrong exception type)", file=sys.stderr)
+    print(
+        f"{commit_sha}: Tests fail for wrong reason (collection error or wrong exception type)",
+        file=sys.stderr,
+    )
     return 1
 
 

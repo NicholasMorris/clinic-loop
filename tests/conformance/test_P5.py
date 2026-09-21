@@ -19,9 +19,7 @@ def test_p5_post_merge_sync_verifies_local_remote_match() -> None:
     """
     repo_root = Path(__file__).parent.parent.parent
     sync_script = repo_root / "scripts" / "process" / "post_merge_sync.py"
-    assert sync_script.exists(), (
-        f"post_merge_sync script not found at {sync_script}"
-    )
+    assert sync_script.exists(), f"post_merge_sync script not found at {sync_script}"
 
     # Test: Clean state with matching SHA should succeed
     clean_payload = {

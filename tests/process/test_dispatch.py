@@ -39,15 +39,11 @@ def test_intersecting_globs_are_refused() -> None:
         text=True,
     )
 
-    assert (
-        result.returncode == 1
-    ), f"Expected exit 1 for intersecting globs, got {result.returncode}"
-    assert "M0-1" in result.stdout or "M0-1" in result.stderr, (
-        "Expected M0-1 in output"
+    assert result.returncode == 1, (
+        f"Expected exit 1 for intersecting globs, got {result.returncode}"
     )
-    assert "M0-2" in result.stdout or "M0-2" in result.stderr, (
-        "Expected M0-2 in output"
-    )
+    assert "M0-1" in result.stdout or "M0-1" in result.stderr, "Expected M0-1 in output"
+    assert "M0-2" in result.stdout or "M0-2" in result.stderr, "Expected M0-2 in output"
 
     # Test 2: Disjoint globs should be accepted
     issues_disjoint = [
@@ -68,9 +64,10 @@ def test_intersecting_globs_are_refused() -> None:
         text=True,
     )
 
-    assert (
-        result.returncode == 0
-    ), f"Expected exit 0 for disjoint globs, got {result.returncode}\nstdout: {result.stdout}\nstderr: {result.stderr}"
+    assert result.returncode == 0, (
+        f"Expected exit 0 for disjoint globs, got {result.returncode}\n"
+        f"stdout: {result.stdout}\nstderr: {result.stderr}"
+    )
 
 
 @pytest.mark.checklist_id("P1")
@@ -104,9 +101,10 @@ def test_per_file_ownership_inside_checks_is_disjoint() -> None:
         text=True,
     )
 
-    assert (
-        result.returncode == 0
-    ), f"Expected exit 0 for per-file checks/, got {result.returncode}\nstdout: {result.stdout}\nstderr: {result.stderr}"
+    assert result.returncode == 0, (
+        f"Expected exit 0 for per-file checks/, got {result.returncode}\n"
+        f"stdout: {result.stdout}\nstderr: {result.stderr}"
+    )
 
     # Test 2: checks/** should conflict with per-file ownership
     issues_glob_conflict = [
@@ -127,8 +125,8 @@ def test_per_file_ownership_inside_checks_is_disjoint() -> None:
         text=True,
     )
 
-    assert (
-        result.returncode == 1
-    ), f"Expected exit 1 for checks/** conflicting with per-file, got {result.returncode}"
+    assert result.returncode == 1, (
+        f"Expected exit 1 for checks/** conflicting with per-file, got {result.returncode}"
+    )
     assert "M0-1" in result.stdout or "M0-1" in result.stderr
     assert "M0-2" in result.stdout or "M0-2" in result.stderr

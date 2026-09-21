@@ -1,6 +1,5 @@
 """P2: Conformance test for tdd_check (red commit verification)."""
 
-import subprocess
 from pathlib import Path
 
 import pytest
@@ -18,9 +17,7 @@ def test_p2_tdd_check_validates_red_commits() -> None:
     """
     repo_root = Path(__file__).parent.parent.parent
     tdd_check_script = repo_root / "scripts" / "process" / "tdd_check.py"
-    assert tdd_check_script.exists(), (
-        f"tdd_check script not found at {tdd_check_script}"
-    )
+    assert tdd_check_script.exists(), f"tdd_check script not found at {tdd_check_script}"
 
     # We verify the script exists and is properly registered
     # Actual testing of the script is done in tests/process/test_tdd_check.py

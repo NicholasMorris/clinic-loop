@@ -1,7 +1,6 @@
 """AC7: Process scripts are network-free and conformance tests are registered."""
 
 import json
-import socket
 import subprocess
 from pathlib import Path
 from unittest.mock import patch

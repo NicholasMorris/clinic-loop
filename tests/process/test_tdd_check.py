@@ -1,7 +1,6 @@
 """AC1: tdd_check verifies red commits have tests that fail for the right reasons."""
 
 import subprocess
-import tempfile
 from pathlib import Path
 
 import pytest
@@ -153,9 +152,7 @@ def _create_fixture_repo_collection_error(tmp_path: Path) -> Path:
     tests_dir = repo_path / "tests"
     tests_dir.mkdir()
     (tests_dir / "__init__.py").write_text("")
-    (tests_dir / "test_feature.py").write_text(
-        "def test_something()\n    this is invalid syntax\n"
-    )
+    (tests_dir / "test_feature.py").write_text("def test_something()\n    this is invalid syntax\n")
 
     # Create stubs in src
     src_dir = repo_path / "src"
@@ -239,9 +236,7 @@ def _create_fixture_repo_name_error(tmp_path: Path) -> Path:
     tests_dir = repo_path / "tests"
     tests_dir.mkdir()
     (tests_dir / "__init__.py").write_text("")
-    (tests_dir / "test_feature.py").write_text(
-        "def test_something():\n    undefined_variable\n"
-    )
+    (tests_dir / "test_feature.py").write_text("def test_something():\n    undefined_variable\n")
 
     # Create stubs in src
     src_dir = repo_path / "src"
@@ -319,7 +314,8 @@ def _create_fixture_repo_attribute_error(tmp_path: Path) -> Path:
     tests_dir.mkdir()
     (tests_dir / "__init__.py").write_text("")
     (tests_dir / "test_feature.py").write_text(
-        "class MyClass:\n    pass\n\ndef test_something():\n    obj = MyClass()\n    obj.nonexistent_attr\n"
+        "class MyClass:\n    pass\n\n"
+        "def test_something():\n    obj = MyClass()\n    obj.nonexistent_attr\n"
     )
 
     # Create stubs in src
@@ -394,6 +390,7 @@ def test_only_assertion_or_src_notimplemented_failures_are_accepted(
             text=True,
         )
 
-        assert (
-            result.returncode == expected_exit_code
-        ), f"Fixture {name}: expected exit {expected_exit_code}, got {result.returncode}\nstdout: {result.stdout}\nstderr: {result.stderr}"
+        assert result.returncode == expected_exit_code, (
+            f"Fixture {name}: expected exit {expected_exit_code}, "
+            f"got {result.returncode}\nstdout: {result.stdout}\nstderr: {result.stderr}"
+        )

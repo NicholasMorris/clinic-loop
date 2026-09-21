@@ -22,7 +22,6 @@ Output format:
 On error (exit 1), prints the conflicting issue keys and the overlapping glob pattern.
 """
 
-import fnmatch
 import json
 import sys
 

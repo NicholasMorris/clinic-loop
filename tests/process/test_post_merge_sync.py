@@ -34,12 +34,13 @@ def test_divergent_head_or_dirty_tree_fails() -> None:
         text=True,
     )
 
+    assert result.returncode == 1, f"Expected exit 1 for divergent HEAD, got {result.returncode}"
     assert (
-        result.returncode == 1
-    ), f"Expected exit 1 for divergent HEAD, got {result.returncode}"
-    assert "divergent" in result.stdout.lower() or "divergent" in result.stderr.lower() or "HEAD" in result.stdout or "HEAD" in result.stderr, (
-        "Expected mention of divergent HEAD in output"
-    )
+        "divergent" in result.stdout.lower()
+        or "divergent" in result.stderr.lower()
+        or "HEAD" in result.stdout
+        or "HEAD" in result.stderr
+    ), "Expected mention of divergent HEAD in output"
 
     # Test 2: Dirty tree should fail
     dirty_payload = {
@@ -55,12 +56,13 @@ def test_divergent_head_or_dirty_tree_fails() -> None:
         text=True,
     )
 
+    assert result.returncode == 1, f"Expected exit 1 for dirty tree, got {result.returncode}"
     assert (
-        result.returncode == 1
-    ), f"Expected exit 1 for dirty tree, got {result.returncode}"
-    assert "dirty" in result.stdout.lower() or "dirty" in result.stderr.lower() or "tree" in result.stdout.lower() or "tree" in result.stderr.lower(), (
-        "Expected mention of dirty tree in output"
-    )
+        "dirty" in result.stdout.lower()
+        or "dirty" in result.stderr.lower()
+        or "tree" in result.stdout.lower()
+        or "tree" in result.stderr.lower()
+    ), "Expected mention of dirty tree in output"
 
     # Test 3: Clean and matching should succeed
     clean_payload = {
@@ -76,6 +78,8 @@ def test_divergent_head_or_dirty_tree_fails() -> None:
         text=True,
     )
 
-    assert (
-        result.returncode == 0
-    ), f"Expected exit 0 for clean tree and matching SHA, got {result.returncode}\nstdout: {result.stdout}\nstderr: {result.stderr}"
+    assert result.returncode == 0, (
+        f"Expected exit 0 for clean tree and matching SHA, "
+        f"got {result.returncode}\n"
+        f"stdout: {result.stdout}\nstderr: {result.stderr}"
+    )
