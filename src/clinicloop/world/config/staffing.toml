@@ -1,0 +1,34 @@
+# Staffing configuration for SimClinic worker pools
+# All values are assumed starter values; they must be measured or updated before deployment.
+
+[intake]
+assumed = true
+assumption_note = "Based on typical intake processing: 1-2 minutes per questionnaire with field validation"
+service_time_family = "exponential"
+mean_service_minutes = 2
+staffing_level = 1
+hourly_cost = 28.0
+
+[prescriber_review]
+assumed = true
+assumption_note = "Based on clinician review time: 5-10 minutes per questionnaire to decide if safe to issue prescription"
+service_time_family = "normal"
+mean_service_minutes = 8
+staffing_level = 4
+hourly_cost = 85.0
+
+[pharmacy_fulfilment]
+assumed = true
+assumption_note = "Based on pharmacy fulfillment: 2-5 minutes per order to package and dispatch"
+service_time_family = "exponential"
+mean_service_minutes = 4
+staffing_level = 1
+hourly_cost = 32.0
+
+[support_inbox]
+assumed = true
+assumption_note = "Based on support agent response time: 3-8 minutes per message"
+service_time_family = "exponential"
+mean_service_minutes = 5
+staffing_level = 1
+hourly_cost = 30.0
