@@ -14,6 +14,7 @@ class ReferenceState(TypedDict):
         decided_by: Who made the decision.
         decided_at: When the decision was made.
         outcome: The outcome of the decision (approved or rejected).
+        human_decision: Human decision details including kind, actor, timestamp.
     """
 
     case_id: str
@@ -21,10 +22,14 @@ class ReferenceState(TypedDict):
     decided_by: NotRequired[str]
     decided_at: NotRequired[str]
     outcome: NotRequired[str]
+    human_decision: NotRequired[dict[str, Any]]
 
 
-def build_reference_graph() -> Any:
+def build_reference_graph(checkpointer: Any = None) -> Any:
     """Build the reference graph with approval gate pattern.
+
+    Args:
+        checkpointer: Optional checkpointer for state persistence.
 
     Returns:
         A LangGraph compiled graph with typed state, approval gate,
@@ -81,6 +86,6 @@ def build_reference_graph() -> Any:
     graph.set_finish_point("reject")
 
     # Compile with static interrupt_before
-    compiled = graph.compile(interrupt_before=["human_approval"])
+    compiled = graph.compile(interrupt_before=["human_approval"], checkpointer=checkpointer)
 
     return compiled
