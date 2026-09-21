@@ -8,7 +8,6 @@ D1
 D2
 D3
 D4
-D5
 D7
 E1  # Retired by M2-6, M3-4, M5-6, M6-7, M7-1
 G1
@@ -22,20 +21,15 @@ I6
 I7
 L2
 L3
-L4
 L5
 L7
 L8
-P1
-P2
 P7
 P8
 R1
 R2
 R3
 R4
-R5
-R6
 R7
 X1
 X4
