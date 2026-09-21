@@ -1,0 +1,14 @@
+#!/bin/bash
+# Pre-push hook: run make ci before allowing push
+
+set -e
+
+# Ensure we're in the repo root
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+# Run make ci in a fresh state
+echo "Running local CI gate before push..."
+make ci
+
+echo "Local gate passed. Push allowed."
