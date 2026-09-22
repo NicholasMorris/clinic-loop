@@ -22,13 +22,13 @@ def test_cassette_replay_is_offline_and_reproducible(tmp_path: Path) -> None:
 
     # Run all cases once into run1
     run1_dir = tmp_path / "run1"
-    artifacts1 = run_all(cases, ruleset, elements)
-    write_artifacts(artifacts1, run1_dir)
+    artifacts1, timings1_real = run_all(cases, ruleset, elements)
+    write_artifacts(artifacts1, run1_dir, timings1_real)
 
     # Run all cases again into run2
     run2_dir = tmp_path / "run2"
-    artifacts2 = run_all(cases, ruleset, elements)
-    write_artifacts(artifacts2, run2_dir)
+    artifacts2, timings2_real = run_all(cases, ruleset, elements)
+    write_artifacts(artifacts2, run2_dir, timings2_real)
 
     # Load artifacts back from disk
     reloaded1 = load_artifacts(run1_dir)

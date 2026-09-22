@@ -15,14 +15,14 @@ def test_aggregate_equals_recomputation_from_per_case_artifacts(tmp_path: Path) 
     ruleset = load_ruleset("au")
 
     # Run all cases
-    artifacts = run_all(cases, ruleset, elements)
+    artifacts, timings = run_all(cases, ruleset, elements)
 
     # Compute aggregate from artifacts
     aggregate_reported = aggregate_metrics(artifacts)
 
     # Write artifacts to disk
     output_dir = tmp_path / "run1"
-    write_artifacts(artifacts, output_dir)
+    write_artifacts(artifacts, output_dir, timings)
 
     # Reload artifacts from disk
     recomputed_artifacts = load_artifacts(output_dir)

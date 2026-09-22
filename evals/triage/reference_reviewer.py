@@ -25,8 +25,8 @@ def review(
     draft: str,
     guard_verdict: Any,
     intent: str,
+    ruleset: Any,
     elements: Optional[IntentElements] = None,
-    ruleset: Any = None,
 ) -> ReviewResult:
     """Review a draft against four rules in priority order.
 
@@ -40,8 +40,10 @@ def review(
         draft: The draft text to review.
         guard_verdict: GuardVerdict object with allowed and rule_ids.
         intent: The intent label for this draft.
+        ruleset: Ruleset object for finding dose/product matches. Required --
+            rule 2 is a defence-in-depth check independent of guard_verdict,
+            and must never be silently skippable by omitting this argument.
         elements: IntentElements config. If None, loads from default location.
-        ruleset: Ruleset object for finding dose/product matches.
 
     Returns:
         ReviewResult with accepted status and reason.
@@ -57,14 +59,12 @@ def review(
         return ReviewResult(accepted=False, reason="guard_blocked")
 
     # Rule 2: Draft must not match dose or product patterns
-    if ruleset is not None:
-        from clinicloop.compliance.guard.matches import find_matches
+    from clinicloop.compliance.guard.matches import find_matches
 
-        matches = find_matches(draft, ruleset)
-        # Check for AU-G-PRODUCT or AU-G-DOSE matches
-        for match in matches:
-            if match.rule_id in ("AU-G-PRODUCT", "AU-G-DOSE"):
-                return ReviewResult(accepted=False, reason="dose_or_product_match")
+    matches = find_matches(draft, ruleset)
+    for match in matches:
+        if match.rule_id in ("AU-G-PRODUCT", "AU-G-DOSE"):
+            return ReviewResult(accepted=False, reason="dose_or_product_match")
 
     # Rule 3: Draft must contain a required element for the intent
     if intent in elements.elements:

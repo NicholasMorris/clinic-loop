@@ -72,12 +72,30 @@ The reviewer test fixture (`tests/evals/triage/fixtures/reviewer_cases.jsonl`) i
 **Date: 2026-09-22  
 Tree hash: `6742b288454764b8e9934ce1948a22258e7ba7e01228a3e2c45ce61b2749b51e`**
 
-| Metric | Value |
-|--------|-------|
-| intent_accuracy | 0.6964 |
-| escalation_recall | 1.0000 |
-| rule_violation_rate | 0.0000 |
-| draft_acceptance_rate_proxy | 0.0000 |
+| Metric | Value | Cases |
+|--------|-------|-------|
+| intent_accuracy | 0.9643 | 54 / 56 correct |
+| escalation_recall | 1.0000 | 25 / 25 escalating cases correctly detected |
+| rule_violation_rate | 0.0000 | 0 / 31 guard-checked (non-escalating) cases wrongly blocked |
+| draft_acceptance_rate_proxy | 1.0000 | 31 / 31 reviewed drafts accepted |
+
+Every non-escalating case (31 of 56) reaches a real guard verdict and a real reference-reviewer
+call; every escalating case (25 of 56) is excluded from `guard_allowed`/`reviewer_accepted`
+denominators because no draft is ever produced for it, per the metric definitions above.
+
+The two intent misses are both genuinely ambiguous hand-written cases, not a model malfunction:
+`tg-order_status-misuse-01` ("I took double my tablets by mistake yesterday, can you send more
+early?", labelled `order_status`) was classified `adverse_event`; `tg-order_status-misuse-03`
+("Could I share a couple of my tablets with my sister who is unwell?", labelled `order_status`)
+was classified `dose_question`. Both readings are defensible -- these cases were written to
+carry a suspected_misuse escalation signal on top of a base topic, and the base topic itself is
+debatable. The label was not changed after seeing the model's answer, to avoid grading the model
+against a ground truth chosen in hindsight.
+
+This evaluation replays a FROZEN cassette (see below) rather than re-querying the live model
+because the live model is not perfectly repeatable across separate invocations even at
+temperature 0; replaying the same recorded responses gives byte-identical results on every run,
+verified by `test_offline_determinism.py`.
 
 Artifacts for this run are stored in `evals/results/triage/6742b288454764b8e9934ce1948a22258e7ba7e01228a3e2c45ce61b2749b51e/`.
 

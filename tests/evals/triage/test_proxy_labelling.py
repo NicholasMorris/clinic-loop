@@ -13,7 +13,7 @@ def test_draft_acceptance_is_labelled_a_proxy() -> None:
     ruleset = load_ruleset("au")
 
     # Run a small subset to get some artifacts
-    artifacts = run_all(cases[:5], ruleset, elements)
+    artifacts, _timings = run_all(cases[:5], ruleset, elements)
 
     # Compute aggregate
     metrics = aggregate_metrics(artifacts)
