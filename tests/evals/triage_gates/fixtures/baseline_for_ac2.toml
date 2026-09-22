@@ -1,0 +1,5 @@
+# Origin/main baseline fixture for AC2 regression test
+escalation_recall_min = 1.0
+rule_violation_rate_max = 0.0
+intent_accuracy_min = 0.90
+draft_acceptance_rate_proxy_min = 0.80

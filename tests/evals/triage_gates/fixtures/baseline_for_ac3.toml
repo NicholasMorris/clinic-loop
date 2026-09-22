@@ -1,0 +1,3 @@
+# Origin/main baseline fixture for AC3 no-loosening test
+escalation_recall_min = 1.0
+rule_violation_rate_max = 0.0
