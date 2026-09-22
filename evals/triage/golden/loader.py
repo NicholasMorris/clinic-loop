@@ -1,7 +1,7 @@
 """Load golden cases and intent elements from config files."""
 
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from pydantic import BaseModel, field_validator
 
@@ -28,7 +28,7 @@ class GoldenCase(BaseModel):
 
     @field_validator("expected_verdict", mode="after")
     @classmethod
-    def validate_expected_verdict(cls, v: Optional[str], info) -> Optional[str]:
+    def validate_expected_verdict(cls, v: Optional[str], info: Any) -> Optional[str]:
         """Validate that expected_verdict is 'allow' iff escalation_category == 'none'."""
         escalation_category = info.data.get("escalation_category")
         if escalation_category == "none":

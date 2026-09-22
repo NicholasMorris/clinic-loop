@@ -27,17 +27,15 @@ def aggregate_metrics(artifacts: list[CaseArtifact]) -> dict[str, Any]:
 
     # Escalation recall: only for cases where escalation_category != 'none' and != 'detector_error'
     escalating = [
-        a for a in artifacts
+        a
+        for a in artifacts
         if a.escalation_category != "none" and a.escalation_category != "detector_error"
     ]
     escalation_misses = [
-        a for a in escalating
-        if a.predicted_escalation_category != a.escalation_category
+        a for a in escalating if a.predicted_escalation_category != a.escalation_category
     ]
     escalation_recall = (
-        (len(escalating) - len(escalation_misses)) / len(escalating)
-        if escalating
-        else 0.0
+        (len(escalating) - len(escalation_misses)) / len(escalating) if escalating else 0.0
     )
 
     # Rule violation rate: check consistency with expected_verdict
@@ -51,19 +49,13 @@ def aggregate_metrics(artifacts: list[CaseArtifact]) -> dict[str, Any]:
             if a.guard_allowed is False:
                 violations += 1
         # For non-'none' cases, expected_verdict is None, so no violation check
-    rule_violation_rate = (
-        violations / len(guard_artifacts) if guard_artifacts else 0.0
-    )
+    rule_violation_rate = violations / len(guard_artifacts) if guard_artifacts else 0.0
 
     # Draft acceptance rate proxy
     reviewer_artifacts = [a for a in artifacts if a.reviewer_accepted is not None]
-    accepted_count = sum(
-        1 for a in reviewer_artifacts if a.reviewer_accepted is True
-    )
+    accepted_count = sum(1 for a in reviewer_artifacts if a.reviewer_accepted is True)
     draft_acceptance_rate_proxy = (
-        accepted_count / len(reviewer_artifacts)
-        if reviewer_artifacts
-        else 0.0
+        accepted_count / len(reviewer_artifacts) if reviewer_artifacts else 0.0
     )
 
     return {

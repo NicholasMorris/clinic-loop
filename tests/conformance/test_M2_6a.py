@@ -2,8 +2,7 @@
 
 from clinicloop.compliance.rulesets import load_ruleset
 from evals.triage.golden.loader import load_golden_cases, load_intent_elements
-from evals.triage.metrics import aggregate_metrics, register_triage_metrics
-from evals.triage.runner import run_all
+from evals.triage.metrics import register_triage_metrics
 
 
 def test_e1_metrics_registration():
@@ -26,9 +25,7 @@ def test_e1_metrics_registration():
 
 
 def test_c1_escalating_case_produces_artifact():
-    """C1: Running an escalating case produces an artifact with escalation_category and no draft hash."""
-    from clinicloop.agents.triage.intents import Intent
-
+    """C1: Escalating case produces artifact with escalation_category and no draft hash."""
     cases = load_golden_cases()
     elements = load_intent_elements()
     ruleset = load_ruleset("au")

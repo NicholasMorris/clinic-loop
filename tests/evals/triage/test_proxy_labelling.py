@@ -32,6 +32,5 @@ def test_draft_acceptance_is_labelled_a_proxy():
     # Check review_method on each artifact
     for artifact in artifacts:
         assert artifact.review_method == "rule-based reference reviewer", (
-            f"Expected review_method='rule-based reference reviewer', "
-            f"got {artifact.review_method}"
+            f"Expected review_method='rule-based reference reviewer', got {artifact.review_method}"
         )

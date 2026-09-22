@@ -5,11 +5,12 @@ from pathlib import Path
 
 import pytest
 
-pytest_socket = pytest.importorskip("pytest_socket")
+pytest_socket = pytest.importorskip("pytest_socket")  # noqa: F841
 
-from clinicloop.compliance.rulesets import load_ruleset
-from evals.triage.golden.loader import load_golden_cases, load_intent_elements
-from evals.triage.runner import load_artifacts, run_all, write_artifacts
+
+from clinicloop.compliance.rulesets import load_ruleset  # noqa: E402
+from evals.triage.golden.loader import load_golden_cases, load_intent_elements  # noqa: E402
+from evals.triage.runner import load_artifacts, run_all, write_artifacts  # noqa: E402
 
 
 @pytest.mark.usefixtures("disable_socket")
@@ -57,5 +58,9 @@ def test_cassette_replay_is_offline_and_reproducible(tmp_path: Path):
 
     # Verify all values are numbers (but don't require equality)
     for case_id in timings1:
-        assert isinstance(timings1[case_id], (int, float)), f"Timing for {case_id} should be numeric"
-        assert isinstance(timings2[case_id], (int, float)), f"Timing for {case_id} should be numeric"
+        assert isinstance(timings1[case_id], (int, float)), (
+            f"Timing for {case_id} should be numeric"
+        )
+        assert isinstance(timings2[case_id], (int, float)), (
+            f"Timing for {case_id} should be numeric"
+        )

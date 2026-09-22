@@ -1,9 +1,6 @@
 """Test that aggregate metrics can be recomputed from written artifacts."""
 
-import json
 from pathlib import Path
-
-import pytest
 
 from clinicloop.compliance.rulesets import load_ruleset
 from evals.triage.golden.loader import load_golden_cases, load_intent_elements

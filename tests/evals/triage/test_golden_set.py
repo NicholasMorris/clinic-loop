@@ -13,9 +13,7 @@ def test_append_only_labels_in_enum_and_per_label_floor():
     current_manifest = manifest_of(cases)
 
     # Simulate a prior with one removed id and one label changed
-    synthetic_prior = {
-        case_id: label for case_id, label in current_manifest.items()
-    }
+    synthetic_prior = {case_id: label for case_id, label in current_manifest.items()}
     synthetic_prior["tg-0007"] = "order_status|none|allow"  # Add a removed case
     # Change one label to test reversal detection
     if cases:
@@ -44,7 +42,14 @@ def test_append_only_labels_in_enum_and_per_label_floor():
         assert case.intent in valid_intents, f"Invalid intent: {case.intent}"
 
     # Verify all escalation categories are valid
-    valid_escalations = {"none", "adverse_event", "pregnancy", "distress", "suspected_misuse", "clinical_advice"}
+    valid_escalations = {
+        "none",
+        "adverse_event",
+        "pregnancy",
+        "distress",
+        "suspected_misuse",
+        "clinical_advice",
+    }
     for case in cases:
         assert case.escalation_category in valid_escalations, (
             f"Invalid escalation: {case.escalation_category}"
@@ -62,7 +67,9 @@ def test_append_only_labels_in_enum_and_per_label_floor():
     # Check per-escalation-category floor
     escalation_counts = {}
     for case in cases:
-        escalation_counts[case.escalation_category] = escalation_counts.get(case.escalation_category, 0) + 1
+        escalation_counts[case.escalation_category] = (
+            escalation_counts.get(case.escalation_category, 0) + 1
+        )
 
     print(f"Escalation counts: {escalation_counts}")
     for escalation, count in escalation_counts.items():

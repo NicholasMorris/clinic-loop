@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from clinicloop.compliance.rulesets import load_ruleset
 from clinicloop.compliance.guard.verdict import GuardVerdict
+from clinicloop.compliance.rulesets import load_ruleset
 from evals.triage.golden.loader import ConfigurationError, load_intent_elements
 from evals.triage.reference_reviewer import review
 
@@ -65,7 +65,9 @@ def test_reviewer_verdicts_match_labels_and_name_the_failing_rule(reviewer_cases
         )
 
 
-def test_reviewer_with_missing_elements_raises_configuration_error(reviewer_cases, ruleset, tmp_path):
+def test_reviewer_with_missing_elements_raises_configuration_error(
+    reviewer_cases, ruleset, tmp_path
+):
     """AC3: Reviewer raises ConfigurationError when elements cannot be loaded."""
     from unittest.mock import patch
 

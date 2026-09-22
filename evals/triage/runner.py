@@ -2,8 +2,6 @@
 
 import hashlib
 import json
-import time
-from dataclasses import asdict
 from pathlib import Path
 from typing import Optional
 
@@ -68,8 +66,6 @@ def run_case(case: GoldenCase, ruleset, elements) -> CaseArtifact:
     from clinicloop.agents.triage.models import CassetteModelPort
     from clinicloop.compliance.outbound.port import OutboundPort
     from evals.triage.reference_reviewer import review
-
-    started = time.perf_counter()
 
     # Create stub tools that return fixed responses
     class StubTools:
@@ -147,8 +143,6 @@ def run_case(case: GoldenCase, ruleset, elements) -> CaseArtifact:
                 reviewer_accepted = result.accepted
                 reviewer_reason = result.reason
 
-        elapsed = time.perf_counter() - started
-
         return CaseArtifact(
             case_id=case.case_id,
             intent=case.intent,
@@ -163,7 +157,7 @@ def run_case(case: GoldenCase, ruleset, elements) -> CaseArtifact:
             review_method="rule-based reference reviewer",
         )
 
-    except Exception as e:
+    except Exception:
         # If the case fails, return a partial artifact
         return CaseArtifact(
             case_id=case.case_id,
@@ -200,7 +194,6 @@ def write_artifacts(artifacts: list[CaseArtifact], out_dir: Path) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
 
     # Write individual artifacts
-    timings: dict[str, float] = {}
     for artifact in artifacts:
         case_path = out_dir / f"{artifact.case_id}.json"
         with open(case_path, "w") as f:
