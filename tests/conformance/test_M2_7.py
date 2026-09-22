@@ -26,7 +26,7 @@ class InstantToolRunner:
         return f"Order {order_id} is in transit"
 
 
-@pytest.mark.checklist_C0
+@pytest.mark.checklist_id
 def test_toggle_off_queue_backup_c0() -> None:
     """C0: Toggle-off causes queue backup (support inbox depth/wait rise)."""
     seed = 100
@@ -41,10 +41,7 @@ def test_toggle_off_queue_backup_c0() -> None:
             conn, serde=JsonPlusSerializer(allowed_msgpack_modules=TRIAGE_ALLOWED_MSGPACK_MODULES)
         )
 
-    model_on = FakeModelPort(
-        ['{"intent": "general_question"}', "Thank you for your message."]
-        * 50
-    )
+    model_on = FakeModelPort(['{"intent": "general_question"}', "Thank you for your message."] * 50)
     ruleset_on = load_ruleset("au")
     port_on = TriageAgentPort(
         world=world_on,
@@ -73,7 +70,7 @@ def test_toggle_off_queue_backup_c0() -> None:
     assert max_off > max_on, f"Queue depth should rise when toggle is off: {max_on} -> {max_off}"
 
 
-@pytest.mark.checklist_C1
+@pytest.mark.checklist_id
 def test_graph_execution_c1() -> None:
     """C1: TriageAgentPort runs ingest/classify_intent/draft/guard_final on a case."""
     seed = 200
@@ -86,8 +83,7 @@ def test_graph_execution_c1() -> None:
         )
 
     model = FakeModelPort(
-        ['{"intent": "general_question"}', "Your message has been received."]
-        * 20
+        ['{"intent": "general_question"}', "Your message has been received."] * 20
     )
     ruleset = load_ruleset("au")
     port = TriageAgentPort(
@@ -115,7 +111,7 @@ def test_graph_execution_c1() -> None:
         assert record.wall_clock_seconds >= 0
 
 
-@pytest.mark.checklist_X3
+@pytest.mark.checklist_id
 def test_triage_toggle_not_cut_candidate_x3() -> None:
     """X3: Docs state that the triage toggle is not a cut candidate."""
     # This test is primarily about documentation existing.
@@ -123,7 +119,9 @@ def test_triage_toggle_not_cut_candidate_x3() -> None:
     # the toggle is not a cut candidate.
     import pathlib
 
-    docs_path = pathlib.Path(__file__).parent.parent.parent / "docs" / "agents" / "triage-agent-port.md"
+    docs_path = (
+        pathlib.Path(__file__).parent.parent.parent / "docs" / "agents" / "triage-agent-port.md"
+    )
     assert docs_path.exists(), f"Documentation should exist at {docs_path}"
 
     # Read and verify it mentions the toggle and cut-candidate discussion

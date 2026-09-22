@@ -1,9 +1,7 @@
 """Test that all sends go through OutboundPort."""
 
-import hashlib
 import sqlite3
 
-import pytest
 from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
 from langgraph.checkpoint.sqlite import SqliteSaver
 
@@ -28,9 +26,9 @@ class InstantToolRunner:
 
 
 def test_adapter_never_bypasses_outbound_port() -> None:
-    """AC5: Every send goes through OutboundPort, never directly; escalated cases send zero texts."""
+    """AC5: All sends through OutboundPort; escalations send zero texts."""
     seed = 999
-    world = generate_world(seed=seed, population_size=20, span_days=1)
+    world = generate_world(seed=seed, population_size=50, span_days=1)
 
     def checkpointer_factory() -> SqliteSaver:
         conn = sqlite3.connect(":memory:", check_same_thread=False)
@@ -39,8 +37,7 @@ def test_adapter_never_bypasses_outbound_port() -> None:
         )
 
     model = FakeModelPort(
-        ['{"intent": "general_question"}', "Your message has been received."]
-        * 50
+        ['{"intent": "general_question"}', "Your message has been received."] * 50
     )
     ruleset = load_ruleset("au")
     sent_texts: list[str] = []
@@ -68,7 +65,9 @@ def test_adapter_never_bypasses_outbound_port() -> None:
 
     # Count how many support_inbox items were agent-resolved vs human-served
     support_inbox_records = [r for r in result.records if r.queue == "support_inbox"]
-    agent_resolved = sum(1 for r in support_inbox_records if r.server is None and r.finished_at is not None)
+    agent_resolved = sum(
+        1 for r in support_inbox_records if r.server is None and r.finished_at is not None
+    )
 
     # Count sent texts
     sent_count = len(sent_texts)

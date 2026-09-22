@@ -74,6 +74,7 @@ The TriageAgentPort reads the assumed agent service time from the SimClinic conf
 
 ```python
 from clinicloop.world.workers import load_agents
+
 agent_config = load_agents()
 simulated_minutes = agent_config.triage.agent_service_minutes  # Read-only
 ```

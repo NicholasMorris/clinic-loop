@@ -109,7 +109,9 @@ class TriageAgentPort:
                     conn = sqlite3.connect(":memory:", check_same_thread=False)
                     return SqliteSaver(
                         conn,
-                        serde=JsonPlusSerializer(allowed_msgpack_modules=TRIAGE_ALLOWED_MSGPACK_MODULES),
+                        serde=JsonPlusSerializer(
+                            allowed_msgpack_modules=TRIAGE_ALLOWED_MSGPACK_MODULES
+                        ),
                     )
 
                 checkpointer = default_checkpointer_factory()
@@ -156,13 +158,12 @@ class TriageAgentPort:
             draft = final_state.get("draft")
 
             # Determine outcome and check for special cases
+            wall_clock_seconds = time.perf_counter() - start
             if escalation_category not in (None, "none") and draft is None:
                 # Escalated
-                outcome = "escalated"
-                wall_clock_seconds = time.perf_counter() - start
                 service_record = ServiceRecord(
                     case_id=case_id,
-                    outcome=outcome,
+                    outcome="escalated",
                     wall_clock_seconds=wall_clock_seconds,
                     simulated_minutes=None,
                 )
@@ -170,11 +171,9 @@ class TriageAgentPort:
                 raise CaseEscalated(case_id)
             elif routing_reason in ("language", "rule_block"):
                 # Blocked/needs review
-                outcome = "human_review"
-                wall_clock_seconds = time.perf_counter() - start
                 service_record = ServiceRecord(
                     case_id=case_id,
-                    outcome=outcome,
+                    outcome="human_review",
                     wall_clock_seconds=wall_clock_seconds,
                     simulated_minutes=None,
                 )
@@ -182,13 +181,11 @@ class TriageAgentPort:
                 raise DraftNeedsHumanReview(case_id, routing_reason)
             else:
                 # Guard final ran and allowed, or send already happened via auto-approve
-                outcome = "sent"
                 agent_config = load_agents()
                 simulated_minutes = agent_config.triage.agent_service_minutes
-                wall_clock_seconds = time.perf_counter() - start
                 service_record = ServiceRecord(
                     case_id=case_id,
-                    outcome=outcome,
+                    outcome="sent",
                     wall_clock_seconds=wall_clock_seconds,
                     simulated_minutes=float(simulated_minutes),
                 )
@@ -202,5 +199,7 @@ class TriageAgentPort:
             # Wrap any other exception as RuntimeError for the fallback contract
             wall_clock_seconds = time.perf_counter() - start
             if not isinstance(exc, RuntimeError):
-                raise RuntimeError(f"TriageAgentPort.serve() failed: {type(exc).__name__}: {exc}") from exc
+                raise RuntimeError(
+                    f"TriageAgentPort.serve() failed: {type(exc).__name__}: {exc}"
+                ) from exc
             raise

@@ -2,7 +2,6 @@
 
 import sqlite3
 
-import pytest
 from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
 from langgraph.checkpoint.sqlite import SqliteSaver
 
@@ -29,7 +28,7 @@ class InstantToolRunner:
 def test_same_seed_and_toggle_give_identical_run_hash() -> None:
     """AC3: Two runs at the same seed and toggle state produce identical run_hash."""
     seed = 456
-    population = 20
+    population = 50
 
     def run_simulation(toggle_on: bool) -> str:
         """Run a simulation and return its run_hash."""
@@ -40,12 +39,14 @@ def test_same_seed_and_toggle_give_identical_run_hash() -> None:
             def checkpointer_factory() -> SqliteSaver:
                 conn = sqlite3.connect(":memory:", check_same_thread=False)
                 return SqliteSaver(
-                    conn, serde=JsonPlusSerializer(allowed_msgpack_modules=TRIAGE_ALLOWED_MSGPACK_MODULES)
+                    conn,
+                    serde=JsonPlusSerializer(
+                        allowed_msgpack_modules=TRIAGE_ALLOWED_MSGPACK_MODULES
+                    ),
                 )
 
             model = FakeModelPort(
-                ['{"intent": "general_question"}', "Thank you for your message."]
-                * 50
+                ['{"intent": "general_question"}', "Thank you for your message."] * 50
             )
             ruleset = load_ruleset("au")
             sent_texts: list[str] = []

@@ -32,5 +32,5 @@ class WorldMessageSource:
         """
         for message in self.world.messages:
             if message.message_id == message_id:
-                return message.body
+                return str(message.body)
         raise KeyError(f"Message {message_id} not found in world")

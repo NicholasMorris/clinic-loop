@@ -3,17 +3,14 @@
 import sqlite3
 from pathlib import Path
 
-import pytest
 from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
 from langgraph.checkpoint.sqlite import SqliteSaver
 
 from clinicloop.agents.triage.graph.builder import (
     TRIAGE_ALLOWED_MSGPACK_MODULES,
-    build_triage_graph,
 )
 from clinicloop.agents.triage.models import FakeModelPort
 from clinicloop.agents.triage.ports.agent_port import TriageAgentPort
-from clinicloop.agents.triage.ports.message_source import WorldMessageSource
 from clinicloop.compliance.outbound.port import OutboundPort
 from clinicloop.compliance.rulesets import load_ruleset
 from clinicloop.world.generator import generate_world
@@ -72,5 +69,7 @@ def test_adapter_satisfies_agent_port_protocol(tmp_path: Path) -> None:
         service_minutes = port.serve(message.message_id)
 
         # Should return a float
-        assert isinstance(service_minutes, float), f"serve() should return float, got {type(service_minutes)}"
+        assert isinstance(service_minutes, float), (
+            f"serve() should return float, got {type(service_minutes)}"
+        )
         assert service_minutes >= 0, f"service_minutes should be >= 0, got {service_minutes}"
