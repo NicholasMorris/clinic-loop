@@ -1,0 +1,1 @@
+{"case_id":"regress-04","intent":"general","predicted_intent":"general","escalation_category":"none","predicted_escalation_category":"none","guard_allowed":true,"guard_rule_ids":[],"draft_text_sha256":"hash04","reviewer_accepted":true,"reviewer_reason":null,"review_method":"rule-based reference reviewer"}
