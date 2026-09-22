@@ -9,6 +9,7 @@ from typing import Any, Literal, NamedTuple
 
 import numpy as np
 
+from clinicloop.world.ports.registry import PortFailure, PortRegistry
 from clinicloop.world.regimes import get_regime
 from clinicloop.world.workers import load_staffing
 
@@ -52,6 +53,7 @@ class RunResult:
     staffing: dict[str, int]
     agent_toggles: dict[str, bool]
     run_hash: str
+    port_failures: tuple[PortFailure, ...] = ()
 
 
 class Event(NamedTuple):
@@ -88,6 +90,7 @@ class Engine:
         regime_key: Literal["au", "nz", "uk"] = "au",
         staffing_overrides: dict[str, int] | None = None,
         agent_toggles: dict[str, bool] | None = None,
+        ports: PortRegistry | None = None,
     ) -> None:
         """Initialize the engine.
 
@@ -99,6 +102,14 @@ class Engine:
                 If None, defaults to all three agents ON
                 (triage, consult_scribe, integrity).
                 Unknown agent names raise KeyError.
+            ports: Optional PortRegistry. When a port is registered for a
+                toggled-on scope, the engine calls it instead of the assumed
+                RNG/config shortcut for that scope. Only "triage" is consulted
+                today (consult_scribe and integrity still use the fixed extra-
+                minutes model). When ports is None, or no port is registered
+                for "triage", behaviour is unchanged from before this
+                parameter existed. A port that raises RuntimeError falls back
+                to the human queue and records a PortFailure.
 
         Raises:
             ValueError: If any staffing override is < 1.
@@ -110,6 +121,8 @@ class Engine:
         self.staffing_overrides = staffing_overrides or {}
         self._regime = get_regime(regime_key)
         self._last_run_result: RunResult | None = None
+        self.ports = ports
+        self.port_failures: list[PortFailure] = []
 
         # Initialize agent toggles: default all ON
         self.agent_toggles = {"triage": True, "consult_scribe": True, "integrity": True}
@@ -148,6 +161,9 @@ class Engine:
         Raises:
             RegimeParameterNotSet: If required regime parameters are missing.
         """
+        # Reset per-run port failure log (an Engine instance may run() more than once).
+        self.port_failures = []
+
         # Load and validate staffing configuration
         staffing_config = load_staffing()
 
@@ -276,9 +292,33 @@ class Engine:
 
                 # Check for triage agent on support_inbox
                 if queue == "support_inbox" and self.agent_toggles.get("triage", True):
-                    # Draw from triage RNG to decide if agent resolves this message
-                    u = triage_rng.uniform()
-                    if u < agent_config.triage.agent_resolved_share:
+                    triage_port = self.ports.get("triage") if self.ports is not None else None
+                    resolved = False
+                    service_minutes: float | None = None
+
+                    if triage_port is not None:
+                        # A real port is registered: it decides resolution, not the RNG.
+                        # A RuntimeError is the port's documented fallback contract (the
+                        # triage graph's own approval gate raises it, among other things).
+                        try:
+                            service_minutes = triage_port.serve(item_id)
+                            resolved = True
+                        except RuntimeError as exc:
+                            self.port_failures.append(
+                                PortFailure(
+                                    scope="triage",
+                                    exception_type=type(exc).__name__,
+                                    case_id=item_id,
+                                )
+                            )
+                    else:
+                        # No port registered: the assumed RNG/config shortcut, unchanged.
+                        u = triage_rng.uniform()
+                        if u < agent_config.triage.agent_resolved_share:
+                            service_minutes = agent_config.triage.agent_service_minutes
+                            resolved = True
+
+                    if resolved and service_minutes is not None:
                         # Agent resolves: create finish event immediately, skip human queue
                         old_record = item_records[key]
                         item_records[key] = ItemRecord(
@@ -286,13 +326,13 @@ class Engine:
                             item_id=old_record.item_id,
                             enqueued_at=old_record.enqueued_at,
                             started_at=timestamp,
-                            finished_at=timestamp + int(agent_config.triage.agent_service_minutes),
+                            finished_at=timestamp + int(service_minutes),
                             server=None,
                         )
 
                         # Schedule finish event
                         finish_event = Event(
-                            timestamp=timestamp + int(agent_config.triage.agent_service_minutes),
+                            timestamp=timestamp + int(service_minutes),
                             sequence_number=sequence_counter,
                             event_type="finish",
                             queue=queue,
@@ -400,6 +440,7 @@ class Engine:
             staffing=staffing,
             agent_toggles=dict(self.agent_toggles),
             run_hash=run_hash,
+            port_failures=tuple(self.port_failures),
         )
 
         self._last_run_result = result
