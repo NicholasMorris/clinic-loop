@@ -27,10 +27,11 @@ def test_threshold_loosening_against_origin_main_fails(
     # Create passing fixture cases
     fixture_dir = tmp_path / "fixtures"
     fixture_dir.mkdir()
-    fixture_base_files = fixture_base / "passing_case_1.json"
-    if fixture_base_files.exists():
-        dst = fixture_dir / "case_1.json"
-        dst.write_text(fixture_base_files.read_text())
+    for i in range(1, 5):
+        src = fixture_base / f"passing_case_{i}.json"
+        if src.exists():
+            dst = fixture_dir / src.name
+            dst.write_text(src.read_text())
 
     # Test 1: Loosen escalation_recall_min to 0.95
     thresholds_tmp = tmp_path / "thresholds.toml"
@@ -47,8 +48,9 @@ rule_violation_rate_max = 0.0
     )
 
     assert not result.passed, "Should fail when escalation_recall loosened"
-    assert "triage.escalation_recall_min" in result.loosened, \
+    assert "triage.escalation_recall_min" in result.loosened, (
         f"Should flag triage.escalation_recall_min as loosened: {result.loosened}"
+    )
 
     # Test 2: Keep both values unchanged
     thresholds_tmp.write_text("""
@@ -64,5 +66,4 @@ rule_violation_rate_max = 0.0
     )
 
     assert result.passed, "Should pass when thresholds unchanged"
-    assert result.loosened == [], \
-        f"Should have no loosened entries: {result.loosened}"
+    assert result.loosened == [], f"Should have no loosened entries: {result.loosened}"

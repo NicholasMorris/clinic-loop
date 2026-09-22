@@ -26,10 +26,11 @@ def test_absent_on_origin_main_passes_and_records_candidate_baseline(
     # Create passing fixture cases
     fixture_dir = tmp_path / "fixtures"
     fixture_dir.mkdir()
-    fixture_base_files = fixture_base / "passing_case_1.json"
-    if fixture_base_files.exists():
-        dst = fixture_dir / "case_1.json"
-        dst.write_text(fixture_base_files.read_text())
+    for i in range(1, 5):
+        src = fixture_base / f"passing_case_{i}.json"
+        if src.exists():
+            dst = fixture_dir / src.name
+            dst.write_text(src.read_text())
 
     # Create a thresholds file (local, not on origin/main)
     thresholds_path = tmp_path / "thresholds.toml"

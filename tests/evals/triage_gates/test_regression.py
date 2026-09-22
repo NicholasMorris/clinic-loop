@@ -2,9 +2,7 @@
 
 from pathlib import Path
 
-import pytest
-
-from evals.triage.gate import GateResult, run_gate
+from evals.triage.gate import run_gate
 
 
 def test_metric_below_origin_main_baseline_fails_the_gate(
@@ -18,60 +16,68 @@ def test_metric_below_origin_main_baseline_fails_the_gate(
     reports 0.90 and 0.80.
     """
     fixture_base = Path(__file__).resolve().parent / "fixtures"
-    baseline_path = fixture_base / "baseline_for_ac2.toml"
 
-    # Stub git reader that returns the fixture baseline
-    baseline_text = baseline_path.read_text()
-
-    def stub_reader(revision: str, path: str) -> str | None:
-        if revision == "origin/main" and "thresholds.toml" in path:
-            return baseline_text
-        return None
-
-    # Create a thresholds file with lower values than baseline
+    # Create a thresholds file (local)
     thresholds_tmp = tmp_path / "thresholds.toml"
     thresholds_tmp.write_text("""
 escalation_recall_min = 1.0
 rule_violation_rate_max = 0.0
-intent_accuracy_min = 0.89
-draft_acceptance_rate_proxy_min = 0.79
+intent_accuracy_min = 0.8
+draft_acceptance_rate_proxy_min = 0.875
 """)
 
-    # Create passing fixture cases
+    # Create regress fixture cases (metrics: intent_accuracy=0.9, draft=0.8889)
     fixture_dir = tmp_path / "fixtures"
     fixture_dir.mkdir()
-    fixture_base_files = fixture_base / "passing_case_1.json"
-    if fixture_base_files.exists():
-        dst = fixture_dir / "case_1.json"
-        dst.write_text(fixture_base_files.read_text())
+    for i in range(1, 11):
+        src = fixture_base / f"regress_case_{i:02d}.json"
+        if src.exists():
+            dst = fixture_dir / src.name
+            dst.write_text(src.read_text())
 
-    # Run gate with stub reader; should fail on both metrics
+    # Test 1: baseline_for_ac2 has 0.90 and 0.80; candidate has 0.8889 and 0.75
+    # This should fail because 0.8889 < 0.90 and 0.75 < 0.80
+    baseline_text = fixture_base.joinpath("baseline_for_ac2.toml").read_text()
+
+    def stub_reader_high(revision: str, path: str) -> str | None:
+        if revision == "origin/main" and "thresholds.toml" in path:
+            return baseline_text
+        return None
+
     result = run_gate(
         fixture_dir,
         thresholds_path=thresholds_tmp,
         base_revision="origin/main",
-        reader=stub_reader,
+        reader=stub_reader_high,
     )
 
     assert not result.passed, "Should fail when metrics below baseline"
-    assert any("intent_accuracy" in f for f in result.failures), \
+    assert any("intent_accuracy" in f for f in result.failures), (
         f"Should report intent_accuracy below baseline: {result.failures}"
-    assert any("draft_acceptance_rate_proxy" in f for f in result.failures), \
+    )
+    assert any("draft_acceptance_rate_proxy" in f for f in result.failures), (
         f"Should report draft_acceptance_rate_proxy below baseline: {result.failures}"
+    )
 
-    # Now test with candidate values equal to baseline; should pass
-    thresholds_tmp.write_text("""
+    # Test 2: baseline with lower thresholds (0.8 and 0.875); should pass
+    # because 0.8 >= 0.8 and 0.875 >= 0.875
+    lower_baseline = """
 escalation_recall_min = 1.0
 rule_violation_rate_max = 0.0
-intent_accuracy_min = 0.90
-draft_acceptance_rate_proxy_min = 0.80
-""")
+intent_accuracy_min = 0.8
+draft_acceptance_rate_proxy_min = 0.875
+"""
+
+    def stub_reader_low(revision: str, path: str) -> str | None:
+        if revision == "origin/main" and "thresholds.toml" in path:
+            return lower_baseline
+        return None
 
     result = run_gate(
         fixture_dir,
         thresholds_path=thresholds_tmp,
         base_revision="origin/main",
-        reader=stub_reader,
+        reader=stub_reader_low,
     )
 
     assert result.passed, f"Should pass when metrics equal baseline: {result.failures}"

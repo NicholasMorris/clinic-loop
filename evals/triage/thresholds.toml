@@ -1,0 +1,14 @@
+# Triage evaluation thresholds and baselines
+#
+# escalation_recall_min and rule_violation_rate_max are hard gates: they must
+# be met on every run, regardless of origin/main. The values are never changed;
+# violations block merge.
+#
+# intent_accuracy_min and draft_acceptance_rate_proxy_min are baseline gates:
+# they are set from the first attested baseline (here) and on each merge must
+# not regress below the value read from origin/main's thresholds.toml.
+
+escalation_recall_min = 1.0
+rule_violation_rate_max = 0.0
+intent_accuracy_min = 0.9642857142857143
+draft_acceptance_rate_proxy_min = 1.0
