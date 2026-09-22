@@ -91,6 +91,7 @@ class Engine:
         staffing_overrides: dict[str, int] | None = None,
         agent_toggles: dict[str, bool] | None = None,
         ports: PortRegistry | None = None,
+        on_tick: Any = None,
     ) -> None:
         """Initialize the engine.
 
@@ -110,6 +111,16 @@ class Engine:
                 for "triage", behaviour is unchanged from before this
                 parameter existed. A port that raises RuntimeError falls back
                 to the human queue and records a PortFailure.
+            on_tick: Optional callable(timestamp: int, available_capacity:
+                dict[str, int]) invoked at the same cadence as the queue-depth
+                samples (every 60 simulated minutes, plus a final call for any
+                sample times after the last event). available_capacity[queue]
+                is staffing[queue] - busy[queue]: the number of human worker
+                pool slots for that queue free at that instant, regardless of
+                which items are merely waiting. This is observational only; it
+                never changes engine behaviour, and when on_tick is None
+                (the default) nothing about a run changes from before this
+                parameter existed.
 
         Raises:
             ValueError: If any staffing override is < 1.
@@ -123,6 +134,7 @@ class Engine:
         self._last_run_result: RunResult | None = None
         self.ports = ports
         self.port_failures: list[PortFailure] = []
+        self.on_tick = on_tick
 
         # Initialize agent toggles: default all ON
         self.agent_toggles = {"triage": True, "consult_scribe": True, "integrity": True}
@@ -263,6 +275,11 @@ class Engine:
                     for queue in queue_names:
                         depth = len(waiting[queue])
                         queue_depth_samples[queue].append((sample_time, depth))
+                    if self.on_tick is not None:
+                        self.on_tick(
+                            sample_time,
+                            {q: staffing[q] - busy[q] for q in queue_names},
+                        )
                     next_sample_idx += 1
                 else:
                     break
@@ -384,9 +401,15 @@ class Engine:
                     server=old_record.server,
                 )
 
-                # Free the server
-                busy[queue] -= 1
+                # Free the server. server_id is None for an item resolved by an
+                # agent (triage agent shortcut or a registered AgentPort): that
+                # item never occupied a human server slot via _try_start_service,
+                # so busy[queue] must not be decremented for it either -- doing so
+                # unconditionally (a pre-existing bug found while adding on_tick)
+                # drove busy[queue] negative over a run, letting more concurrent
+                # human service starts through than staffing_level actually allows.
                 if server_id is not None:
+                    busy[queue] -= 1
                     free_servers[queue].add(server_id)
 
                 # Route to next queue if applicable
@@ -423,6 +446,8 @@ class Engine:
             for queue in queue_names:
                 depth = len(waiting[queue])
                 queue_depth_samples[queue].append((sample_time, depth))
+            if self.on_tick is not None:
+                self.on_tick(sample_time, {q: staffing[q] - busy[q] for q in queue_names})
 
         # Convert records to sorted tuple
         records_list = sorted(item_records.values(), key=lambda r: (r.queue, r.item_id))
