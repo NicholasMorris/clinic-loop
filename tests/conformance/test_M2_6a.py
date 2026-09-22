@@ -1,10 +1,13 @@
 """Conformance tests for M2-6a triage evaluation."""
 
+import pytest
+
 from clinicloop.compliance.rulesets import load_ruleset
 from evals.triage.golden.loader import load_golden_cases, load_intent_elements
 from evals.triage.metrics import register_triage_metrics
 
 
+@pytest.mark.checklist_id("E1")
 def test_e1_metrics_registration() -> None:
     """E1: Triage metrics are registered and can be retrieved."""
     from clinicloop.evals.core.registry import get_metric
@@ -24,6 +27,7 @@ def test_e1_metrics_registration() -> None:
     assert draft_accept is not None, "draft_acceptance_rate_proxy metric not registered"
 
 
+@pytest.mark.checklist_id("C1")
 def test_c1_escalating_case_produces_artifact() -> None:
     """C1: Escalating case produces artifact with escalation_category and no draft hash."""
     cases = load_golden_cases()
@@ -53,6 +57,7 @@ def test_c1_escalating_case_produces_artifact() -> None:
     )
 
 
+@pytest.mark.checklist_id("X4")
 def test_x4_golden_set_and_docs_exist() -> None:
     """X4: Golden set exists with floor of 5 per intent/category; docs exist."""
     from pathlib import Path
