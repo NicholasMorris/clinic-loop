@@ -43,7 +43,6 @@ def test_human_edit_is_re_checked_before_send(
     6. Update with the original allowed draft text
     7. Verify it reaches send with exactly one spy call
     """
-    db_path = tmp_path / "triage.sqlite"
     case_id = "test-case-block"
 
     ruleset = load_ruleset("au")
@@ -58,7 +57,8 @@ def test_human_edit_is_re_checked_before_send(
     )
 
     # Part 1: Edit to blocked text
-    conn1 = sqlite3.connect(str(db_path / "part1.sqlite"), check_same_thread=False)
+    db_path1 = tmp_path / "part1.sqlite"
+    conn1 = sqlite3.connect(str(db_path1), check_same_thread=False)
     calls1: list[str] = []
     transport1 = calls1.append
 
@@ -105,7 +105,8 @@ def test_human_edit_is_re_checked_before_send(
     conn1.close()
 
     # Part 2: Edit to allowed text
-    conn2 = sqlite3.connect(str(db_path / "part2.sqlite"), check_same_thread=False)
+    db_path2 = tmp_path / "part2.sqlite"
+    conn2 = sqlite3.connect(str(db_path2), check_same_thread=False)
     calls2: list[str] = []
     transport2 = calls2.append
 
