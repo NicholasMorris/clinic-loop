@@ -76,9 +76,8 @@ def test_language_block_escalation_and_timeout_reach_their_terminals(
     final_state2 = compiled2.invoke(input_state2, config2)
 
     # Should route to human_review with rule_block
-    assert (
-        final_state2.get("routing_reason") == "rule_block"
-        or "human_review" in str(final_state2.get("next", ""))
+    assert final_state2.get("routing_reason") == "rule_block" or "human_review" in str(
+        final_state2.get("next", "")
     ), f"Expected rule_block routing, got {final_state2.get('routing_reason')}"
 
     assert len(calls2) == 0, f"Expected no sends on blocked draft, got {len(calls2)}"

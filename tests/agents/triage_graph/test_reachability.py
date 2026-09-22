@@ -5,7 +5,6 @@ for every edge leaving escalation_check to escalate, so no path reaches draft fr
 escalation edge.
 """
 
-
 from clinicloop.agents.triage.graph.builder import build_triage_graph
 from clinicloop.agents.triage.models import FakeModelPort
 from clinicloop.compliance.escalation.reachability import paths_from_escalation_to_draft
@@ -43,6 +42,4 @@ def test_no_path_from_escalation_edge_to_draft(
     violations = paths_from_escalation_to_draft(
         compiled, check_node="escalation_check", draft_node="draft", clear_label="continue"
     )
-    assert (
-        violations == []
-    ), f"Escalation edge reaches draft via: {violations}"
+    assert violations == [], f"Escalation edge reaches draft via: {violations}"

@@ -79,7 +79,9 @@ def test_interrupt_before_human_approval_survives_restart(
     state1 = compiled1.invoke(input_state, config)
 
     # Verify it paused at human_approval
-    assert state1.get("next") == ("human_approval",), f"Expected pause at human_approval, got {state1.get('next')}"
+    assert state1.get("next") == ("human_approval",), (
+        f"Expected pause at human_approval, got {state1.get('next')}"
+    )
 
     # Save the state values for comparison
     state1_values = dict(state1)
@@ -112,16 +114,18 @@ def test_interrupt_before_human_approval_survives_restart(
     state2 = compiled2.get_state(config2)
 
     # AC3: Verify state.next and values match
-    assert state2.next == ("human_approval",), f"After restart, expected next=('human_approval',), got {state2.next}"
+    assert state2.next == ("human_approval",), (
+        f"After restart, expected next=('human_approval',), got {state2.next}"
+    )
 
     # Compare state values field by field
     state2_values = dict(state2.values)
     del state2_values["next"]
 
     for key in state1_values:
-        assert (
-            state2_values.get(key) == state1_values[key]
-        ), f"State field {key} differs: {state2_values.get(key)} != {state1_values[key]}"
+        assert state2_values.get(key) == state1_values[key], (
+            f"State field {key} differs: {state2_values.get(key)} != {state1_values[key]}"
+        )
 
     conn2.close()
 

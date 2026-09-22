@@ -96,9 +96,9 @@ def test_human_edit_is_re_checked_before_send(
     final_state1 = compiled1.invoke(None, config1)
 
     # Should route to human_review, not send
-    assert (
-        final_state1.get("routing_reason") == "rule_block"
-    ), f"Expected rule_block, got {final_state1.get('routing_reason')}"
+    assert final_state1.get("routing_reason") == "rule_block", (
+        f"Expected rule_block, got {final_state1.get('routing_reason')}"
+    )
     assert len(calls1) == 0, f"Expected no sends on blocked edit, got {len(calls1)} calls"
 
     conn1.close()
@@ -144,9 +144,9 @@ def test_human_edit_is_re_checked_before_send(
     final_state2 = compiled2.invoke(None, config2)
 
     # Should reach send
-    assert (
-        final_state2.get("next") is None or "send" not in final_state2.get("next", ())
-    ), "Should have completed send"
+    assert final_state2.get("next") is None or "send" not in final_state2.get("next", ()), (
+        "Should have completed send"
+    )
     assert len(calls2) == 1, f"Expected exactly 1 send call, got {len(calls2)}"
 
     conn2.close()

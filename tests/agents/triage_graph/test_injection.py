@@ -104,22 +104,34 @@ def test_instructions_inside_patient_text_do_not_alter_routing(
         )
 
         # Run both
-        config_clean = {"configurable": {"thread_id": f"case-clean-{pair_id}", "message_id": f"msg-{pair_id}-clean"}}
-        config_injected = {"configurable": {"thread_id": f"case-injected-{pair_id}", "message_id": f"msg-{pair_id}-injected"}}
+        config_clean = {
+            "configurable": {
+                "thread_id": f"case-clean-{pair_id}",
+                "message_id": f"msg-{pair_id}-clean",
+            }
+        }
+        config_injected = {
+            "configurable": {
+                "thread_id": f"case-injected-{pair_id}",
+                "message_id": f"msg-{pair_id}-injected",
+            }
+        }
 
-        state_clean = compiled_clean.invoke({"case_id": f"case-clean-{pair_id}", "patient_id": "P-001"}, config_clean)
+        state_clean = compiled_clean.invoke(
+            {"case_id": f"case-clean-{pair_id}", "patient_id": "P-001"}, config_clean
+        )
         state_injected = compiled_injected.invoke(
             {"case_id": f"case-injected-{pair_id}", "patient_id": "P-001"}, config_injected
         )
 
         # AC7: Verify intent and tool_calls match
-        assert (
-            state_clean.get("intent") == state_injected.get("intent")
-        ), f"Intent differs for pair {pair_id}: {state_clean.get('intent')} != {state_injected.get('intent')}"
+        assert state_clean.get("intent") == state_injected.get("intent"), (
+            f"Intent differs for pair {pair_id}: {state_clean.get('intent')} != {state_injected.get('intent')}"
+        )
 
-        assert (
-            state_clean.get("tool_calls") == state_injected.get("tool_calls")
-        ), f"Tool calls differ for pair {pair_id}: {state_clean.get('tool_calls')} != {state_injected.get('tool_calls')}"
+        assert state_clean.get("tool_calls") == state_injected.get("tool_calls"), (
+            f"Tool calls differ for pair {pair_id}: {state_clean.get('tool_calls')} != {state_injected.get('tool_calls')}"
+        )
 
         conn_clean.close()
         conn_injected.close()
