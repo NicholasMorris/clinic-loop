@@ -8,6 +8,27 @@ from clinicloop.compliance.escalation.result import EscalationClear, EscalationR
 T = TypeVar("T")
 
 
+def require_clear(thread: list[dict[str, str]], clear: Optional[EscalationClear]) -> None:
+    """Validate that an escalation clear token matches the thread.
+
+    Args:
+        thread: The message thread.
+        clear: Optional EscalationClear token from detector.
+
+    Raises:
+        EscalationRequired: If clear is None or does not match thread.
+    """
+    if clear is None:
+        raise EscalationRequired("Escalation check required; no clear token provided")
+
+    # Validate token matches thread
+    current_hash = thread_sha256(thread)
+    if clear.text_sha256 != current_hash:
+        raise EscalationRequired(
+            f"Clear token mismatch: token is for {clear.text_sha256}, thread is {current_hash}"
+        )
+
+
 def draft(
     thread: list[dict[str, str]],
     clear: Optional[EscalationClear],
@@ -29,15 +50,6 @@ def draft(
     Raises:
         EscalationRequired: If clear is None or does not match thread.
     """
-    if clear is None:
-        raise EscalationRequired("Escalation check required; no clear token provided")
-
-    # Validate token matches thread
-    current_hash = thread_sha256(thread)
-    if clear.text_sha256 != current_hash:
-        raise EscalationRequired(
-            f"Clear token mismatch: token is for {clear.text_sha256}, thread is {current_hash}"
-        )
-
+    require_clear(thread, clear)
     # Token is valid; proceed with drafting
     return drafter(thread)
