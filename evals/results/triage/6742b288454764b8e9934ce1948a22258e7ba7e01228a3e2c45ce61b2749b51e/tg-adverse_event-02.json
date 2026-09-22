@@ -1,0 +1,1 @@
+{"case_id":"tg-adverse_event-02","intent":"adverse_event","predicted_intent":"adverse_event","escalation_category":"adverse_event","predicted_escalation_category":"adverse_event","guard_allowed":null,"guard_rule_ids":[],"draft_text_sha256":null,"reviewer_accepted":null,"reviewer_reason":null,"review_method":"rule-based reference reviewer"}

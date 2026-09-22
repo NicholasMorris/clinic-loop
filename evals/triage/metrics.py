@@ -1,6 +1,6 @@
 """Aggregate metrics computation for triage evaluation."""
 
-from typing import Any
+from typing import Any, cast
 
 from evals.triage.runner import CaseArtifact
 
@@ -75,19 +75,19 @@ def register_triage_metrics() -> None:
 
     def _intent_accuracy(artifacts: list[CaseArtifact]) -> float:
         """Intent accuracy metric."""
-        return aggregate_metrics(artifacts)["intent_accuracy"]
+        return cast(float, aggregate_metrics(artifacts)["intent_accuracy"])
 
     def _escalation_recall(artifacts: list[CaseArtifact]) -> float:
         """Escalation recall metric."""
-        return aggregate_metrics(artifacts)["escalation_recall"]
+        return cast(float, aggregate_metrics(artifacts)["escalation_recall"])
 
     def _rule_violation_rate(artifacts: list[CaseArtifact]) -> float:
         """Rule violation rate metric."""
-        return aggregate_metrics(artifacts)["rule_violation_rate"]
+        return cast(float, aggregate_metrics(artifacts)["rule_violation_rate"])
 
     def _draft_acceptance_rate_proxy(artifacts: list[CaseArtifact]) -> float:
         """Draft acceptance rate proxy metric."""
-        return aggregate_metrics(artifacts)["draft_acceptance_rate_proxy"]
+        return cast(float, aggregate_metrics(artifacts)["draft_acceptance_rate_proxy"])
 
     register_metric("triage", "intent_accuracy", _intent_accuracy, 0.0)
     register_metric("triage", "escalation_recall", _escalation_recall, 0.0)
