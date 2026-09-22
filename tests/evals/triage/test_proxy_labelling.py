@@ -6,7 +6,7 @@ from evals.triage.metrics import aggregate_metrics
 from evals.triage.runner import run_all
 
 
-def test_draft_acceptance_is_labelled_a_proxy():
+def test_draft_acceptance_is_labelled_a_proxy() -> None:
     """AC4: Metric is draft_acceptance_rate_proxy; no draft_acceptance_rate key exists."""
     cases = load_golden_cases()
     elements = load_intent_elements()

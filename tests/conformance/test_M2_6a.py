@@ -5,7 +5,7 @@ from evals.triage.golden.loader import load_golden_cases, load_intent_elements
 from evals.triage.metrics import register_triage_metrics
 
 
-def test_e1_metrics_registration():
+def test_e1_metrics_registration() -> None:
     """E1: Triage metrics are registered and can be retrieved."""
     from clinicloop.evals.core.registry import get_metric
 
@@ -24,7 +24,7 @@ def test_e1_metrics_registration():
     assert draft_accept is not None, "draft_acceptance_rate_proxy metric not registered"
 
 
-def test_c1_escalating_case_produces_artifact():
+def test_c1_escalating_case_produces_artifact() -> None:
     """C1: Escalating case produces artifact with escalation_category and no draft hash."""
     cases = load_golden_cases()
     elements = load_intent_elements()
@@ -53,21 +53,21 @@ def test_c1_escalating_case_produces_artifact():
     )
 
 
-def test_x4_golden_set_and_docs_exist():
+def test_x4_golden_set_and_docs_exist() -> None:
     """X4: Golden set exists with floor of 5 per intent/category; docs exist."""
     from pathlib import Path
 
     cases = load_golden_cases()
 
     # Check counts
-    intent_counts = {}
+    intent_counts: dict[str, int] = {}
     for case in cases:
         intent_counts[case.intent] = intent_counts.get(case.intent, 0) + 1
 
     for intent, count in intent_counts.items():
         assert count >= 5, f"Intent {intent} has only {count} cases, need >= 5"
 
-    escalation_counts = {}
+    escalation_counts: dict[str, int] = {}
     for case in cases:
         escalation_counts[case.escalation_category] = (
             escalation_counts.get(case.escalation_category, 0) + 1

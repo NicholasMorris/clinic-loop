@@ -8,7 +8,7 @@ from evals.triage.metrics import aggregate_metrics
 from evals.triage.runner import load_artifacts, run_all, write_artifacts
 
 
-def test_aggregate_equals_recomputation_from_per_case_artifacts(tmp_path: Path):
+def test_aggregate_equals_recomputation_from_per_case_artifacts(tmp_path: Path) -> None:
     """AC2: Artifacts written to disk can be recomputed to equal the aggregate reported."""
     cases = load_golden_cases()
     elements = load_intent_elements()

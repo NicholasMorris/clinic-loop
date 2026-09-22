@@ -12,7 +12,7 @@ from evals.triage.reference_reviewer import review
 
 
 @pytest.fixture
-def reviewer_cases():
+def reviewer_cases() -> list:  # type: ignore[type-arg]
     """Load reviewer fixture cases from JSONL."""
     fixture_path = Path(__file__).parent / "fixtures" / "reviewer_cases.jsonl"
     cases = []
@@ -24,12 +24,14 @@ def reviewer_cases():
 
 
 @pytest.fixture
-def ruleset():
+def ruleset():  # type: ignore[no-untyped-def]
     """Load AU ruleset."""
     return load_ruleset("au")
 
 
-def test_reviewer_verdicts_match_labels_and_name_the_failing_rule(reviewer_cases, ruleset):
+def test_reviewer_verdicts_match_labels_and_name_the_failing_rule(  # type: ignore[no-untyped-def]
+    reviewer_cases, ruleset
+) -> None:
     """AC3: Reviewer returns correct verdict and names the failing rule."""
     elements = load_intent_elements()
 
@@ -65,9 +67,9 @@ def test_reviewer_verdicts_match_labels_and_name_the_failing_rule(reviewer_cases
         )
 
 
-def test_reviewer_with_missing_elements_raises_configuration_error(
+def test_reviewer_with_missing_elements_raises_configuration_error(  # type: ignore[no-untyped-def]
     reviewer_cases, ruleset, tmp_path
-):
+) -> None:
     """AC3: Reviewer raises ConfigurationError when elements cannot be loaded."""
     from unittest.mock import patch
 

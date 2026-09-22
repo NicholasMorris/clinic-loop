@@ -5,7 +5,7 @@ from clinicloop.evals.guard.baseline import append_only_diff
 from evals.triage.golden.loader import load_golden_cases, manifest_of
 
 
-def test_append_only_labels_in_enum_and_per_label_floor():
+def test_append_only_labels_in_enum_and_per_label_floor() -> None:
     """AC1: Golden set is append-only; labels are in enums; per-label floor is 5."""
     cases = load_golden_cases()
 
@@ -56,7 +56,7 @@ def test_append_only_labels_in_enum_and_per_label_floor():
         )
 
     # Check per-intent floor
-    intent_counts = {}
+    intent_counts: dict[str, int] = {}
     for case in cases:
         intent_counts[case.intent] = intent_counts.get(case.intent, 0) + 1
 
@@ -65,7 +65,7 @@ def test_append_only_labels_in_enum_and_per_label_floor():
         assert count >= 5, f"Intent {intent} has only {count} cases, need >= 5"
 
     # Check per-escalation-category floor
-    escalation_counts = {}
+    escalation_counts: dict[str, int] = {}
     for case in cases:
         escalation_counts[case.escalation_category] = (
             escalation_counts.get(case.escalation_category, 0) + 1

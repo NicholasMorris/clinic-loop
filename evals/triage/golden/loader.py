@@ -115,9 +115,9 @@ def load_intent_elements(path: Optional[Path] = None) -> IntentElements:
         ConfigurationError: If file is absent or invalid.
     """
     try:
-        import tomllib  # type: ignore[import]
+        import tomllib
     except ImportError:
-        import tomli as tomllib  # type: ignore[import-not-found]
+        import tomli as tomllib  # type: ignore[no-redef,import-not-found]
 
     if path is None:
         path = Path(__file__).resolve().parent / "intent_elements.toml"

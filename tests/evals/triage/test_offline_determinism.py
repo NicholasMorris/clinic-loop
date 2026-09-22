@@ -14,7 +14,7 @@ from evals.triage.runner import load_artifacts, run_all, write_artifacts  # noqa
 
 
 @pytest.mark.usefixtures("disable_socket")
-def test_cassette_replay_is_offline_and_reproducible(tmp_path: Path):
+def test_cassette_replay_is_offline_and_reproducible(tmp_path: Path) -> None:
     """AC5: Two runs produce byte-identical artifacts (after dropping timings)."""
     cases = load_golden_cases()
     elements = load_intent_elements()
