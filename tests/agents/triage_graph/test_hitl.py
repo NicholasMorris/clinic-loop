@@ -12,17 +12,16 @@ zero OutboundPort.send calls recorded by the spy port.
 import sqlite3
 from datetime import datetime
 from pathlib import Path
-from tempfile import TemporaryDirectory
 
 import pytest
+from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
+from langgraph.checkpoint.sqlite import SqliteSaver
 
 from clinicloop.agents.triage.graph.builder import build_triage_graph
-from clinicloop.compliance.rulesets import load_ruleset
-from clinicloop.compliance.outbound.port import OutboundPort
-from clinicloop.hitl.decision import HumanDecision
-from langgraph.checkpoint.sqlite import SqliteSaver
-from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
 from clinicloop.agents.triage.models import FakeModelPort
+from clinicloop.compliance.outbound.port import OutboundPort
+from clinicloop.compliance.rulesets import load_ruleset
+from clinicloop.hitl.decision import HumanDecision
 
 
 @pytest.mark.filterwarnings("error::UserWarning")

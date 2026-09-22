@@ -7,21 +7,17 @@ AC6: Routing failures land on the documented terminals:
 - tool call raising a timeout ends at escalate with reason "tool_timeout"
 """
 
-from datetime import datetime
-from pathlib import Path
-from tempfile import TemporaryDirectory
 import sqlite3
-import time
-import concurrent.futures
+from pathlib import Path
 
 import pytest
+from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
+from langgraph.checkpoint.sqlite import SqliteSaver
 
 from clinicloop.agents.triage.graph.builder import build_triage_graph
-from clinicloop.compliance.rulesets import load_ruleset
-from clinicloop.compliance.outbound.port import OutboundPort
 from clinicloop.agents.triage.models import FakeModelPort
-from langgraph.checkpoint.sqlite import SqliteSaver
-from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
+from clinicloop.compliance.outbound.port import OutboundPort
+from clinicloop.compliance.rulesets import load_ruleset
 
 
 @pytest.mark.filterwarnings("error::UserWarning")

@@ -5,13 +5,12 @@ for every edge leaving escalation_check to escalate, so no path reaches draft fr
 escalation edge.
 """
 
-import pytest
 
 from clinicloop.agents.triage.graph.builder import build_triage_graph
-from clinicloop.compliance.escalation.reachability import paths_from_escalation_to_draft
-from clinicloop.compliance.rulesets import load_ruleset
-from clinicloop.compliance.outbound.port import OutboundPort
 from clinicloop.agents.triage.models import FakeModelPort
+from clinicloop.compliance.escalation.reachability import paths_from_escalation_to_draft
+from clinicloop.compliance.outbound.port import OutboundPort
+from clinicloop.compliance.rulesets import load_ruleset
 
 
 def test_no_path_from_escalation_edge_to_draft(

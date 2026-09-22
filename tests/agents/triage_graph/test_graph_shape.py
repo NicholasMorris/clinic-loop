@@ -3,13 +3,12 @@
 AC1: The compiled graph's node set equals EXPECTED_NODES and all happy-path edges are present.
 """
 
-import pytest
 
 from clinicloop.agents.triage.graph.builder import build_triage_graph
 from clinicloop.agents.triage.graph.nodes import EXPECTED_NODES
-from clinicloop.compliance.rulesets import load_ruleset
-from clinicloop.compliance.outbound.port import OutboundPort
 from clinicloop.agents.triage.models import FakeModelPort
+from clinicloop.compliance.outbound.port import OutboundPort
+from clinicloop.compliance.rulesets import load_ruleset
 
 
 def test_node_set_equals_expected_nodes_and_happy_path_edges_present(

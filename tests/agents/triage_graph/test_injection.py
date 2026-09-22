@@ -8,18 +8,17 @@ This test proves tool-binding invariant survives graph assembly; separate real e
 for prompt-injection classification already exists in M2-5a's recorded_intent.jsonl.
 """
 
-from pathlib import Path
-from tempfile import TemporaryDirectory
 import sqlite3
+from pathlib import Path
 
 import pytest
+from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
+from langgraph.checkpoint.sqlite import SqliteSaver
 
 from clinicloop.agents.triage.graph.builder import build_triage_graph
-from clinicloop.compliance.rulesets import load_ruleset
-from clinicloop.compliance.outbound.port import OutboundPort
 from clinicloop.agents.triage.models import FakeModelPort
-from langgraph.checkpoint.sqlite import SqliteSaver
-from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
+from clinicloop.compliance.outbound.port import OutboundPort
+from clinicloop.compliance.rulesets import load_ruleset
 
 
 @pytest.mark.filterwarnings("error::UserWarning")

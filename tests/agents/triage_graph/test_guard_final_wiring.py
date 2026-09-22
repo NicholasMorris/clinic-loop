@@ -6,20 +6,19 @@ rule id in the reason field and the spy OutboundPort records zero send calls; th
 with unedited allowed text ends at send with exactly one recorded call.
 """
 
+import sqlite3
 from datetime import datetime
 from pathlib import Path
-from tempfile import TemporaryDirectory
 
 import pytest
-
-import sqlite3
-from clinicloop.agents.triage.graph.builder import build_triage_graph
-from clinicloop.compliance.rulesets import load_ruleset
-from clinicloop.compliance.outbound.port import OutboundPort
-from clinicloop.hitl.decision import HumanDecision
-from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
+from langgraph.checkpoint.sqlite import SqliteSaver
+
+from clinicloop.agents.triage.graph.builder import build_triage_graph
 from clinicloop.agents.triage.models import FakeModelPort
+from clinicloop.compliance.outbound.port import OutboundPort
+from clinicloop.compliance.rulesets import load_ruleset
+from clinicloop.hitl.decision import HumanDecision
 
 
 @pytest.mark.filterwarnings("error::UserWarning")

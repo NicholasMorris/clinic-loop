@@ -16,22 +16,26 @@ from clinicloop.agents.triage.nodes.regulatory_guard import regulatory_guard
 from clinicloop.agents.triage.nodes.resolve import resolve
 from clinicloop.compliance.escalation.detector import detect
 
-EXPECTED_NODES = frozenset([
-    "ingest",
-    "classify_intent",
-    "escalation_check",
-    "resolve",
-    "draft",
-    "regulatory_guard",
-    "human_approval",
-    "guard_final",
-    "send",
-    "human_review",
-    "escalate",
-])
+EXPECTED_NODES = frozenset(
+    [
+        "ingest",
+        "classify_intent",
+        "escalation_check",
+        "resolve",
+        "draft",
+        "regulatory_guard",
+        "human_approval",
+        "guard_final",
+        "send",
+        "human_review",
+        "escalate",
+    ]
+)
 
 
-def make_ingest_node(message_source: Any, run_key: str) -> Callable[[dict[str, Any], dict[str, Any]], dict[str, Any]]:
+def make_ingest_node(
+    message_source: Any, run_key: str
+) -> Callable[[dict[str, Any], dict[str, Any]], dict[str, Any]]:
     """Create ingest node closure.
 
     Args:
@@ -41,6 +45,7 @@ def make_ingest_node(message_source: Any, run_key: str) -> Callable[[dict[str, A
     Returns:
         Function of (state, config) -> dict[str, Any].
     """
+
     def ingest_node(state: dict[str, Any], config: dict[str, Any]) -> dict[str, Any]:
         """Ingest node wrapper that fetches the raw message.
 
@@ -54,7 +59,9 @@ def make_ingest_node(message_source: Any, run_key: str) -> Callable[[dict[str, A
     return ingest_node
 
 
-def make_classify_intent_node(model: Any) -> Callable[[dict[str, Any], dict[str, Any]], dict[str, Any]]:
+def make_classify_intent_node(
+    model: Any,
+) -> Callable[[dict[str, Any], dict[str, Any]], dict[str, Any]]:
     """Create classify_intent node closure.
 
     Args:
@@ -63,6 +70,7 @@ def make_classify_intent_node(model: Any) -> Callable[[dict[str, Any], dict[str,
     Returns:
         Function of (state, config) -> dict[str, Any].
     """
+
     def classify_intent_node(state: dict[str, Any], config: dict[str, Any]) -> dict[str, Any]:
         """Classify intent node wrapper."""
         return classify_intent(state, model)
@@ -82,11 +90,14 @@ def make_escalation_check_node(
     Returns:
         Function of (state, config) -> dict[str, Any].
     """
+
     def escalation_check_node(state: dict[str, Any], config: dict[str, Any]) -> dict[str, Any]:
         """Escalation check node wrapper."""
         # Convert thread to dict format
         redacted_thread = state.get("redacted_thread", [])
-        thread_dicts = [{"role": turn.get("role"), "text": turn.get("text")} for turn in redacted_thread]
+        thread_dicts = [
+            {"role": turn.get("role"), "text": turn.get("text")} for turn in redacted_thread
+        ]
 
         # Run escalation detection
         result = detect(thread_dicts, ruleset, classifier=classifier)
@@ -99,7 +110,9 @@ def make_escalation_check_node(
     return escalation_check_node
 
 
-def make_resolve_node(model: Any, tools: Any, timeout_seconds: float = 5.0) -> Callable[[dict[str, Any], dict[str, Any]], dict[str, Any]]:
+def make_resolve_node(
+    model: Any, tools: Any, timeout_seconds: float = 5.0
+) -> Callable[[dict[str, Any], dict[str, Any]], dict[str, Any]]:
     """Create resolve node closure with timeout.
 
     Args:
@@ -110,6 +123,7 @@ def make_resolve_node(model: Any, tools: Any, timeout_seconds: float = 5.0) -> C
     Returns:
         Function of (state, config) -> dict[str, Any].
     """
+
     def resolve_node(state: dict[str, Any], config: dict[str, Any]) -> dict[str, Any]:
         """Resolve node wrapper with timeout."""
         try:
@@ -137,6 +151,7 @@ def make_draft_node(model: Any) -> Callable[[dict[str, Any], dict[str, Any]], di
     Returns:
         Function of (state, config) -> dict[str, Any].
     """
+
     def draft_node(state: dict[str, Any], config: dict[str, Any]) -> dict[str, Any]:
         """Draft node wrapper."""
         return draft(state, model)
@@ -144,7 +159,9 @@ def make_draft_node(model: Any) -> Callable[[dict[str, Any], dict[str, Any]], di
     return draft_node
 
 
-def make_regulatory_guard_node(ruleset: Any) -> Callable[[dict[str, Any], dict[str, Any]], dict[str, Any]]:
+def make_regulatory_guard_node(
+    ruleset: Any,
+) -> Callable[[dict[str, Any], dict[str, Any]], dict[str, Any]]:
     """Create regulatory_guard node closure.
 
     Args:
@@ -153,6 +170,7 @@ def make_regulatory_guard_node(ruleset: Any) -> Callable[[dict[str, Any], dict[s
     Returns:
         Function of (state, config) -> dict[str, Any].
     """
+
     def regulatory_guard_node(state: dict[str, Any], config: dict[str, Any]) -> dict[str, Any]:
         """Regulatory guard node wrapper."""
         return regulatory_guard(state, ruleset)
@@ -176,7 +194,9 @@ def human_approval_node(state: dict[str, Any], config: dict[str, Any]) -> dict[s
     return {}
 
 
-def make_guard_final_node(ruleset: Any) -> Callable[[dict[str, Any], dict[str, Any]], dict[str, Any]]:
+def make_guard_final_node(
+    ruleset: Any,
+) -> Callable[[dict[str, Any], dict[str, Any]], dict[str, Any]]:
     """Create guard_final node closure.
 
     Args:
@@ -185,6 +205,7 @@ def make_guard_final_node(ruleset: Any) -> Callable[[dict[str, Any], dict[str, A
     Returns:
         Function of (state, config) -> dict[str, Any].
     """
+
     def guard_final_node(state: dict[str, Any], config: dict[str, Any]) -> dict[str, Any]:
         """Guard final node wrapper."""
         return guard_final(state, ruleset)
@@ -192,7 +213,9 @@ def make_guard_final_node(ruleset: Any) -> Callable[[dict[str, Any], dict[str, A
     return guard_final_node
 
 
-def make_send_node(outbound_port: Any) -> Callable[[dict[str, Any], dict[str, Any]], dict[str, Any]]:
+def make_send_node(
+    outbound_port: Any,
+) -> Callable[[dict[str, Any], dict[str, Any]], dict[str, Any]]:
     """Create send node closure.
 
     Args:
@@ -201,6 +224,7 @@ def make_send_node(outbound_port: Any) -> Callable[[dict[str, Any], dict[str, An
     Returns:
         Function of (state, config) -> dict[str, Any].
     """
+
     def send_node(state: dict[str, Any], config: dict[str, Any]) -> dict[str, Any]:
         """Send node wrapper."""
         # Determine final text based on human decision

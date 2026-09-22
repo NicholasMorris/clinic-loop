@@ -1,17 +1,13 @@
 """Build the triage graph."""
 
 import sqlite3
-from pathlib import Path
 from typing import Any, Optional
 
-from langgraph.graph import StateGraph
-from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
+from langgraph.checkpoint.sqlite import SqliteSaver
+from langgraph.graph import StateGraph
 
-from clinicloop.hitl.checkpoint import checkpoint_root
-from clinicloop.agents.triage.graph.state import GraphState
 from clinicloop.agents.triage.graph.nodes import (
-    EXPECTED_NODES,
     escalate_node,
     human_approval_node,
     human_review_node,
@@ -24,6 +20,8 @@ from clinicloop.agents.triage.graph.nodes import (
     make_resolve_node,
     make_send_node,
 )
+from clinicloop.agents.triage.graph.state import GraphState
+from clinicloop.hitl.checkpoint import checkpoint_root
 
 
 def build_triage_graph(
