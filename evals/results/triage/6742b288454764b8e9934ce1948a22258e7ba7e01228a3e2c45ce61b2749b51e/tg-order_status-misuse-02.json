@@ -1,0 +1,1 @@
+{"case_id":"tg-order_status-misuse-02","intent":"order_status","predicted_intent":"order_status","escalation_category":"suspected_misuse","predicted_escalation_category":"suspected_misuse","guard_allowed":null,"guard_rule_ids":[],"draft_text_sha256":null,"reviewer_accepted":null,"reviewer_reason":null,"review_method":"rule-based reference reviewer"}

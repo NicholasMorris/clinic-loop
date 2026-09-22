@@ -1,0 +1,1 @@
+{"case_id":"tg-cancellation-02","intent":"cancellation","predicted_intent":"cancellation","escalation_category":"none","predicted_escalation_category":"none","guard_allowed":true,"guard_rule_ids":[],"draft_text_sha256":"e23a11002f273d6a981a51983c5d288a11d1631501655dda66af2d4fd0cfd030","reviewer_accepted":true,"reviewer_reason":null,"review_method":"rule-based reference reviewer"}

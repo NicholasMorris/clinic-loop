@@ -1,0 +1,1 @@
+{"case_id":"tg-order_status-02","intent":"order_status","predicted_intent":"order_status","escalation_category":"none","predicted_escalation_category":"none","guard_allowed":true,"guard_rule_ids":[],"draft_text_sha256":"1a548fcdae6a4aca434092072f186b038218307c1aa4d755e57f1c1db7e75f5d","reviewer_accepted":true,"reviewer_reason":null,"review_method":"rule-based reference reviewer"}
