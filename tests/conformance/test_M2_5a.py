@@ -8,20 +8,17 @@ Requirements verified: C1, R1, R6, L7.
 """
 
 import json
-from typing import cast
 
 import pytest
 
 from clinicloop.agents.triage.intents import Intent
-from clinicloop.agents.triage.language import detect_language
-from clinicloop.agents.triage.models import CassetteModelPort, FakeModelPort
+from clinicloop.agents.triage.models import FakeModelPort
 from clinicloop.agents.triage.nodes.classify_intent import classify_intent
 from clinicloop.agents.triage.nodes.draft import draft
 from clinicloop.agents.triage.nodes.guard_final import guard_final
 from clinicloop.agents.triage.nodes.ingest import ingest
 from clinicloop.agents.triage.nodes.resolve import resolve
 from clinicloop.agents.triage.state import TriageState, Turn
-from clinicloop.compliance.escalation.detector import detect
 from clinicloop.compliance.guard.core import check
 
 
@@ -72,9 +69,7 @@ def test_triage_classifies_intent_from_patient_message() -> None:
     }
 
     # Use FakeModelPort with scripted response
-    model = FakeModelPort(["{"
-        '"intent": "order_status"'
-        "}"])
+    model = FakeModelPort(['{"intent": "order_status"}'])
 
     result = classify_intent(state, model)
 
@@ -96,9 +91,7 @@ def test_triage_resolve_binds_tool_args_from_state_not_model() -> None:
     class FakeToolRunner(ToolRunner):
         """Test tool runner that returns fixed summary."""
 
-        def run(
-            self, name: str, patient_id: str, order_id: str | None
-        ) -> str:
+        def run(self, name: str, patient_id: str, order_id: str | None) -> str:
             """Return a fixed summary."""
             if name == "get_order_status":
                 return f"Order status query for {patient_id}, {order_id}"
@@ -111,9 +104,9 @@ def test_triage_resolve_binds_tool_args_from_state_not_model() -> None:
     }
 
     # Model suggests different IDs (should be ignored)
-    model = FakeModelPort([
-        '{"tool": "get_order_status", "args": {"patient_id": "P-WRONG", "order_id": "O-WRONG"}}'
-    ])
+    model = FakeModelPort(
+        ['{"tool": "get_order_status", "args": {"patient_id": "P-WRONG", "order_id": "O-WRONG"}}']
+    )
 
     tools = FakeToolRunner()
     result = resolve(state, model, tools)
@@ -137,8 +130,6 @@ def test_triage_draft_requires_escalation_clearance() -> None:
     - Raises EscalationRequired if token is missing or mismatches
     - Returns routing_reason='language' for non-English input (no draft)
     """
-    from clinicloop.compliance.escalation.result import EscalationClearForbidden
-
     redacted_msg = "I have a question about my order"
     state = {
         "redacted_thread": [Turn(role="patient", text=redacted_msg)],
@@ -316,16 +307,20 @@ def test_triage_nodes_work_with_different_models_toml_rows() -> None:
     }
 
     # Model 1: FakeModelPort with specific responses
-    model_1 = FakeModelPort([
-        '{"intent": "order_status"}',  # for classify_intent
-        '{"tool": "get_order_status", "args": {}}',  # for resolve
-    ])
+    model_1 = FakeModelPort(
+        [
+            '{"intent": "order_status"}',  # for classify_intent
+            '{"tool": "get_order_status", "args": {}}',  # for resolve
+        ]
+    )
 
     # Model 2: Same responses but different instance
-    model_2 = FakeModelPort([
-        '{"intent": "order_status"}',
-        '{"tool": "get_order_status", "args": {}}',
-    ])
+    model_2 = FakeModelPort(
+        [
+            '{"intent": "order_status"}',
+            '{"tool": "get_order_status", "args": {}}',
+        ]
+    )
 
     # Both models should produce same intent
     result_1 = classify_intent(state, model_1)
