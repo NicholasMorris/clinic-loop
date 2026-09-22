@@ -84,29 +84,36 @@ The gate is run by `checks/eval_triage.sh`, invoked by `make ci`:
 ```bash
 $ make ci
 ...
-Checking triage evaluation gate...
-Running recompute step...
-Running gate against committed artifacts...
+Recomputing triage evaluation...
+Recomputed 56 case artifacts -> evals/local/triage/6742b288.../
+Running triage evaluation gate...
 ✓ All checks passed
 ```
 
 The script:
 
 1. Checks if `origin/main` exists (skips if first baseline)
-2. Runs recompute (uses committed artifacts for local CI)
-3. Runs gate against the committed artifact directory
+2. Runs recompute: re-runs the real triage graph over the frozen golden set and
+   cassette, writing fresh candidate artifacts to `evals/local/triage/<tree-hash>/`
+3. Runs the gate against that fresh output (never the committed
+   `evals/results/triage/` snapshot, which is last known-good history, not the
+   thing under test)
 4. Exits 0 if all checks pass, 1 if any fails
 
 ## Recompute Step
 
-For local evaluation (`make eval-local`), the recompute step:
+Both locally and in CI, `evals/triage/recompute.py` does the same real work:
 
 1. Loads the golden case set and cassette
 2. Runs all cases through the triage graph
-3. Writes per-case artifacts to `evals/results/triage/<tree-hash>/`
-4. Computes and reports metrics
+3. Writes per-case artifacts to `evals/local/triage/<tree-hash>/`
+4. `evals/triage/gate.py`'s own entry point calls this itself before gating,
+   so `checks/eval_triage.sh`'s two steps both exercise the real pipeline
 
-For CI (`make ci`), recompute is a no-op; CI uses the already-committed artifacts at `evals/results/triage/6742b288...`.
+This is deliberate: gating against a stub or against the already-committed
+`evals/results/triage/6742b288.../` directory would never catch a regression
+introduced by a change to the golden set, the cassette, the runner, or the
+reference reviewer, since nothing would actually re-run.
 
 ## Threshold Changes
 

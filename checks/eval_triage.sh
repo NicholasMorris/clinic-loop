@@ -9,7 +9,8 @@ if ! git rev-parse --verify origin/main > /dev/null 2>&1; then
     exit 0
 fi
 
-# Run recompute step (uses committed artifacts for CI)
+# Recompute: re-run the real pipeline over the frozen golden set + cassette,
+# writing fresh candidate artifacts under evals/local/triage/<tree-hash>/.
 echo "Recomputing triage evaluation..."
 if ! uv run --locked --extra dev --extra docs --extra sim --extra api --extra agents \
     python -m evals.triage.recompute; then
@@ -17,9 +18,9 @@ if ! uv run --locked --extra dev --extra docs --extra sim --extra api --extra ag
     exit 1
 fi
 
-# Run gate against committed artifacts
+# Gate: run_gate also re-runs the recompute step itself and gates on its
+# FRESH output, never the committed evals/results/ snapshot.
 echo "Running triage evaluation gate..."
-ARTIFACTS_DIR="evals/results/triage/6742b288454764b8e9934ce1948a22258e7ba7e01228a3e2c45ce61b2749b51e"
 if ! uv run --locked --extra dev --extra docs --extra sim --extra api --extra agents \
     python -m evals.triage.gate; then
     echo "✗ Gate check failed"

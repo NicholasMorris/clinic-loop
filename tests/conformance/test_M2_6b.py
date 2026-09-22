@@ -31,7 +31,7 @@ def test_thresholds_file_exists_and_has_all_keys() -> None:
 def test_hard_gate_constants_match_implementation() -> None:
     """R2: gate.py's hard-gate constants (1.0, 0.0) match the values enforced."""
     # Create synthetic all-correct fixtures (must include escalating cases)
-    fixtures_data = [
+    fixtures_data: list[dict[str, object]] = [
         {
             "case_id": "test-01",
             "intent": "general",

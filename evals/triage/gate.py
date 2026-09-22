@@ -253,9 +253,13 @@ def run_gate(
 if __name__ == "__main__":
     import sys
 
-    # When run as a module, operate on the real committed artifacts
-    tree_hash = "6742b288454764b8e9934ce1948a22258e7ba7e01228a3e2c45ce61b2749b51e"
-    artifacts_dir = Path(f"evals/results/triage/{tree_hash}")
+    from evals.triage.recompute import recompute_local
+
+    # Re-run the real pipeline first (checks/eval_triage.sh's recompute step),
+    # then gate against the FRESH output -- never the frozen evals/results/
+    # snapshot, since that would never catch a regression introduced by a
+    # change to the golden set, cassette, runner or reference reviewer.
+    artifacts_dir = recompute_local()
     result = run_gate(artifacts_dir)
 
     for failure in result.failures:
