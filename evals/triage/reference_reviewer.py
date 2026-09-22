@@ -52,4 +52,31 @@ def review(
     if elements is None:
         elements = load_intent_elements()
 
-    raise NotImplementedError("review not yet implemented")
+    # Rule 1: Guard verdict must allow
+    if not guard_verdict.allowed:
+        return ReviewResult(accepted=False, reason="guard_blocked")
+
+    # Rule 2: Draft must not match dose or product patterns
+    if ruleset is not None:
+        from clinicloop.compliance.guard.matches import find_matches
+
+        matches = find_matches(draft, ruleset)
+        # Check for AU-G-PRODUCT or AU-G-DOSE matches
+        for match in matches:
+            if match.rule_id in ("AU-G-PRODUCT", "AU-G-DOSE"):
+                return ReviewResult(accepted=False, reason="dose_or_product_match")
+
+    # Rule 3: Draft must contain a required element for the intent
+    if intent in elements.elements:
+        required_elements = elements.elements[intent]
+        draft_lower = draft.lower()
+        has_element = any(elem.lower() in draft_lower for elem in required_elements)
+        if not has_element:
+            return ReviewResult(accepted=False, reason="missing_required_element")
+
+    # Rule 4: Draft must not exceed max_draft_chars
+    if len(draft) > elements.max_draft_chars:
+        return ReviewResult(accepted=False, reason="over_max_chars")
+
+    # All checks passed
+    return ReviewResult(accepted=True, reason=None)

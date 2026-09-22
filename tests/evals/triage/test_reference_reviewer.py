@@ -67,23 +67,26 @@ def test_reviewer_verdicts_match_labels_and_name_the_failing_rule(reviewer_cases
 
 def test_reviewer_with_missing_elements_raises_configuration_error(reviewer_cases, ruleset, tmp_path):
     """AC3: Reviewer raises ConfigurationError when elements cannot be loaded."""
-    # Temporarily move the intent_elements.toml to trigger ConfigurationError
+    from unittest.mock import patch
+
     missing_case = reviewer_cases[0]
 
-    # Create a fake path that doesn't exist
-    nonexistent_path = tmp_path / "nonexistent.toml"
-
+    # Mock load_intent_elements to raise ConfigurationError
     with pytest.raises(ConfigurationError):
-        review(
-            draft=missing_case["draft"],
-            guard_verdict=GuardVerdict(
-                allowed=True,
-                rule_ids=(),
-                jurisdiction="au",
-                ruleset_version=ruleset.version,
-                text_sha256="dummy_hash",
-            ),
-            intent=missing_case["intent"],
-            elements=None,  # Force reload
-            ruleset=ruleset,
-        )
+        with patch(
+            "evals.triage.reference_reviewer.load_intent_elements",
+            side_effect=ConfigurationError("intent_elements.toml not found"),
+        ):
+            review(
+                draft=missing_case["draft"],
+                guard_verdict=GuardVerdict(
+                    allowed=True,
+                    rule_ids=(),
+                    jurisdiction="au",
+                    ruleset_version=ruleset.version,
+                    text_sha256="dummy_hash",
+                ),
+                intent=missing_case["intent"],
+                elements=None,  # Force reload which will hit the mocked function
+                ruleset=ruleset,
+            )
