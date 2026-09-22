@@ -136,18 +136,32 @@ class TriageAgentPort:
             # Step e: check if paused at human_approval
             next_ = compiled.get_state(cfg).next
             if next_ == ("human_approval",):
-                # Auto-approve for simulation purposes
-                compiled.update_state(
-                    cfg,
-                    {
-                        "human_decision": HumanDecision(
-                            action="approve",
-                            decided_by="triage-agent-port",
-                            decided_at=datetime.now(timezone.utc),
-                        )
-                    },
-                )
-                final_state = compiled.invoke(None, cfg)
+                # Auto-approve for simulation purposes. A failure here (e.g. a
+                # genuine ValueError from guard_final on resume) is a real bug
+                # in the agent, not a normal routing outcome, so it gets its
+                # own exception type rather than the generic wrap below.
+                try:
+                    compiled.update_state(
+                        cfg,
+                        {
+                            "human_decision": HumanDecision(
+                                action="approve",
+                                decided_by="triage-agent-port",
+                                decided_at=datetime.now(timezone.utc),
+                            )
+                        },
+                    )
+                    final_state = compiled.invoke(None, cfg)
+                except Exception as resume_exc:
+                    wall_clock_seconds = time.perf_counter() - start
+                    service_record = ServiceRecord(
+                        case_id=case_id,
+                        outcome="human_review",
+                        wall_clock_seconds=wall_clock_seconds,
+                        simulated_minutes=None,
+                    )
+                    self.service_log.append(service_record)
+                    raise HumanApprovalPending(case_id) from resume_exc
             else:
                 # Already terminated without pausing
                 final_state = compiled.get_state(cfg).values

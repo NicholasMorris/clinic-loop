@@ -26,7 +26,15 @@ class InstantToolRunner:
 
 
 def test_capacity_returns_to_baseline_on_toggle_off() -> None:
-    """AC6: available_capacity is toggle-invariant; capacity never changes, only demand does."""
+    """AC6: staffing is toggle-invariant; available capacity is higher with the agent on.
+
+    Per docs/agents/triage-agent-port.md, STAFFING (the server count) never
+    changes based on the toggle -- it is read from config, independent of
+    agent_toggles/ports. What DOES change is available capacity
+    (staffing - busy), because agent-resolved items never occupy a human
+    server slot. So the real, testable claim is: at any timestamp, available
+    capacity with the agent ON is never less than with it OFF.
+    """
     seed = 555
     population = 60
 
@@ -104,22 +112,27 @@ def test_capacity_returns_to_baseline_on_toggle_off() -> None:
     common_times = set(cap_on_dict.keys()) & set(cap_off_dict.keys())
     assert len(common_times) > 0, "Should have common observation timestamps"
 
-    # The capacity is available = staffing - busy.
-    # Staffing never changes based on toggle state.
-    # However, busy MAY change because agent-resolved items don't occupy server slots.
-    # The key observation is that capacity is reported consistently via the on_tick callback,
-    # which proves the callback mechanism works for both toggle states.
+    sorted_times = sorted(common_times)
+    on_capacities = [cap_on_dict[t] for t in sorted_times]
+    off_capacities = [cap_off_dict[t] for t in sorted_times]
 
-    on_capacities = [cap_on_dict[t] for t in sorted(common_times)]
-    off_capacities = [cap_off_dict[t] for t in sorted(common_times)]
-
-    # Verify that both toggle states produce valid capacity observations
     assert len(on_capacities) > 0, "Should observe capacity for toggle ON"
     assert len(off_capacities) > 0, "Should observe capacity for toggle OFF"
-
-    # Verify capacities are non-negative (sanity check)
     assert all(c >= 0 for c in on_capacities), "Capacity should never be negative"
     assert all(c >= 0 for c in off_capacities), "Capacity should never be negative"
+
+    # The real claim: capacity ON is never lower than capacity OFF at any
+    # shared timestamp, and is strictly higher at at least one timestamp
+    # (proving the agent actually freed up human server capacity, not just
+    # that the callback fired).
+    assert all(on >= off for on, off in zip(on_capacities, off_capacities)), (
+        f"Capacity with agent ON should never be lower than OFF: "
+        f"on={on_capacities}, off={off_capacities}"
+    )
+    assert any(on > off for on, off in zip(on_capacities, off_capacities)), (
+        "Capacity with agent ON should be strictly higher at some point, "
+        "proving the agent actually freed human server capacity"
+    )
 
     print(f"Capacity ON series: {on_capacities[:5]}...")
     print(f"Capacity OFF series: {off_capacities[:5]}...")

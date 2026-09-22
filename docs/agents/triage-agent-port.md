@@ -113,13 +113,23 @@ The compiled graph receives the same input state and model outputs, so it produc
 
 ## Proof of Concept
 
-See `tests/agents/triage_port/` for six test modules covering:
+See `tests/agents/triage_port/` for seven test modules covering:
 
 - **test_protocol.py** (AC1): Runtime `isinstance` check and basic serve() execution
 - **test_toggle_effect.py** (AC2): Support inbox depth and wait rise when agent is off
 - **test_determinism.py** (AC3): Identical run hashes for same seed and toggle state
-- **test_human_gate_handoff.py** (AC4): Port failures correctly fall back to human queue
-- **test_no_direct_send.py** (AC5): All text sends originate from the graph's send node via OutboundPort
-- **test_capacity_restore.py** (AC6): Available capacity is observed correctly for both toggle states
+- **test_human_gate_handoff.py** (AC4): A hand-crafted distress message, injected into an
+  otherwise normally generated world (the synthetic corpus never produces one on its own --
+  verified empirically at 0/500 messages across 5 seeds), is confirmed to reach a real
+  `CaseEscalated` `PortFailure`, finish via a human server, and never lose its record.
+- **test_no_direct_send.py** (AC5): A forced escalation and a forced guard-blocked draft both
+  send zero texts; a real run confirms the happy path's sends match the port's own "sent"
+  service records one-to-one.
+- **test_capacity_restore.py** (AC6): Available capacity with the agent ON is never lower,
+  and is strictly higher at some point, than with it OFF -- proving the agent actually frees
+  human server capacity rather than merely exercising the `on_tick` callback.
+- **test_resume_failure.py**: A genuine failure while resuming after auto-approval (simulated
+  via a checkpointer whose `put()` starts raising) surfaces as `HumanApprovalPending`, not a
+  generic wrapped `RuntimeError`, and never sends a draft.
 
 See `tests/conformance/test_M2_7.py` for checklist conformance tests (C0, C1, X3).
