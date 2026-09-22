@@ -8,84 +8,133 @@ AC6: Routing failures land on the documented terminals:
 """
 
 import sqlite3
+import time
 from pathlib import Path
+from typing import Any
 
-import pytest
 from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
 from langgraph.checkpoint.sqlite import SqliteSaver
 
-from clinicloop.agents.triage.graph.builder import build_triage_graph
+from clinicloop.agents.triage.graph.builder import (
+    TRIAGE_ALLOWED_MSGPACK_MODULES,
+    build_triage_graph,
+)
+from clinicloop.agents.triage.graph.message_source import InMemoryMessageSource
 from clinicloop.agents.triage.models import FakeModelPort
 from clinicloop.compliance.outbound.port import OutboundPort
 from clinicloop.compliance.rulesets import load_ruleset
 
+SERDE = JsonPlusSerializer(allowed_msgpack_modules=TRIAGE_ALLOWED_MSGPACK_MODULES)
 
-@pytest.mark.filterwarnings("error::UserWarning")
-def test_language_block_escalation_and_timeout_reach_their_terminals(
-    fake_model: FakeModelPort,
-    message_source,
-    fake_tools,
-    tmp_path: Path,
-) -> None:
-    """AC6: Verify all routing failures reach correct terminals.
 
-    Test cases:
-    1. Non-English message -> human_review with reason "language"
-    2. Blocked draft -> human_review with reason "rule_block"
-    3. Escalated case -> escalate with escalation_category
-    4. Tool timeout -> escalate with reason "tool_timeout"
-    """
+class InstantToolRunner:
+    """Returns a fixed summary immediately."""
+
+    def run(self, name: str, patient_id: str, order_id: str | None) -> str:
+        """Return a fixed summary."""
+        return f"Order {order_id} is in transit"
+
+
+class SlowToolRunner:
+    """Sleeps past any reasonable timeout before returning."""
+
+    def run(self, name: str, patient_id: str, order_id: str | None) -> str:
+        """Sleep past any reasonable timeout, then return."""
+        time.sleep(2.0)
+        return "should never be reached"
+
+
+def _build(
+    tmp_path: Path, name: str, model: FakeModelPort, tools: Any, message_source: Any, spy: list[str]
+) -> tuple[Any, Any]:
+    conn = sqlite3.connect(str(tmp_path / f"{name}.sqlite"), check_same_thread=False)
     ruleset = load_ruleset("au")
-
-    serde = JsonPlusSerializer(
-        allowed_msgpack_modules=[
-            ("clinicloop.agents.triage.state", "Turn"),
-            ("clinicloop.agents.triage.state", "ToolCall"),
-            ("clinicloop.compliance.guard.verdict", "GuardVerdict"),
-            ("clinicloop.compliance.escalation.result", "EscalationClear"),
-        ]
-    )
-
-    # Test 1: Non-English fixture
-    # (We'd load this from a fixture in a real test, but for now we skip)
-
-    # Test 2: Blocked draft
-    db_path2 = tmp_path / "blocked_draft.sqlite"
-    conn2 = sqlite3.connect(str(db_path2), check_same_thread=False)
-    calls2: list[str] = []
-    transport2 = calls2.append
-
-    checkpointer2 = SqliteSaver(conn2, serde=serde)
-
-    compiled2 = build_triage_graph(
-        model=fake_model,
-        tools=fake_tools,  # type: ignore[arg-type]
+    compiled = build_triage_graph(
+        model=model,
+        tools=tools,
         ruleset=ruleset,
         message_source=message_source,
-        outbound_port=OutboundPort(transport2, ruleset),
+        outbound_port=OutboundPort(spy.append, ruleset),
         run_key="test",
-        checkpointer=checkpointer2,
+        timeout_seconds=0.2,
+        checkpointer=SqliteSaver(conn, serde=SERDE),
     )
+    return compiled, conn
 
-    # Use FakeModelPort scripted to return a dosing question (blocked)
-    fake_model.responses["default"] = '{"intent": "order_status"}'
 
-    config2 = {"configurable": {"thread_id": "case-blocked", "message_id": "msg-001"}}
-    input_state2 = {"case_id": "case-blocked", "patient_id": "P-001"}
+def test_non_english_message_ends_at_human_review_with_language_reason(tmp_path: Path) -> None:
+    """AC6 case 1: a non-English inbound message routes to human_review, reason 'language'."""
+    message_source = InMemoryMessageSource({"msg-es": "¿Cuándo llega mi pedido?"})
+    model = FakeModelPort(['{"intent": "general_question"}'])
+    spy: list[str] = []
+    compiled, conn = _build(tmp_path, "language", model, InstantToolRunner(), message_source, spy)
 
-    final_state2 = compiled2.invoke(input_state2, config2)
+    config = {"configurable": {"thread_id": "case-lang", "message_id": "msg-es"}}
+    final = compiled.invoke({"case_id": "case-lang", "patient_id": "P-001"}, config)
 
-    # Should route to human_review with rule_block
-    assert final_state2.get("routing_reason") == "rule_block" or "human_review" in str(
-        final_state2.get("next", "")
-    ), f"Expected rule_block routing, got {final_state2.get('routing_reason')}"
+    assert final.get("routing_reason") == "language"
+    assert final.get("draft") is None
+    assert compiled.get_state(config).next == ()
+    assert len(spy) == 0
+    conn.close()
 
-    assert len(calls2) == 0, f"Expected no sends on blocked draft, got {len(calls2)}"
 
-    conn2.close()
+def test_blocked_draft_ends_at_human_review_with_rule_block_reason(tmp_path: Path) -> None:
+    """AC6 case 2: a draft the guard blocks routes to human_review, reason 'rule_block'."""
+    message_source = InMemoryMessageSource({"msg-block": "Can you help with my prescriptions?"})
+    model = FakeModelPort(
+        [
+            '{"intent": "general_question"}',
+            "Take veltrazine tonight.",
+        ]
+    )
+    spy: list[str] = []
+    compiled, conn = _build(tmp_path, "blocked", model, InstantToolRunner(), message_source, spy)
 
-    # Test 3: Escalation case (would need a classifier or escalation keyword)
-    # Skipped for now as it requires a classifier
+    config = {"configurable": {"thread_id": "case-block", "message_id": "msg-block"}}
+    final = compiled.invoke({"case_id": "case-block", "patient_id": "P-001"}, config)
 
-    # Test 4: Tool timeout (would need a slow tool)
-    # Skipped for now as timeout testing is complex in unit tests
+    assert final.get("routing_reason") == "rule_block"
+    assert "AU-G-PRODUCT" in final.get("routing_rule_ids", ())
+    assert compiled.get_state(config).next == ()
+    assert len(spy) == 0
+    conn.close()
+
+
+def test_escalating_message_ends_at_escalate_with_category(tmp_path: Path) -> None:
+    """AC6 case 3: a distress message routes to escalate, carrying its category."""
+    message_source = InMemoryMessageSource(
+        {"msg-distress": "I want to end my life, I can't go on."}
+    )
+    model = FakeModelPort(['{"intent": "mental_health_distress"}'])
+    spy: list[str] = []
+    compiled, conn = _build(tmp_path, "escalate", model, InstantToolRunner(), message_source, spy)
+
+    config = {"configurable": {"thread_id": "case-escalate", "message_id": "msg-distress"}}
+    final = compiled.invoke({"case_id": "case-escalate", "patient_id": "P-001"}, config)
+
+    assert final.get("escalation_category") == "distress"
+    assert compiled.get_state(config).next == ()
+    assert len(spy) == 0
+    conn.close()
+
+
+def test_tool_timeout_ends_at_escalate_with_tool_timeout_reason(tmp_path: Path) -> None:
+    """AC6 case 4: a hanging tool call routes to escalate, reason 'tool_timeout'."""
+    message_source = InMemoryMessageSource({"msg-slow": "Where is my order?"})
+    model = FakeModelPort(
+        [
+            '{"intent": "order_status"}',
+            '{"tool": "get_order_status", "args": {}}',
+        ]
+    )
+    spy: list[str] = []
+    compiled, conn = _build(tmp_path, "timeout", model, SlowToolRunner(), message_source, spy)
+
+    config = {"configurable": {"thread_id": "case-timeout", "message_id": "msg-slow"}}
+    final = compiled.invoke({"case_id": "case-timeout", "patient_id": "P-001"}, config)
+
+    assert final.get("routing_reason") == "tool_timeout"
+    assert compiled.get_state(config).next == ()
+    assert len(spy) == 0
+    conn.close()

@@ -3,17 +3,27 @@
 AC1: The compiled graph's node set equals EXPECTED_NODES and all happy-path edges are present.
 """
 
-from clinicloop.agents.triage.graph.builder import build_triage_graph
+import sqlite3
+
+from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
+from langgraph.checkpoint.sqlite import SqliteSaver
+
+from clinicloop.agents.triage.graph.builder import (
+    TRIAGE_ALLOWED_MSGPACK_MODULES,
+    build_triage_graph,
+)
+from clinicloop.agents.triage.graph.message_source import InMemoryMessageSource
 from clinicloop.agents.triage.graph.nodes import EXPECTED_NODES
 from clinicloop.agents.triage.models import FakeModelPort
+from clinicloop.agents.triage.tools import ToolRunner
 from clinicloop.compliance.outbound.port import OutboundPort
 from clinicloop.compliance.rulesets import load_ruleset
 
 
 def test_node_set_equals_expected_nodes_and_happy_path_edges_present(
     fake_model: FakeModelPort,
-    message_source,
-    fake_tools,
+    message_source: InMemoryMessageSource,
+    fake_tools: ToolRunner,
 ) -> None:
     """Verify graph has exactly EXPECTED_NODES and all happy-path edges.
 
@@ -35,14 +45,22 @@ def test_node_set_equals_expected_nodes_and_happy_path_edges_present(
 
     ruleset = load_ruleset("au")
 
+    # An explicit in-memory checkpointer: without one, build_triage_graph writes to
+    # the real, shared var/checkpoints/triage.sqlite (gitignored, so invisible to the
+    # gate, but it pollutes state across test runs since every test here uses the
+    # same run_key/thread_id).
+    conn = sqlite3.connect(":memory:", check_same_thread=False)
+    serde = JsonPlusSerializer(allowed_msgpack_modules=TRIAGE_ALLOWED_MSGPACK_MODULES)
+
     # Build graph
     compiled = build_triage_graph(
         model=fake_model,
-        tools=fake_tools,  # type: ignore[arg-type]
+        tools=fake_tools,
         ruleset=ruleset,
         message_source=message_source,
         outbound_port=OutboundPort(transport, ruleset),
         run_key="test",
+        checkpointer=SqliteSaver(conn, serde=serde),
     )
 
     # Get graph structure

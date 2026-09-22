@@ -9,80 +9,71 @@ with unedited allowed text ends at send with exactly one recorded call.
 import sqlite3
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
-import pytest
 from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
 from langgraph.checkpoint.sqlite import SqliteSaver
 
-from clinicloop.agents.triage.graph.builder import build_triage_graph
+from clinicloop.agents.triage.graph.builder import (
+    TRIAGE_ALLOWED_MSGPACK_MODULES,
+    build_triage_graph,
+)
+from clinicloop.agents.triage.graph.message_source import InMemoryMessageSource
 from clinicloop.agents.triage.models import FakeModelPort
 from clinicloop.compliance.outbound.port import OutboundPort
 from clinicloop.compliance.rulesets import load_ruleset
+from clinicloop.evals.guard.corpus_loader import load_cases
 from clinicloop.hitl.decision import HumanDecision
 
+SERDE = JsonPlusSerializer(allowed_msgpack_modules=TRIAGE_ALLOWED_MSGPACK_MODULES)
 
-@pytest.mark.filterwarnings("error::UserWarning")
-def test_human_edit_is_re_checked_before_send(
-    fake_model: FakeModelPort,
-    message_source,
-    fake_tools,
-    tmp_path: Path,
-) -> None:
-    """AC5: Verify edited text is re-checked and blocked if it violates rules.
 
-    This test uses a real expected-block case from the guard corpus:
-    "I have a dosing question" - should be blocked by the dosing rule.
+class InstantToolRunner:
+    """Returns a fixed summary immediately (unused for general_question, kept for parity)."""
 
-    Test plan:
-    1. Run to human_approval with an allowed draft
-    2. Update with edit that introduces a blocked phrase
-    3. Verify it routes to human_review with the rule id
-    4. Verify spy port recorded zero sends
-    5. Rerun to human_approval with same case
-    6. Update with the original allowed draft text
-    7. Verify it reaches send with exactly one spy call
-    """
-    case_id = "test-case-block"
+    def run(self, name: str, patient_id: str, order_id: str | None) -> str:
+        """Return a fixed summary."""
+        return f"Order {order_id} is in transit"
 
+
+def _real_block_case_text() -> tuple[str, str]:
+    """A real expected-block corpus case's assistant text and its rule id."""
+    case = next(c for c in load_cases() if c.expected_verdict == "block")
+    text = next(m.text for m in case.thread if m.role == "assistant")
+    assert case.expected_rule_id is not None
+    return text, case.expected_rule_id
+
+
+def _build(tmp_path: Path, name: str, allowed_draft: str, spy: list[str]) -> tuple[Any, Any]:
+    """Build a graph up to human_approval for a general_question case (no tool call needed)."""
+    message_source = InMemoryMessageSource({"msg-001": "Do you accept PayPal?"})
+    model = FakeModelPort(['{"intent": "general_question"}', allowed_draft])
     ruleset = load_ruleset("au")
-
-    serde = JsonPlusSerializer(
-        allowed_msgpack_modules=[
-            ("clinicloop.agents.triage.state", "Turn"),
-            ("clinicloop.agents.triage.state", "ToolCall"),
-            ("clinicloop.compliance.guard.verdict", "GuardVerdict"),
-            ("clinicloop.compliance.escalation.result", "EscalationClear"),
-        ]
-    )
-
-    # Part 1: Edit to blocked text
-    db_path1 = tmp_path / "part1.sqlite"
-    conn1 = sqlite3.connect(str(db_path1), check_same_thread=False)
-    calls1: list[str] = []
-    transport1 = calls1.append
-
-    checkpointer1 = SqliteSaver(conn1, serde=serde)
-
-    compiled1 = build_triage_graph(
-        model=fake_model,
-        tools=fake_tools,  # type: ignore[arg-type]
+    conn = sqlite3.connect(str(tmp_path / f"{name}.sqlite"), check_same_thread=False)
+    compiled = build_triage_graph(
+        model=model,
+        tools=InstantToolRunner(),
         ruleset=ruleset,
         message_source=message_source,
-        outbound_port=OutboundPort(transport1, ruleset),
+        outbound_port=OutboundPort(spy.append, ruleset),
         run_key="test",
-        checkpointer=checkpointer1,
+        checkpointer=SqliteSaver(conn, serde=SERDE),
     )
+    return compiled, conn
 
-    config1 = {"configurable": {"thread_id": case_id + "-1", "message_id": "msg-001"}}
-    input_state1 = {"case_id": case_id + "-1", "patient_id": "P-001"}
 
-    compiled1.invoke(input_state1, config1)
+def test_human_edit_to_a_blocked_case_routes_to_human_review(tmp_path: Path) -> None:
+    """AC5 (block path): an approved-looking draft edited to a real block case is caught."""
+    blocked_text, expected_rule_id = _real_block_case_text()
+    spy: list[str] = []
+    compiled, conn = _build(tmp_path, "block", "Your order is being processed.", spy)
 
-    # Edit with a blocked phrase
-    blocked_text = "I have a dosing question about medications"
+    config = {"configurable": {"thread_id": "case-block", "message_id": "msg-001"}}
+    compiled.invoke({"case_id": "case-block", "patient_id": "P-001"}, config)
+    assert compiled.get_state(config).next == ("human_approval",)
 
-    compiled1.update_state(
-        config1,
+    compiled.update_state(
+        config,
         {
             "human_decision": HumanDecision(
                 action="edit",
@@ -92,61 +83,40 @@ def test_human_edit_is_re_checked_before_send(
             )
         },
     )
+    final = compiled.invoke(None, config)
 
-    final_state1 = compiled1.invoke(None, config1)
+    assert final.get("routing_reason") == "rule_block"
+    assert expected_rule_id in final.get("routing_rule_ids", ())
+    assert compiled.get_state(config).next == ()
+    assert len(spy) == 0
+    conn.close()
 
-    # Should route to human_review, not send
-    assert final_state1.get("routing_reason") == "rule_block", (
-        f"Expected rule_block, got {final_state1.get('routing_reason')}"
-    )
-    assert len(calls1) == 0, f"Expected no sends on blocked edit, got {len(calls1)} calls"
 
-    conn1.close()
+def test_human_approval_of_the_original_draft_reaches_send(tmp_path: Path) -> None:
+    """AC5 (allow path): approving the original, unedited allowed draft reaches send once."""
+    allowed_text = "Yes, we accept PayPal for all orders."
+    spy: list[str] = []
+    compiled, conn = _build(tmp_path, "allow", allowed_text, spy)
 
-    # Part 2: Edit to allowed text
-    db_path2 = tmp_path / "part2.sqlite"
-    conn2 = sqlite3.connect(str(db_path2), check_same_thread=False)
-    calls2: list[str] = []
-    transport2 = calls2.append
+    config = {"configurable": {"thread_id": "case-allow", "message_id": "msg-001"}}
+    compiled.invoke({"case_id": "case-allow", "patient_id": "P-001"}, config)
+    assert compiled.get_state(config).next == ("human_approval",)
 
-    checkpointer2 = SqliteSaver(conn2, serde=serde)
-
-    compiled2 = build_triage_graph(
-        model=fake_model,
-        tools=fake_tools,  # type: ignore[arg-type]
-        ruleset=ruleset,
-        message_source=message_source,
-        outbound_port=OutboundPort(transport2, ruleset),
-        run_key="test",
-        checkpointer=checkpointer2,
-    )
-
-    config2 = {"configurable": {"thread_id": case_id + "-2", "message_id": "msg-001"}}
-    input_state2 = {"case_id": case_id + "-2", "patient_id": "P-001"}
-
-    compiled2.invoke(input_state2, config2)
-
-    # Edit with allowed text
-    allowed_text = "Your order is being processed"
-
-    compiled2.update_state(
-        config2,
+    compiled.update_state(
+        config,
         {
             "human_decision": HumanDecision(
-                action="edit",
+                action="approve",
                 decided_by="clinician-001",
                 decided_at=datetime.now(),
-                edited_text=allowed_text,
             )
         },
     )
+    final = compiled.invoke(None, config)
 
-    final_state2 = compiled2.invoke(None, config2)
-
-    # Should reach send
-    assert final_state2.get("next") is None or "send" not in final_state2.get("next", ()), (
-        "Should have completed send"
-    )
-    assert len(calls2) == 1, f"Expected exactly 1 send call, got {len(calls2)}"
-
-    conn2.close()
+    assert final.get("routing_reason") is None
+    assert final["guard_verdicts"][-1].allowed is True
+    assert compiled.get_state(config).next == ()
+    assert len(spy) == 1
+    assert spy[0] == allowed_text
+    conn.close()

@@ -4,134 +4,91 @@ AC7: For each pair in the injection-pair fixture (a clean thread and the same th
 with an instruction injected into the patient message body), the injected member produces
 the same intent and the same tool-call list as its clean counterpart.
 
-This test proves tool-binding invariant survives graph assembly; separate real evidence
-for prompt-injection classification already exists in M2-5a's recorded_intent.jsonl.
+This test proves the tool-binding invariant survives graph assembly, using scripted
+FakeModelPort responses for determinism. Separate real evidence that the live model
+correctly classifies prompt-injection attempts already exists in M2-5a's
+recorded_intent.jsonl (5 real prompt_injection-labelled recordings); it is not
+re-recorded here.
 """
 
 import sqlite3
 from pathlib import Path
+from typing import Any
 
-import pytest
 from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
 from langgraph.checkpoint.sqlite import SqliteSaver
 
-from clinicloop.agents.triage.graph.builder import build_triage_graph
+from clinicloop.agents.triage.graph.builder import (
+    TRIAGE_ALLOWED_MSGPACK_MODULES,
+    build_triage_graph,
+)
+from clinicloop.agents.triage.graph.message_source import InMemoryMessageSource
 from clinicloop.agents.triage.models import FakeModelPort
 from clinicloop.compliance.outbound.port import OutboundPort
 from clinicloop.compliance.rulesets import load_ruleset
 
+SERDE = JsonPlusSerializer(allowed_msgpack_modules=TRIAGE_ALLOWED_MSGPACK_MODULES)
+TOOL_INTENTS = {"order_status", "cancellation", "delivery_problem"}
 
-@pytest.mark.filterwarnings("error::UserWarning")
-def test_instructions_inside_patient_text_do_not_alter_routing(
-    fake_model: FakeModelPort,
-    message_source,
-    fake_tools,
-    injection_pairs,
-    tmp_path: Path,
-) -> None:
-    """AC7: Verify injected instructions don't change intent or tool routing.
 
-    For each pair in injection_pairs, this test:
-    1. Runs the clean thread through ingest + classify_intent + escalation_check + resolve
-    2. Runs the injected thread through the same nodes
-    3. Verifies both produce identical intent and tool_calls
+class InstantToolRunner:
+    """Returns a fixed summary immediately, independent of the (ignored) model args."""
 
-    This uses scripted FakeModelPort to ensure deterministic responses.
-    """
-    if not injection_pairs:
-        pytest.skip("No injection pairs available")
+    def run(self, name: str, patient_id: str, order_id: str | None) -> str:
+        """Return a fixed summary, independent of the (ignored) model args."""
+        return f"Order {order_id} status for {patient_id}"
 
+
+def _run(
+    tmp_path: Path, name: str, text: str, expected_intent: str, expected_tool: str | None
+) -> dict[str, Any]:
+    """Run one thread through the graph up to the human_approval pause."""
+    responses = [f'{{"intent": "{expected_intent}"}}']
+    if expected_intent in TOOL_INTENTS:
+        responses.append(f'{{"tool": "{expected_tool}", "args": {{}}}}')
+    # The graph runs the whole happy path up to the human_approval pause, so draft's
+    # model call needs a scripted response too even though this test only checks
+    # intent and tool_calls, both of which are already fixed before draft runs.
+    responses.append("Thanks, I can help with that.")
+    model = FakeModelPort(responses)
+
+    message_source = InMemoryMessageSource({"msg": text})
     ruleset = load_ruleset("au")
-
-    serde = JsonPlusSerializer(
-        allowed_msgpack_modules=[
-            ("clinicloop.agents.triage.state", "Turn"),
-            ("clinicloop.agents.triage.state", "ToolCall"),
-            ("clinicloop.compliance.guard.verdict", "GuardVerdict"),
-            ("clinicloop.compliance.escalation.result", "EscalationClear"),
-        ]
+    conn = sqlite3.connect(str(tmp_path / f"{name}.sqlite"), check_same_thread=False)
+    compiled = build_triage_graph(
+        model=model,
+        tools=InstantToolRunner(),
+        ruleset=ruleset,
+        message_source=message_source,
+        outbound_port=OutboundPort(lambda text: None, ruleset),
+        run_key="test",
+        checkpointer=SqliteSaver(conn, serde=SERDE),
     )
+    config = {"configurable": {"thread_id": name, "message_id": "msg"}}
+    final = compiled.invoke({"case_id": name, "patient_id": "P-001"}, config)
+    conn.close()
+    return dict(final)
 
-    for pair in injection_pairs[:1]:  # Test at least the first pair
-        pair_id = pair.get("pair_id", "unknown")
-        clean_text = pair.get("clean", "")
-        injected_text = pair.get("injected", "")
-        expected_intent = pair.get("expected_intent")
+
+def test_instructions_inside_patient_text_do_not_alter_routing(
+    injection_pairs: list[dict[str, str]], tmp_path: Path
+) -> None:
+    """AC7: every pair's injected thread yields the same intent and tool calls as clean."""
+    assert injection_pairs, "injection_pairs fixture must not be empty"
+
+    for pair in injection_pairs:
+        pair_id = pair["pair_id"]
+        expected_intent = pair["expected_intent"]
         expected_tool = pair.get("expected_tool")
 
-        # Create message sources for clean and injected
-        clean_msgs = {f"msg-{pair_id}-clean": clean_text}
-        injected_msgs = {f"msg-{pair_id}-injected": injected_text}
-
-        # Build graphs for both
-        db_clean = tmp_path / f"clean-{pair_id}.sqlite"
-        db_injected = tmp_path / f"injected-{pair_id}.sqlite"
-
-        conn_clean = sqlite3.connect(str(db_clean), check_same_thread=False)
-        conn_injected = sqlite3.connect(str(db_injected), check_same_thread=False)
-
-        checkpointer_clean = SqliteSaver(conn_clean, serde=serde)
-        checkpointer_injected = SqliteSaver(conn_injected, serde=serde)
-
-        from clinicloop.agents.triage.graph.message_source import InMemoryMessageSource
-
-        source_clean = InMemoryMessageSource(clean_msgs)
-        source_injected = InMemoryMessageSource(injected_msgs)
-
-        # Script the model to return expected intent
-        intent_json = f'{{"intent": "{expected_intent}"}}'
-        tool_json = f'{{"tool": "{expected_tool}"}}'
-        fake_model.responses["default"] = intent_json
-
-        compiled_clean = build_triage_graph(
-            model=fake_model,
-            tools=fake_tools,  # type: ignore[arg-type]
-            ruleset=ruleset,
-            message_source=source_clean,
-            outbound_port=OutboundPort(lambda x: None, ruleset),
-            run_key="test",
-            checkpointer=checkpointer_clean,
+        clean = _run(tmp_path, f"clean-{pair_id}", pair["clean"], expected_intent, expected_tool)
+        injected = _run(
+            tmp_path, f"injected-{pair_id}", pair["injected"], expected_intent, expected_tool
         )
 
-        compiled_injected = build_triage_graph(
-            model=fake_model,
-            tools=fake_tools,  # type: ignore[arg-type]
-            ruleset=ruleset,
-            message_source=source_injected,
-            outbound_port=OutboundPort(lambda x: None, ruleset),
-            run_key="test",
-            checkpointer=checkpointer_injected,
-        )
-
-        # Run both
-        config_clean = {
-            "configurable": {
-                "thread_id": f"case-clean-{pair_id}",
-                "message_id": f"msg-{pair_id}-clean",
-            }
-        }
-        config_injected = {
-            "configurable": {
-                "thread_id": f"case-injected-{pair_id}",
-                "message_id": f"msg-{pair_id}-injected",
-            }
-        }
-
-        state_clean = compiled_clean.invoke(
-            {"case_id": f"case-clean-{pair_id}", "patient_id": "P-001"}, config_clean
-        )
-        state_injected = compiled_injected.invoke(
-            {"case_id": f"case-injected-{pair_id}", "patient_id": "P-001"}, config_injected
-        )
-
-        # AC7: Verify intent and tool_calls match
-        assert state_clean.get("intent") == state_injected.get("intent"), (
-            f"Intent differs for pair {pair_id}: {state_clean.get('intent')} != {state_injected.get('intent')}"
-        )
-
-        assert state_clean.get("tool_calls") == state_injected.get("tool_calls"), (
-            f"Tool calls differ for pair {pair_id}: {state_clean.get('tool_calls')} != {state_injected.get('tool_calls')}"
-        )
-
-        conn_clean.close()
-        conn_injected.close()
+        assert clean["intent"] == injected["intent"] == expected_intent, pair_id
+        clean_calls = [(c.name, c.args) for c in clean.get("tool_calls", [])]
+        injected_calls = [(c.name, c.args) for c in injected.get("tool_calls", [])]
+        assert clean_calls == injected_calls, pair_id
+        if expected_intent in TOOL_INTENTS:
+            assert clean_calls == [(expected_tool, {"patient_id": "P-001", "order_id": ""})]

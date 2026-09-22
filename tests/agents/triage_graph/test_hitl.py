@@ -12,179 +12,115 @@ zero OutboundPort.send calls recorded by the spy port.
 import sqlite3
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 import pytest
 from langgraph.checkpoint.serde.jsonplus import JsonPlusSerializer
 from langgraph.checkpoint.sqlite import SqliteSaver
 
-from clinicloop.agents.triage.graph.builder import build_triage_graph
+from clinicloop.agents.triage.graph.builder import (
+    TRIAGE_ALLOWED_MSGPACK_MODULES,
+    build_triage_graph,
+)
+from clinicloop.agents.triage.graph.message_source import InMemoryMessageSource
 from clinicloop.agents.triage.models import FakeModelPort
 from clinicloop.compliance.outbound.port import OutboundPort
 from clinicloop.compliance.rulesets import load_ruleset
 from clinicloop.hitl.decision import HumanDecision
 
+SERDE = JsonPlusSerializer(allowed_msgpack_modules=TRIAGE_ALLOWED_MSGPACK_MODULES)
 
-@pytest.mark.filterwarnings("error::UserWarning")
-def test_interrupt_before_human_approval_survives_restart(
-    fake_model: FakeModelPort,
-    message_source,
-    fake_tools,
-    tmp_path: Path,
-) -> None:
-    """AC3: Verify checkpoint survives restart with state.next == ('human_approval',).
 
-    This test:
-    1. Runs a case to the human_approval pause with a REAL sqlite file
-    2. Closes the Python objects
-    3. Builds a fresh compiled graph object from a NEW sqlite3.connect() to that file
-    4. Verifies state.next == ('human_approval',) and state values match
-    """
-    # Use real sqlite file in tmp_path
+class InstantToolRunner:
+    """Returns a fixed summary immediately (unused for general_question, kept for parity)."""
+
+    def run(self, name: str, patient_id: str, order_id: str | None) -> str:
+        """Return a fixed summary."""
+        return f"Order {order_id} is in transit"
+
+
+def _build(db_path: Path, spy: list[str]) -> tuple[Any, Any]:
+    """Build a graph for a general_question case (no tool call needed before the pause)."""
+    message_source = InMemoryMessageSource({"msg-001": "Do you accept PayPal?"})
+    model = FakeModelPort(
+        ['{"intent": "general_question"}', "Yes, we accept PayPal for all orders."]
+    )
+    ruleset = load_ruleset("au")
+    conn = sqlite3.connect(str(db_path), check_same_thread=False)
+    compiled = build_triage_graph(
+        model=model,
+        tools=InstantToolRunner(),
+        ruleset=ruleset,
+        message_source=message_source,
+        outbound_port=OutboundPort(spy.append, ruleset),
+        run_key="test",
+        checkpointer=SqliteSaver(conn, serde=SERDE),
+    )
+    return compiled, conn
+
+
+def test_interrupt_before_human_approval_survives_restart(tmp_path: Path) -> None:
+    """AC3: the checkpoint survives a real close-and-reopen of the sqlite connection."""
     db_path = tmp_path / "triage.sqlite"
     case_id = "test-case-001"
-
-    ruleset = load_ruleset("au")
-
-    # Phase 1: Initial run to human_approval pause
-    conn1 = sqlite3.connect(str(db_path), check_same_thread=False)
-    calls1: list[str] = []
-    transport1 = calls1.append
-
-    # Create serde with registered types (fact c from task description)
-    serde = JsonPlusSerializer(
-        allowed_msgpack_modules=[
-            ("clinicloop.agents.triage.state", "Turn"),
-            ("clinicloop.agents.triage.state", "ToolCall"),
-            ("clinicloop.compliance.guard.verdict", "GuardVerdict"),
-            ("clinicloop.compliance.escalation.result", "EscalationClear"),
-        ]
-    )
-
-    checkpointer1 = SqliteSaver(conn1, serde=serde)
-
-    compiled1 = build_triage_graph(
-        model=fake_model,
-        tools=fake_tools,  # type: ignore[arg-type]
-        ruleset=ruleset,
-        message_source=message_source,
-        outbound_port=OutboundPort(transport1, ruleset),
-        run_key="test",
-        checkpointer=checkpointer1,
-    )
-
-    # Invoke the graph - should pause at human_approval
     config = {"configurable": {"thread_id": case_id, "message_id": "msg-001"}}
-    input_state = {"case_id": case_id, "patient_id": "P-001"}
 
-    state1 = compiled1.invoke(input_state, config)
+    # Phase 1: run to the human_approval pause with a REAL file (not :memory:).
+    spy1: list[str] = []
+    compiled1, conn1 = _build(db_path, spy1)
+    compiled1.invoke({"case_id": case_id, "patient_id": "P-001"}, config)
 
-    # Verify it paused at human_approval
-    assert state1.get("next") == ("human_approval",), (
-        f"Expected pause at human_approval, got {state1.get('next')}"
-    )
+    snap1 = compiled1.get_state(config)
+    assert snap1.next == ("human_approval",)
+    values1 = dict(snap1.values)
 
-    # Save the state values for comparison
-    state1_values = dict(state1)
-    del state1_values["next"]  # Remove next as it's the indicator of pause
-
-    # Phase 2: Close and create fresh objects
+    # Phase 2: discard every Python object, close the connection.
     conn1.close()
     del compiled1
-    del checkpointer1
 
-    # Phase 3: Fresh connection and graph object
+    # Phase 3: a completely fresh connection and compiled graph object.
     conn2 = sqlite3.connect(str(db_path), check_same_thread=False)
-    checkpointer2 = SqliteSaver(conn2, serde=serde)
-
-    calls2: list[str] = []
-    transport2 = calls2.append
-
+    ruleset = load_ruleset("au")
+    spy2: list[str] = []
     compiled2 = build_triage_graph(
-        model=fake_model,
-        tools=fake_tools,  # type: ignore[arg-type]
+        model=FakeModelPort([]),
+        tools=InstantToolRunner(),
         ruleset=ruleset,
-        message_source=message_source,
-        outbound_port=OutboundPort(transport2, ruleset),
+        message_source=InMemoryMessageSource({}),
+        outbound_port=OutboundPort(spy2.append, ruleset),
         run_key="test",
-        checkpointer=checkpointer2,
+        checkpointer=SqliteSaver(conn2, serde=SERDE),
     )
 
-    # Get the checkpoint state
-    config2 = {"configurable": {"thread_id": case_id}}
-    state2 = compiled2.get_state(config2)
+    snap2 = compiled2.get_state({"configurable": {"thread_id": case_id}})
+    assert snap2.next == ("human_approval",)
 
-    # AC3: Verify state.next and values match
-    assert state2.next == ("human_approval",), (
-        f"After restart, expected next=('human_approval',), got {state2.next}"
-    )
-
-    # Compare state values field by field
-    state2_values = dict(state2.values)
-    del state2_values["next"]
-
-    for key in state1_values:
-        assert state2_values.get(key) == state1_values[key], (
-            f"State field {key} differs: {state2_values.get(key)} != {state1_values[key]}"
-        )
+    assert set(snap2.values.keys()) == set(values1.keys())
+    for key, value in values1.items():
+        assert snap2.values[key] == value, f"field {key!r} differs after restart"
 
     conn2.close()
 
 
-@pytest.mark.filterwarnings("error::UserWarning")
-def test_send_requires_human_decision_and_reject_sends_nothing(
-    fake_model: FakeModelPort,
-    message_source,
-    fake_tools,
-    tmp_path: Path,
-) -> None:
-    """AC4: Verify send is unreachable without HumanDecision and reject sends nothing.
-
-    This test:
-    1. Runs a case to human_approval pause
-    2. Verifies state.next stays at human_approval if resumed without update_state
-    3. Updates with a reject decision and verifies spy port records zero sends
-    """
+def test_send_requires_human_decision_and_reject_sends_nothing(tmp_path: Path) -> None:
+    """AC4: no HumanDecision means no progress past the gate; reject sends nothing."""
     db_path = tmp_path / "triage.sqlite"
     case_id = "test-case-002"
-
-    ruleset = load_ruleset("au")
-
-    # Phase 1: Run to human_approval
-    conn = sqlite3.connect(str(db_path), check_same_thread=False)
-    calls: list[str] = []
-    transport = calls.append
-
-    serde = JsonPlusSerializer(
-        allowed_msgpack_modules=[
-            ("clinicloop.agents.triage.state", "Turn"),
-            ("clinicloop.agents.triage.state", "ToolCall"),
-            ("clinicloop.compliance.guard.verdict", "GuardVerdict"),
-            ("clinicloop.compliance.escalation.result", "EscalationClear"),
-        ]
-    )
-
-    checkpointer = SqliteSaver(conn, serde=serde)
-
-    compiled = build_triage_graph(
-        model=fake_model,
-        tools=fake_tools,  # type: ignore[arg-type]
-        ruleset=ruleset,
-        message_source=message_source,
-        outbound_port=OutboundPort(transport, ruleset),
-        run_key="test",
-        checkpointer=checkpointer,
-    )
-
     config = {"configurable": {"thread_id": case_id, "message_id": "msg-001"}}
-    input_state = {"case_id": case_id, "patient_id": "P-001"}
 
-    compiled.invoke(input_state, config)
+    spy: list[str] = []
+    compiled, conn = _build(db_path, spy)
+    compiled.invoke({"case_id": case_id, "patient_id": "P-001"}, config)
 
-    # Phase 2: AC4a - Resume without update_state
-    state_mid = compiled.get_state(config)
-    assert state_mid.next == ("human_approval",), "Should still be at human_approval"
+    # AC4a: resuming with no update_state does not advance past the gate. The
+    # routing function raises rather than silently defaulting to an outcome, and
+    # the checkpoint left after the failed step still shows the pending pause.
+    with pytest.raises(ValueError, match="human_decision"):
+        compiled.invoke(None, config)
+    assert compiled.get_state(config).next == ("human_approval",)
+    assert len(spy) == 0
 
-    # Phase 3: AC4b - Update with reject decision and resume
+    # AC4b: a reject decision terminates the run with zero sends.
     compiled.update_state(
         config,
         {
@@ -195,13 +131,9 @@ def test_send_requires_human_decision_and_reject_sends_nothing(
             )
         },
     )
+    final = compiled.invoke(None, config)
 
-    # Resume the graph
-    final_state = compiled.invoke(None, config)
-
-    # Should have ended at human_review (reject route)
-    assert final_state.get("next") != ("human_approval",), "Should have moved past human_approval"
-    # Verify spy port recorded zero sends
-    assert len(calls) == 0, f"Expected no sends on reject, but got {len(calls)} calls"
-
+    assert compiled.get_state(config).next == ()
+    assert final.get("routing_reason") is None
+    assert len(spy) == 0
     conn.close()

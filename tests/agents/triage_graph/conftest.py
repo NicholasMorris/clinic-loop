@@ -11,7 +11,7 @@ from clinicloop.agents.triage.tools import ToolRunner
 
 
 @pytest.fixture
-def injection_pairs() -> list[dict]:
+def injection_pairs() -> list[dict[str, str]]:
     """Load injection pairs from fixture file.
 
     Returns:
@@ -67,4 +67,4 @@ def fake_tools() -> ToolRunner:
                 return f"Patient {patient_id} has 2 orders"
             return ""
 
-    return MockToolRunner()  # type: ignore[return-value]
+    return MockToolRunner()

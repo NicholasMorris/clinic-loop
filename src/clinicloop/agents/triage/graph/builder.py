@@ -1,5 +1,6 @@
 """Build the triage graph."""
 
+import os
 import sqlite3
 from typing import Any, Optional
 
@@ -22,6 +23,22 @@ from clinicloop.agents.triage.graph.nodes import (
 )
 from clinicloop.agents.triage.graph.state import GraphState
 from clinicloop.hitl.checkpoint import checkpoint_root
+
+# Every pydantic model / dataclass that can appear inside GraphState and must
+# therefore round-trip through a checkpoint. A type missing from this list still
+# writes to the checkpoint (with a deprecation warning), but reads back as a plain
+# dict instead of the real object, breaking any node or router that expects one
+# (this broke HumanDecision-based routing after a resume before it was added here).
+# Tests that build their own SqliteSaver/JsonPlusSerializer must reuse this constant
+# rather than hand-rolling their own list, so it can't drift out of sync again.
+TRIAGE_ALLOWED_MSGPACK_MODULES = [
+    ("clinicloop.agents.triage.state", "Turn"),
+    ("clinicloop.agents.triage.state", "ToolCall"),
+    ("clinicloop.agents.triage.intents", "Intent"),
+    ("clinicloop.compliance.guard.verdict", "GuardVerdict"),
+    ("clinicloop.compliance.escalation.result", "EscalationClear"),
+    ("clinicloop.hitl.decision", "HumanDecision"),
+]
 
 
 def build_triage_graph(
@@ -53,20 +70,29 @@ def build_triage_graph(
         A compiled LangGraph StateGraph with interrupt_before=['human_approval'].
     """
     # Create the state graph
-    graph: StateGraph = StateGraph(GraphState)
+    graph: StateGraph[GraphState] = StateGraph(GraphState)
 
-    # Add all nodes
-    graph.add_node("ingest", make_ingest_node(message_source, run_key))
-    graph.add_node("classify_intent", make_classify_intent_node(model))
-    graph.add_node("escalation_check", make_escalation_check_node(ruleset, classifier=classifier))
-    graph.add_node("resolve", make_resolve_node(model, tools, timeout_seconds=timeout_seconds))
-    graph.add_node("draft", make_draft_node(model))
-    graph.add_node("regulatory_guard", make_regulatory_guard_node(ruleset))
-    graph.add_node("human_approval", human_approval_node)
-    graph.add_node("guard_final", make_guard_final_node(ruleset))
-    graph.add_node("send", make_send_node(outbound_port))
-    graph.add_node("human_review", human_review_node)
-    graph.add_node("escalate", escalate_node)
+    # Each node closure is typed dict[str, Any] (matching the M2-5a node functions
+    # it wraps, which operate on plain dict state via .get()/[]), but
+    # StateGraph.add_node's overload set binds NodeInputT to TypedDict/dataclass/
+    # BaseModel and does not structurally accept a bare dict even though it is
+    # runtime-correct for a TypedDict(total=False) schema; verified by the graph
+    # tests, including real execution, checkpointing and cross-process restore.
+    # Routed through one helper so that single ignore covers every call.
+    def _add_node(name: str, fn: Any) -> None:
+        graph.add_node(name, fn)
+
+    _add_node("ingest", make_ingest_node(message_source, run_key))
+    _add_node("classify_intent", make_classify_intent_node(model))
+    _add_node("escalation_check", make_escalation_check_node(ruleset, classifier=classifier))
+    _add_node("resolve", make_resolve_node(model, tools, timeout_seconds=timeout_seconds))
+    _add_node("draft", make_draft_node(model))
+    _add_node("regulatory_guard", make_regulatory_guard_node(ruleset))
+    _add_node("human_approval", human_approval_node)
+    _add_node("guard_final", make_guard_final_node(ruleset))
+    _add_node("send", make_send_node(outbound_port))
+    _add_node("human_review", human_review_node)
+    _add_node("escalate", escalate_node)
 
     # Add unconditional edges
     graph.add_edge("ingest", "classify_intent")
@@ -140,12 +166,20 @@ def build_triage_graph(
 
     # Conditional edge from human_approval: approve, edit, or reject
     def route_human_decision(state: GraphState) -> str:
-        """Route based on human decision."""
+        """Route based on human decision.
+
+        Raises:
+            ValueError: If no human_decision was injected via update_state before
+                resuming. Silently defaulting to 'approve' here would let a resume
+                with no decision reach send; this must fail instead.
+        """
         decision = state.get("human_decision")
-        if decision:
-            return decision.action
-        # Should not happen in normal flow
-        return "approve"
+        if decision is None:
+            raise ValueError(
+                "human_approval was resumed with no human_decision; "
+                "call update_state with a HumanDecision before resuming"
+            )
+        return decision.action
 
     graph.add_conditional_edges(
         "human_approval",
@@ -184,16 +218,15 @@ def build_triage_graph(
     # Build checkpointer if not provided
     if checkpointer is None:
         checkpoint_db = checkpoint_root() / "triage.sqlite"
-        checkpoint_db.parent.mkdir(parents=True, exist_ok=True)
+        checkpoint_db.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+        # Checkpoints carry redacted patient data and human decisions; restrict to
+        # owner-only before sqlite3 opens the file, so a shared machine's other
+        # users can't read it via the default umask.
+        if not checkpoint_db.exists():
+            fd = os.open(str(checkpoint_db), os.O_CREAT | os.O_RDWR, 0o600)
+            os.close(fd)
         conn = sqlite3.connect(str(checkpoint_db), check_same_thread=False)
-        serde = JsonPlusSerializer(
-            allowed_msgpack_modules=[
-                ("clinicloop.agents.triage.state", "Turn"),
-                ("clinicloop.agents.triage.state", "ToolCall"),
-                ("clinicloop.compliance.guard.verdict", "GuardVerdict"),
-                ("clinicloop.compliance.escalation.result", "EscalationClear"),
-            ]
-        )
+        serde = JsonPlusSerializer(allowed_msgpack_modules=TRIAGE_ALLOWED_MSGPACK_MODULES)
         checkpointer = SqliteSaver(conn, serde=serde)
 
     # Compile with interrupt_before
