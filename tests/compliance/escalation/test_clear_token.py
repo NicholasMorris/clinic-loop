@@ -135,4 +135,4 @@ def test_token_mac_validation_on_tampering(ruleset: Ruleset, _fixed_key: None) -
     # Create a tampered token with modified text_sha256 but same MAC
     # This should raise EscalationClearForbidden in __post_init__
     with pytest.raises(EscalationClearForbidden):
-        tampered = EscalationClear(text_sha256="0" * 64, mac=token.mac)
+        EscalationClear(text_sha256="0" * 64, mac=token.mac)

@@ -75,7 +75,7 @@ class TriageState(BaseModel):
     escalation_clear: Optional[EscalationClear] = None
     tool_calls: list[ToolCall] = []
     draft: Optional[str] = None
-    guard_verdicts: list = []
+    guard_verdicts: list[dict] = []
     human_decision: Optional[HumanDecision] = None
     routing_reason: Optional[str] = None
     routing_rule_ids: tuple[str, ...] = ()

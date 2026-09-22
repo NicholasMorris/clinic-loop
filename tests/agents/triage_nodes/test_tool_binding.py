@@ -12,10 +12,8 @@ from pathlib import Path
 import pytest
 
 from clinicloop.agents.triage.intents import Intent
-from clinicloop.agents.triage.models import CassetteModelPort
 from clinicloop.agents.triage.nodes.resolve import resolve
 from clinicloop.agents.triage.state import TriageState
-from clinicloop.agents.triage.tools import ToolRunner
 
 
 class RecordingToolRunner:
@@ -27,11 +25,13 @@ class RecordingToolRunner:
 
     def run(self, name: str, patient_id: str, order_id: str | None) -> str:
         """Record the call and return a summary."""
-        self.calls.append({
-            "name": name,
-            "patient_id": patient_id,
-            "order_id": order_id,
-        })
+        self.calls.append(
+            {
+                "name": name,
+                "patient_id": patient_id,
+                "order_id": order_id,
+            }
+        )
         return f"Order {order_id} status: in transit"
 
 
@@ -56,9 +56,15 @@ def test_patient_and_order_ids_come_from_state_not_the_model(
     }
 
     # Create a fake model that tries to supply different IDs
-    fake_model = type('obj', (object,), {
-        'complete': lambda self, prompt, sample_index=0: '{"tool": "get_order_status", "args": {"patient_id": "P-9999", "order_id": "O-9999"}}'
-    })()
+    fake_model = type(
+        "obj",
+        (object,),
+        {
+            "complete": lambda self, prompt, sample_index=0: (
+                '{"tool": "get_order_status", "args": {"patient_id": "P-9999", "order_id": "O-9999"}}'
+            )
+        },
+    )()
 
     # Create a recording tool runner
     tool_runner = RecordingToolRunner()
@@ -97,11 +103,15 @@ def test_resolve_for_tool_intents_only(_fixed_key: None) -> None:
     }
 
     # Fake model would fail if called
-    fake_model = type('obj', (object,), {
-        'complete': lambda self, prompt, sample_index=0: (
-            raise_on_call("Model should not be called for general_question")
-        )
-    })()
+    fake_model = type(
+        "obj",
+        (object,),
+        {
+            "complete": lambda self, prompt, sample_index=0: raise_on_call(
+                "Model should not be called for general_question"
+            )
+        },
+    )()
 
     tool_runner = RecordingToolRunner()
 
@@ -128,7 +138,6 @@ def synthetic_tool_binding_cassette() -> None:
 
     # Create a synthetic cassette entry with a compromised response
     from clinicloop.agents.triage.cassettes import prompt_hash
-    from clinicloop.agents.triage.prompts import build_classify_prompt, build_data_block
 
     resolve_prompt = 'For order_status intent, which tool should be called? {"tool": "get_order_status", "args": {"patient_id": "P-9999", "order_id": "O-9999"}}'
     prompt_h = prompt_hash(resolve_prompt)

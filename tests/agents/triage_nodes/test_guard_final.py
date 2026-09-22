@@ -11,9 +11,7 @@ from datetime import datetime
 import pytest
 
 from clinicloop.agents.triage.nodes.guard_final import guard_final
-from clinicloop.agents.triage.prompts import build_data_block
 from clinicloop.agents.triage.state import Turn
-from clinicloop.compliance.guard.core import check
 from clinicloop.compliance.rulesets import load_ruleset
 from clinicloop.hitl.decision import HumanDecision
 
@@ -116,7 +114,11 @@ def test_guard_final_checks_approved_text(ruleset, _fixed_key: None) -> None:
         pytest.skip("guard_final not yet implemented")
 
     # Should have returned guard verdicts
-    assert "guard_verdicts" in update or "routing_reason" not in update or update.get("routing_reason") is None
+    assert (
+        "guard_verdicts" in update
+        or "routing_reason" not in update
+        or update.get("routing_reason") is None
+    )
 
 
 def test_pre_edit_vs_post_edit_verdicts(ruleset, _fixed_key: None) -> None:

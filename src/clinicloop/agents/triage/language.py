@@ -27,14 +27,41 @@ def detect_language(text: str) -> Literal["en", "other"]:
 
     # Heuristic 2: English stopword check
     stopwords = {
-        "the", "and", "is", "are", "my", "i", "to", "of", "a",
-        "in", "it", "you", "for", "have", "with", "that", "this",
-        "me", "can", "not", "on", "was", "when", "what", "how",
-        "please", "order", "been", "has", "do", "does"
+        "the",
+        "and",
+        "is",
+        "are",
+        "my",
+        "i",
+        "to",
+        "of",
+        "a",
+        "in",
+        "it",
+        "you",
+        "for",
+        "have",
+        "with",
+        "that",
+        "this",
+        "me",
+        "can",
+        "not",
+        "on",
+        "was",
+        "when",
+        "what",
+        "how",
+        "please",
+        "order",
+        "been",
+        "has",
+        "do",
+        "does",
     }
 
     # Split into word tokens
-    tokens = re.findall(r'\b\w+\b', text.lower())
+    tokens = re.findall(r"\b\w+\b", text.lower())
     if len(tokens) >= 4:
         # If none of the tokens are stopwords, it's probably non-English
         if not any(token in stopwords for token in tokens):

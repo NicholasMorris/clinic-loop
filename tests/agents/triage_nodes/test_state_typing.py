@@ -15,7 +15,6 @@ from pydantic import ValidationError
 from clinicloop.agents.triage.intents import Intent
 from clinicloop.agents.triage.state import ToolCall, TriageState, Turn
 from clinicloop.compliance.escalation.detector import detect
-from clinicloop.compliance.escalation.result import _mint_clear
 from clinicloop.compliance.rulesets import load_ruleset
 from clinicloop.hitl.decision import HumanDecision
 
@@ -41,11 +40,13 @@ def test_state_rejects_out_of_enum_and_mistyped_fields(_fixed_key: None) -> None
 
     # Test: out-of-enum intent from dict raises ValidationError
     with pytest.raises(ValidationError):
-        TriageState.model_validate({
-            "case_id": "c-001",
-            "patient_id": "p-001",
-            "intent": "not_an_intent",
-        })
+        TriageState.model_validate(
+            {
+                "case_id": "c-001",
+                "patient_id": "p-001",
+                "intent": "not_an_intent",
+            }
+        )
 
 
 def test_state_full_round_trip_serialization(_fixed_key: None) -> None:
@@ -129,11 +130,13 @@ def test_state_full_round_trip_serialization(_fixed_key: None) -> None:
 def test_state_rejects_extra_fields(_fixed_key: None) -> None:
     """AC1: State with extra='forbid' rejects unknown fields."""
     with pytest.raises(ValidationError):
-        TriageState.model_validate({
-            "case_id": "c-001",
-            "patient_id": "p-001",
-            "unknown_field": "should fail",
-        })
+        TriageState.model_validate(
+            {
+                "case_id": "c-001",
+                "patient_id": "p-001",
+                "unknown_field": "should fail",
+            }
+        )
 
 
 def test_escalation_clear_survives_rebuild(_fixed_key: None) -> None:

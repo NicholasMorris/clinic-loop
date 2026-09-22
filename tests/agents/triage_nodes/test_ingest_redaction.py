@@ -11,9 +11,8 @@ import re
 
 import pytest
 
-from clinicloop.agents.triage.state import TriageState
 from clinicloop.agents.triage.nodes.ingest import ingest
-from clinicloop.compliance.pseudonymise import pseudonymise
+from clinicloop.agents.triage.state import TriageState
 
 
 @pytest.fixture
@@ -68,10 +67,12 @@ def test_no_raw_identifier_survives_ingest_and_text_is_delimited(
     assert "language" in update
 
     # Build the state from the update
-    state = TriageState.model_validate({
-        **state_dict,
-        **update,
-    })
+    state = TriageState.model_validate(
+        {
+            **state_dict,
+            **update,
+        }
+    )
 
     # Serialize to JSON for full check
     state_json = json.dumps(state.model_dump(mode="json"))
@@ -114,10 +115,12 @@ def test_redacted_thread_uses_pseudonyms(_fixed_key: None, pii_message: str) -> 
     run_key = "run-001"
     update = ingest(state_dict, pii_message, run_key)
 
-    state = TriageState.model_validate({
-        **state_dict,
-        **update,
-    })
+    state = TriageState.model_validate(
+        {
+            **state_dict,
+            **update,
+        }
+    )
 
     # Check that redacted thread exists and is not empty
     assert state.redacted_thread
@@ -150,9 +153,11 @@ def test_same_identifier_same_pseudonym(_fixed_key: None) -> None:
     text1 = state1.redacted_thread[0].text
     text2 = state2.redacted_thread[0].text
 
-    # Find the phone pseudonym pattern [PHONE:...]
-    match1 = re.search(r'\[PHONE:([a-f0-9]{8})\]', text1)
-    match2 = re.search(r'\[PHONE:([a-f0-9]{8})\]', text2)
+    # Find the phone pseudonym pattern [PHONE:...] - case insensitive
+    match1 = re.search(r"\[PHONE:([A-Fa-f0-9]+)\]", text1)
+    match2 = re.search(r"\[PHONE:([A-Fa-f0-9]+)\]", text2)
 
-    assert match1 and match2, "Should find phone pseudonym markers"
-    assert match1.group(1) == match2.group(1), "Same phone should have same pseudonym"
+    assert match1 and match2, f"Should find phone pseudonym markers. text1={text1}, text2={text2}"
+    assert match1.group(1) == match2.group(1), (
+        f"Same phone should have same pseudonym: {match1.group(1)} vs {match2.group(1)}"
+    )

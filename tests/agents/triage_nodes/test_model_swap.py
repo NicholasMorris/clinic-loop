@@ -6,7 +6,6 @@ intent and the same recorded tool-call list, and no module under src/clinicloop/
 contains a models.toml row name as a string literal.
 """
 
-import ast
 import re
 from pathlib import Path
 
@@ -39,7 +38,12 @@ def test_nodes_behave_identically_against_a_second_models_toml_row(_fixed_key: N
     state_dict_1.update(update_ingest)
 
     # Classify intent with model 1 (fake)
-    model_1 = FakeModelPort(['{"intent": "order_status"}'])
+    model_1 = FakeModelPort(
+        [
+            '{"intent": "order_status"}',  # for classify_intent
+            '{"tool": "get_order_status", "args": {"patient_id": "P-9999", "order_id": "O-9999"}}',  # for resolve
+        ]
+    )
 
     try:
         update_classify_1 = classify_intent(state_dict_1, model_1)
@@ -72,7 +76,12 @@ def test_nodes_behave_identically_against_a_second_models_toml_row(_fixed_key: N
     state_dict_2.update(update_ingest)
 
     # Classify with model 2 (different row, same responses)
-    model_2 = FakeModelPort(['{"intent": "order_status"}'])
+    model_2 = FakeModelPort(
+        [
+            '{"intent": "order_status"}',  # for classify_intent
+            '{"tool": "get_order_status", "args": {"patient_id": "P-9999", "order_id": "O-9999"}}',  # for resolve
+        ]
+    )
 
     try:
         update_classify_2 = classify_intent(state_dict_2, model_2)
@@ -92,7 +101,7 @@ def test_nodes_behave_identically_against_a_second_models_toml_row(_fixed_key: N
 
     # Verify results are identical
     assert str(intent_1) == str(intent_2), f"Intents differ: {intent_1} vs {intent_2}"
-    assert len(tool_calls_1) == len(tool_calls_2), f"Tool call counts differ"
+    assert len(tool_calls_1) == len(tool_calls_2), "Tool call counts differ"
 
 
 def test_no_models_toml_row_names_in_source() -> None:
@@ -121,7 +130,7 @@ def test_no_models_toml_row_names_in_source() -> None:
             if re.search(pattern, content):
                 violations.append(f"{py_file.name}: contains '{name}' string literal")
 
-    assert not violations, f"Found hardcoded models.toml row names:\n" + "\n".join(violations)
+    assert not violations, "Found hardcoded models.toml row names:\n" + "\n".join(violations)
 
 
 def test_no_langchain_openai_imports() -> None:
@@ -139,4 +148,4 @@ def test_no_langchain_openai_imports() -> None:
         if "langchain_openai" in content or "from langchain_openai" in content:
             violations.append(str(py_file))
 
-    assert not violations, f"Found langchain_openai imports in:\n" + "\n".join(violations)
+    assert not violations, "Found langchain_openai imports in:\n" + "\n".join(violations)

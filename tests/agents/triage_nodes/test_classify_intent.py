@@ -12,8 +12,7 @@ import pytest
 from clinicloop.agents.triage.intents import Intent
 from clinicloop.agents.triage.models import CassetteModelPort, FakeModelPort
 from clinicloop.agents.triage.nodes.classify_intent import classify_intent
-from clinicloop.agents.triage.prompts import build_classify_prompt, build_data_block
-from clinicloop.agents.triage.state import TriageState
+from clinicloop.agents.triage.prompts import build_data_block
 
 
 @pytest.fixture
@@ -76,13 +75,21 @@ def test_intent_matches_label_for_every_fixture_thread(
         # Check the result
         actual_intent = update.get("intent")
 
-        if str(actual_intent) != expected_intent:
-            misses.append({
-                "thread_id": thread_id,
-                "expected": expected_intent,
-                "actual": str(actual_intent),
-                "text": raw_text[:50],
-            })
+        # Compare intent value (handle both Intent enum and string)
+        if isinstance(actual_intent, Intent):
+            actual_value = actual_intent.value
+        else:
+            actual_value = str(actual_intent)
+
+        if actual_value != expected_intent:
+            misses.append(
+                {
+                    "thread_id": thread_id,
+                    "expected": expected_intent,
+                    "actual": actual_value,
+                    "text": raw_text[:50],
+                }
+            )
 
     # Print misses for debugging
     if misses:
@@ -108,8 +115,15 @@ def test_cassette_miss_raises(cassette_paths: list[Path], _fixed_key: None) -> N
     state_dict = {
         "case_id": "test-miss",
         "patient_id": "patient-miss",
-        "redacted_thread": [{"role": "patient", "text": "This is an unrecorded prompt that will not match any cassette."}],
-        "patient_data_block": build_data_block("This is an unrecorded prompt that will not match any cassette."),
+        "redacted_thread": [
+            {
+                "role": "patient",
+                "text": "This is an unrecorded prompt that will not match any cassette.",
+            }
+        ],
+        "patient_data_block": build_data_block(
+            "This is an unrecorded prompt that will not match any cassette."
+        ),
     }
 
     # Should raise CassetteMiss when trying to classify
@@ -120,9 +134,11 @@ def test_cassette_miss_raises(cassette_paths: list[Path], _fixed_key: None) -> N
 def test_out_of_enum_response_becomes_unknown(_fixed_key: None) -> None:
     """AC3: Model response outside Intent enum becomes Intent.unknown."""
     # Use FakeModelPort with a response that's not a valid intent
-    fake_model = FakeModelPort([
-        '{"intent": "invalid_intent_name"}',
-    ])
+    fake_model = FakeModelPort(
+        [
+            '{"intent": "invalid_intent_name"}',
+        ]
+    )
 
     state_dict = {
         "case_id": "test-invalid",
