@@ -42,7 +42,7 @@ class CaseArtifact(BaseModel):
     model_config = ConfigDict(frozen=True)
 
 
-def run_case(case: GoldenCase, ruleset, elements) -> CaseArtifact:
+def run_case(case: GoldenCase, ruleset: Any, elements: Any) -> CaseArtifact:
     """Run a single golden case through the triage graph.
 
     Args:
@@ -166,7 +166,7 @@ def run_case(case: GoldenCase, ruleset, elements) -> CaseArtifact:
         )
 
 
-def run_all(cases: list[GoldenCase], ruleset, elements) -> list[CaseArtifact]:
+def run_all(cases: list[GoldenCase], ruleset: Any, elements: Any) -> list[CaseArtifact]:
     """Run all golden cases.
 
     Args:
@@ -205,7 +205,7 @@ def write_artifacts(artifacts: list[CaseArtifact], out_dir: Path) -> None:
         json.dump({a.case_id: 0.0 for a in artifacts}, f)
 
 
-def compute_tree_hash(cases: list[GoldenCase], elements) -> str:
+def compute_tree_hash(cases: list[GoldenCase], elements: Any) -> str:
     """Compute a stable hash over golden cases and intent elements.
 
     Args:

@@ -1,7 +1,7 @@
 """Rule-based reference reviewer for triage drafts."""
 
 from dataclasses import dataclass
-from typing import Optional
+from typing import Any, Optional
 
 from evals.triage.golden.loader import IntentElements, load_intent_elements
 
@@ -23,10 +23,10 @@ class ReviewResult:
 
 def review(
     draft: str,
-    guard_verdict,
+    guard_verdict: Any,
     intent: str,
     elements: Optional[IntentElements] = None,
-    ruleset=None,
+    ruleset: Any = None,
 ) -> ReviewResult:
     """Review a draft against four rules in priority order.
 
