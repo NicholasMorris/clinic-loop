@@ -1,6 +1,9 @@
 """PII redaction with nine identifier classes and checksum validators."""
 
 import re
+from typing import Callable
+
+from clinicloop.compliance.pseudonymise import pseudonymise
 
 
 # Checksum validators
@@ -220,5 +223,130 @@ def redact(text: str) -> str:
     # Match whole words only
     for name in _SYNTHETIC_ROSTER:
         result = re.sub(rf"\b{re.escape(name)}\b", "[REDACTED]", result, flags=re.IGNORECASE)
+
+    return result
+
+
+def redact_with_pseudonyms(text: str, run_key: str) -> str:
+    """Redact PII identifiers and replace with keyed-hash pseudonyms.
+
+    Each identifier is replaced by '[CLASS:first8hexofpseudonym]', so the same
+    value always yields the same token within a run.
+
+    Handles nine identifier classes:
+    - Medicare/NHI/NHS numbers
+    - Tax identifiers
+    - Phone numbers
+    - Email addresses
+    - Dates of birth
+    - Street addresses
+    - Synthetic-roster names
+
+    Args:
+        text: Text potentially containing PII.
+        run_key: The run key for consistent pseudonym hashing.
+
+    Returns:
+        Text with PII replaced by pseudonym markers.
+    """
+    result = text
+
+    # 1. Medicare numbers (10 digits with valid checksum)
+    def replace_medicare(match: re.Match[str]) -> str:
+        digits = match.group(0).strip()
+        if len(digits) == 10 and digits.isdigit():
+            if _validate_medicare_checksum(digits):
+                token = pseudonymise(digits, run_key)
+                # Extract first 8 hex chars and format as [MEDICARE:...]
+                return f"[MEDICARE:{token[6:14]}]"
+        return match.group(0)
+
+    result = re.sub(r"\b\d{10}\b", replace_medicare, result)
+
+    # 2. TFN (11 digits with valid checksum)
+    def replace_tfn(match: re.Match[str]) -> str:
+        raw = match.group(0)
+        digits = raw.replace(" ", "").replace("-", "")
+        if len(digits) == 11 and digits.isdigit():
+            if _validate_tfn_checksum(digits):
+                token = pseudonymise(digits, run_key)
+                return f"[TFN:{token[6:14]}]"
+        return raw
+
+    result = re.sub(r"\b\d{11}\b|\d{3}[-\s]?\d{3}[-\s]?\d{3}", replace_tfn, result)
+
+    # 3. Phone numbers (various Australian formats)
+    def replace_phone(match: re.Match[str]) -> str:
+        phone = match.group(0)
+        token = pseudonymise(phone, run_key)
+        return f"[PHONE:{token[6:14]}]"
+
+    result = re.sub(r"\+?61\s?4\d{8}|0[234567]\d{8}|04\d{8}", replace_phone, result)
+
+    # 4. Email addresses
+    def replace_email(match: re.Match[str]) -> str:
+        email = match.group(0)
+        token = pseudonymise(email, run_key)
+        return f"[EMAIL:{token[6:14]}]"
+
+    result = re.sub(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b", replace_email, result)
+
+    # 5. Dates of birth (various formats)
+    def replace_dob(match: re.Match[str]) -> str:
+        dob = match.group(0)
+        token = pseudonymise(dob, run_key)
+        return f"[DOB:{token[6:14]}]"
+
+    result = re.sub(
+        r"\b\d{2}[/-]?\d{2}[/-]?\d{4}\b|\b\d{4}[/-]?\d{2}[/-]?\d{2}\b",
+        replace_dob,
+        result,
+    )
+
+    # 6. Street addresses (number + street name patterns)
+    def replace_address(match: re.Match[str]) -> str:
+        addr = match.group(0)
+        token = pseudonymise(addr, run_key)
+        return f"[ADDRESS:{token[6:14]}]"
+
+    result = re.sub(
+        r"\b\d{1,4}\s+(?:Street|St|Avenue|Ave|Road|Rd|Boulevard|Blvd|Lane|Ln|Elm|Main)\b",
+        replace_address,
+        result,
+        flags=re.IGNORECASE,
+    )
+
+    # 7. NZ NHI (7 digits + letter)
+    def replace_nhi(match: re.Match[str]) -> str:
+        code = match.group(0)
+        if _validate_nhi_checksum(code):
+            token = pseudonymise(code, run_key)
+            return f"[NHI:{token[6:14]}]"
+        return match.group(0)
+
+    result = re.sub(r"\b\d{7}[A-Z]\b", replace_nhi, result)
+
+    # 8. UK NHS number (10 digits with valid checksum)
+    def replace_nhs(match: re.Match[str]) -> str:
+        digits = match.group(0).strip()
+        if len(digits) == 10 and digits.isdigit():
+            if _validate_nhs_checksum(digits):
+                token = pseudonymise(digits, run_key)
+                return f"[NHS:{token[6:14]}]"
+        return match.group(0)
+
+    result = re.sub(r"\b\d{10}\b", replace_nhs, result)
+
+    # 9. Roster names (given names and surnames)
+    def replace_name(name_to_replace: str) -> Callable[[re.Match[str]], str]:
+        def replacer(match: re.Match[str]) -> str:
+            name = match.group(0)
+            token = pseudonymise(name, run_key)
+            return f"[NAME:{token[6:14]}]"
+
+        return replacer
+
+    for name in _SYNTHETIC_ROSTER:
+        result = re.sub(rf"\b{re.escape(name)}\b", replace_name(name), result, flags=re.IGNORECASE)
 
     return result

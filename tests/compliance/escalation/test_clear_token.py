@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import dataclasses
+
 import pytest
 
 from clinicloop.compliance.escalation.detector import detect
@@ -20,14 +22,24 @@ def ruleset() -> Ruleset:
     return load_ruleset("au")
 
 
-def test_clear_token_is_detector_only_and_required_by_draft(ruleset: Ruleset) -> None:
-    """AC3: Direct construction of EscalationClear raises.
+@pytest.fixture
+def _fixed_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Set CLINICLOOP_ESCALATION_KEY to a fixed value so no key file is written."""
+    # Fixed 32-byte key as hex (64 characters)
+    key_hex = "a" * 64
+    monkeypatch.setenv("CLINICLOOP_ESCALATION_KEY", key_hex)
+
+
+def test_clear_token_is_detector_only_and_required_by_draft(
+    ruleset: Ruleset, _fixed_key: None
+) -> None:
+    """AC3: Direct construction of EscalationClear with wrong MAC raises.
 
     The draft entry point requires a matching token or raises EscalationRequired.
     """
-    # Direct construction should raise
+    # Direct construction with wrong MAC should raise
     with pytest.raises(EscalationClearForbidden):
-        EscalationClear(text_sha256="abc123")
+        EscalationClear(text_sha256="abc123", mac="wrongmac")
 
     # detect() with a non-escalating thread returns a clear token
     thread = [{"role": "patient", "text": "What time is my appointment?"}]
@@ -57,7 +69,7 @@ def test_clear_token_is_detector_only_and_required_by_draft(ruleset: Ruleset) ->
         draft(escalated_thread, None, dummy_drafter)
 
 
-def test_token_bound_to_thread_hash(ruleset: Ruleset) -> None:
+def test_token_bound_to_thread_hash(ruleset: Ruleset, _fixed_key: None) -> None:
     """AC4: Token's text_sha256 must match the thread being drafted.
 
     A token from thread A cannot be used for thread B.
@@ -83,3 +95,44 @@ def test_token_bound_to_thread_hash(ruleset: Ruleset) -> None:
     clear_b = result_b.clear
     response = draft(thread_b, clear_b, dummy_drafter)
     assert response == "response"
+
+
+def test_token_serialization_round_trip(ruleset: Ruleset, _fixed_key: None) -> None:
+    """A token from detect() rebuilt from dataclasses.asdict is accepted.
+
+    This proves tokens can be serialized and restored for checkpointing.
+    """
+    thread = [{"role": "patient", "text": "What is my delivery date?"}]
+    result = detect(thread, ruleset)
+    token = result.clear
+    assert token is not None
+
+    # Serialize and rebuild
+    token_dict = dataclasses.asdict(token)
+    rebuilt = EscalationClear(**token_dict)
+
+    # Should be equal and work with draft
+    assert rebuilt.text_sha256 == token.text_sha256
+    assert rebuilt.mac == token.mac
+
+    def dummy_drafter(t):  # type: ignore[no-untyped-def]
+        return "response"
+
+    response = draft(thread, rebuilt, dummy_drafter)
+    assert response == "response"
+
+
+def test_token_mac_validation_on_tampering(ruleset: Ruleset, _fixed_key: None) -> None:
+    """A token whose text_sha256 was changed but keeps the old MAC is refused.
+
+    This prevents accidental or intentional tampering with the hashed text.
+    """
+    thread = [{"role": "patient", "text": "What is my delivery date?"}]
+    result = detect(thread, ruleset)
+    token = result.clear
+    assert token is not None
+
+    # Create a tampered token with modified text_sha256 but same MAC
+    # This should raise EscalationClearForbidden in __post_init__
+    with pytest.raises(EscalationClearForbidden):
+        EscalationClear(text_sha256="0" * 64, mac=token.mac)

@@ -1,0 +1,1 @@
+{"model_id": "synthetic", "prompt_hash": "964d8c05d6fce9cd17d27ecda7a31f6427b376e1e798168482a22288a0aa4c5c", "sample_index": 0, "seed": 42, "response": "{\"tool\": \"get_order_status\", \"args\": {\"patient_id\": \"P-9999\", \"order_id\": \"O-9999\"}}"}

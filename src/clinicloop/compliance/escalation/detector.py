@@ -6,10 +6,10 @@ import json
 from typing import Callable, Optional
 
 from clinicloop.compliance.escalation.result import (
-    _MINT_KEY,
     EscalationClear,
     EscalationResult,
     EvidenceSpan,
+    _mint_clear,
 )
 from clinicloop.compliance.escalation.rules import compile_rules
 from clinicloop.compliance.guard.normalise import normalise
@@ -186,7 +186,7 @@ def detect(
 
     if final_category == "none":
         # Mint clear token
-        clear = EscalationClear(text_sha256=thread_hash, _key=_MINT_KEY)
+        clear = _mint_clear(thread_hash)
     elif final_category == "detector_error":
         # Use the route with the smallest target_response_minutes (fail safe)
         fastest_route = min(ruleset.escalation_routing, key=lambda r: r.target_response_minutes)
