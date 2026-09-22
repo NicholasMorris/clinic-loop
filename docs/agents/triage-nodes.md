@@ -112,7 +112,7 @@ Each node is a pure function from state (as a `dict` for type flexibility during
 {
     "redacted_thread": [Turn(role="patient", text=redacted)],
     "patient_data_block": str,  # Delimited
-    "language": "en" | "other"
+    "language": "en" | "other",
 }
 ```
 
@@ -161,9 +161,7 @@ Each node is a pure function from state (as a `dict` for type flexibility during
 
 **Returns:**
 ```python
-{
-    "tool_calls": [ToolCall(name=str, args={"patient_id": str, "order_id": str}, result_summary=str)]
-}
+{"tool_calls": [ToolCall(name=str, args={"patient_id": str, "order_id": str}, result_summary=str)]}
 # or {} if intent does not need tools
 ```
 
@@ -194,9 +192,7 @@ Each node is a pure function from state (as a `dict` for type flexibility during
     "draft": str  # Generated reply
 }
 # or
-{
-    "routing_reason": "language"
-}  # If non-English
+{"routing_reason": "language"}  # If non-English
 ```
 
 **Raises:** `EscalationRequired` if the escalation token is missing or mismatches.

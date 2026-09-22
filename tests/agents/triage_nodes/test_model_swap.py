@@ -41,27 +41,21 @@ def test_nodes_behave_identically_against_a_second_models_toml_row(_fixed_key: N
     model_1 = FakeModelPort(
         [
             '{"intent": "order_status"}',  # for classify_intent
-            '{"tool": "get_order_status", "args": {"patient_id": "P-9999", "order_id": "O-9999"}}',  # for resolve
+            '{"tool": "get_order_status", "args": {"patient_id": "P-9999", "order_id": "O-9999"}}',  # for resolve  # noqa: E501
         ]
     )
 
-    try:
-        update_classify_1 = classify_intent(state_dict_1, model_1)
-    except NotImplementedError:
-        pytest.skip("classify_intent not yet implemented")
+    update_classify_1 = classify_intent(state_dict_1, model_1)
 
     intent_1 = update_classify_1.get("intent")
     state_dict_1.update(update_classify_1)
 
     # Resolve with model 1 (fake)
     class FakeToolRunner:
-        def run(self, name, patient_id, order_id):
+        def run(self, name: str, patient_id: str, order_id: str | None) -> str:
             return "Order status: in transit"
 
-    try:
-        update_resolve_1 = resolve(state_dict_1, model_1, FakeToolRunner())
-    except NotImplementedError:
-        pytest.skip("resolve not yet implemented")
+    update_resolve_1 = resolve(state_dict_1, model_1, FakeToolRunner())
 
     tool_calls_1 = update_resolve_1.get("tool_calls", [])
     state_dict_1.update(update_resolve_1)
@@ -79,23 +73,17 @@ def test_nodes_behave_identically_against_a_second_models_toml_row(_fixed_key: N
     model_2 = FakeModelPort(
         [
             '{"intent": "order_status"}',  # for classify_intent
-            '{"tool": "get_order_status", "args": {"patient_id": "P-9999", "order_id": "O-9999"}}',  # for resolve
+            '{"tool": "get_order_status", "args": {"patient_id": "P-9999", "order_id": "O-9999"}}',  # for resolve  # noqa: E501
         ]
     )
 
-    try:
-        update_classify_2 = classify_intent(state_dict_2, model_2)
-    except NotImplementedError:
-        pytest.skip("classify_intent not yet implemented")
+    update_classify_2 = classify_intent(state_dict_2, model_2)
 
     intent_2 = update_classify_2.get("intent")
     state_dict_2.update(update_classify_2)
 
     # Resolve with model 2
-    try:
-        update_resolve_2 = resolve(state_dict_2, model_2, FakeToolRunner())
-    except NotImplementedError:
-        pytest.skip("resolve not yet implemented")
+    update_resolve_2 = resolve(state_dict_2, model_2, FakeToolRunner())
 
     tool_calls_2 = update_resolve_2.get("tool_calls", [])
 

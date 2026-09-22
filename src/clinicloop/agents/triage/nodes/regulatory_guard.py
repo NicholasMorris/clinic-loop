@@ -1,9 +1,11 @@
 """Regulatory guard node: check draft against rules before human approval."""
 
+from typing import Any
+
 from clinicloop.compliance.guard.core import check
 
 
-def regulatory_guard(state: dict, ruleset) -> dict:  # type: ignore[no-untyped-def]
+def regulatory_guard(state: dict[str, Any], ruleset) -> dict[str, Any]:  # type: ignore[no-untyped-def]
     """Run guard check on thread + draft.
 
     Args:
@@ -32,15 +34,7 @@ def regulatory_guard(state: dict, ruleset) -> dict:  # type: ignore[no-untyped-d
     if not isinstance(guard_verdicts, list):
         guard_verdicts = [guard_verdicts]
 
-    # Convert verdict to dict for serialization
-    verdict_dict = {
-        "allowed": verdict.allowed,
-        "rule_ids": verdict.rule_ids,
-        "jurisdiction": verdict.jurisdiction,
-        "ruleset_version": verdict.ruleset_version,
-        "text_sha256": verdict.text_sha256,
-    }
-    guard_verdicts.append(verdict_dict)
+    guard_verdicts.append(verdict)
 
     update: dict[str, object] = {"guard_verdicts": guard_verdicts}
 

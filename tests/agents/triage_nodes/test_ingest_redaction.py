@@ -23,15 +23,12 @@ def _fixed_key(monkeypatch: pytest.MonkeyPatch) -> None:
 
 @pytest.fixture
 def medicare_valid() -> str:
-    """Generate a valid Medicare number for testing.
+    """A number that passes this repo's Medicare checksum but not its NHS checksum.
 
-    Uses checksum algorithm: weights [1,3,7,9,1,3,7,9,1,3], sum % 10 = 0.
+    Both classes redact 10-digit numbers, so a number valid under both would redact
+    ambiguously; this one redacts unambiguously as [MEDICARE:...].
     """
-    # Example: 1234567890 has checksum 0
-    # 1*1 + 2*3 + 3*7 + 4*9 + 5*1 + 6*3 + 7*7 + 8*9 + 9*1 + 0*3
-    # = 1 + 6 + 21 + 36 + 5 + 18 + 49 + 72 + 9 + 0 = 217, 217 % 10 = 7 (not 0)
-    # Use a known valid one: 2111111112
-    return "2111111112"
+    return "3000000106"
 
 
 @pytest.fixture
@@ -89,9 +86,10 @@ def test_no_raw_identifier_survives_ingest_and_text_is_delimited(
     assert state.patient_data_block.startswith("<<<PATIENT_DATA")
     assert state.patient_data_block.endswith("PATIENT_DATA>>>")
 
-    # Check: patient data block contains markers for redacted values
-    # Should have placeholders like [MEDICARE:...], [PHONE:...], etc
-    assert "[MEDICARE:" in state.patient_data_block or "[phone:" in state.patient_data_block.lower()
+    # Check: the Medicare number is redacted under its own class, not misclassified
+    # as another 10-digit identifier (NHS numbers are also 10 digits).
+    assert "[MEDICARE:" in state.patient_data_block
+    assert "[PHONE:" in state.patient_data_block.upper()
 
     # Check: delimiters are escaped inside the block (no raw markers)
     lines = state.patient_data_block.split("\n")

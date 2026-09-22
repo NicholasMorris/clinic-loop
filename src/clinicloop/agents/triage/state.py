@@ -1,11 +1,12 @@
 """TriageState: typed, validated state for the triage agent."""
 
-from typing import Literal, Optional
+from typing import Any, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict
 
 from clinicloop.agents.triage.intents import Intent
 from clinicloop.compliance.escalation.result import EscalationClear
+from clinicloop.compliance.guard.verdict import GuardVerdict
 from clinicloop.hitl.decision import HumanDecision
 
 
@@ -75,13 +76,13 @@ class TriageState(BaseModel):
     escalation_clear: Optional[EscalationClear] = None
     tool_calls: list[ToolCall] = []
     draft: Optional[str] = None
-    guard_verdicts: list[dict] = []
+    guard_verdicts: list[GuardVerdict] = []
     human_decision: Optional[HumanDecision] = None
     routing_reason: Optional[str] = None
     routing_rule_ids: tuple[str, ...] = ()
 
     @staticmethod
-    def apply_update(state: "TriageState", update: dict) -> "TriageState":
+    def apply_update(state: "TriageState", update: dict[str, Any]) -> "TriageState":
         """Apply an update dict to a state, returning a new validated state.
 
         Args:

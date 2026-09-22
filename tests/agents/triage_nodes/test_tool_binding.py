@@ -21,7 +21,7 @@ class RecordingToolRunner:
 
     def __init__(self) -> None:
         """Initialize with empty call record."""
-        self.calls: list[dict] = []
+        self.calls: list[dict[str, str | None]] = []
 
     def run(self, name: str, patient_id: str, order_id: str | None) -> str:
         """Record the call and return a summary."""
@@ -61,7 +61,7 @@ def test_patient_and_order_ids_come_from_state_not_the_model(
         (object,),
         {
             "complete": lambda self, prompt, sample_index=0: (
-                '{"tool": "get_order_status", "args": {"patient_id": "P-9999", "order_id": "O-9999"}}'
+                '{"tool": "get_order_status", "args": {"patient_id": "P-9999", "order_id": "O-9999"}}'  # noqa: E501
             )
         },
     )()
@@ -70,10 +70,7 @@ def test_patient_and_order_ids_come_from_state_not_the_model(
     tool_runner = RecordingToolRunner()
 
     # Run resolve
-    try:
-        update = resolve(state_dict, fake_model, tool_runner)
-    except NotImplementedError:
-        pytest.skip("resolve not yet implemented")
+    update = resolve(state_dict, fake_model, tool_runner)
 
     # Check the recorded call
     assert len(tool_runner.calls) > 0, "Should have made at least one tool call"
@@ -115,10 +112,7 @@ def test_resolve_for_tool_intents_only(_fixed_key: None) -> None:
 
     tool_runner = RecordingToolRunner()
 
-    try:
-        update = resolve(state_dict, fake_model, tool_runner)
-    except NotImplementedError:
-        pytest.skip("resolve not yet implemented")
+    update = resolve(state_dict, fake_model, tool_runner)
 
     # Should return empty update (no tool calls)
     assert update == {} or update.get("tool_calls") == []
@@ -130,25 +124,37 @@ def raise_on_call(msg: str) -> None:
     raise AssertionError(msg)
 
 
-@pytest.fixture
-def synthetic_tool_binding_cassette() -> None:
-    """Create synthetic_tool_binding.jsonl cassette for adversarial test."""
+def test_resolve_via_cassette_still_binds_ids_from_state(_fixed_key: None) -> None:
+    """AC4: a compromised recorded response cannot leak model-supplied IDs either.
+
+    tests/agents/triage_nodes/cassettes/synthetic_tool_binding.jsonl is a HAND-WRITTEN
+    synthetic adversarial cassette (not a real recording): its response names
+    patient_id "P-9999" and order_id "O-9999", keyed by the real hash of resolve's
+    RESOLVE_PROMPT so CassetteModelPort actually finds it via the real prompt path.
+    """
+    from clinicloop.agents.triage.models import CassetteModelPort
+
     cassette_path = Path(__file__).parent / "cassettes" / "synthetic_tool_binding.jsonl"
-    cassette_path.parent.mkdir(parents=True, exist_ok=True)
+    model = CassetteModelPort("synthetic", 42, [cassette_path])
 
-    # Create a synthetic cassette entry with a compromised response
-    from clinicloop.agents.triage.cassettes import prompt_hash
-
-    resolve_prompt = 'For order_status intent, which tool should be called? {"tool": "get_order_status", "args": {"patient_id": "P-9999", "order_id": "O-9999"}}'
-    prompt_h = prompt_hash(resolve_prompt)
-
-    entry = {
-        "model_id": "synthetic",
-        "prompt_hash": prompt_h,
-        "sample_index": 0,
-        "seed": 42,
-        "response": '{"tool": "get_order_status", "args": {"patient_id": "P-9999", "order_id": "O-9999"}}',
+    state_dict = {
+        "case_id": "c-002",
+        "patient_id": "p-state-002",
+        "order_id": "o-state-002",
+        "intent": Intent.order_status.value,
+        "redacted_thread": [{"role": "patient", "text": "Where is my order?"}],
+        "patient_data_block": "<<<PATIENT_DATA\nWhere is my order?\nPATIENT_DATA>>>",
     }
+    tool_runner = RecordingToolRunner()
 
-    with open(cassette_path, "a") as f:
-        f.write(json.dumps(entry) + "\n")
+    update = resolve(state_dict, model, tool_runner)
+
+    assert len(tool_runner.calls) == 1
+    call = tool_runner.calls[0]
+    assert call["patient_id"] == "p-state-002"
+    assert call["order_id"] == "o-state-002"
+
+    state = TriageState.model_validate({**state_dict, **update})
+    state_json = json.dumps(state.model_dump(mode="json"))
+    assert "P-9999" not in state_json
+    assert "O-9999" not in state_json

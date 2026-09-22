@@ -12,7 +12,7 @@ from clinicloop.agents.triage.nodes.draft import draft
 from clinicloop.agents.triage.prompts import build_data_block
 from clinicloop.compliance.escalation.detector import thread_sha256
 from clinicloop.compliance.escalation.result import EscalationRequired, _mint_clear
-from clinicloop.compliance.rulesets import load_ruleset
+from clinicloop.compliance.rulesets import Ruleset, load_ruleset
 
 
 @pytest.fixture
@@ -22,12 +22,12 @@ def _fixed_key(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @pytest.fixture
-def ruleset():
+def ruleset() -> Ruleset:
     """Load AU ruleset."""
     return load_ruleset("au")
 
 
-def test_draft_needs_clearance(ruleset, _fixed_key: None) -> None:
+def test_draft_needs_clearance(ruleset: Ruleset, _fixed_key: None) -> None:
     """AC5: draft raises EscalationRequired when clear token is missing."""
     from clinicloop.agents.triage.state import Turn
 
@@ -43,10 +43,10 @@ def test_draft_needs_clearance(ruleset, _fixed_key: None) -> None:
 
     # Should raise EscalationRequired
     with pytest.raises(EscalationRequired):
-        update = draft(state_dict, fake_model)
+        draft(state_dict, fake_model)
 
 
-def test_draft_clears_with_matching_token(ruleset, _fixed_key: None) -> None:
+def test_draft_clears_with_matching_token(ruleset: Ruleset, _fixed_key: None) -> None:
     """AC5: draft succeeds with a matching escalation clear token."""
     from clinicloop.agents.triage.state import Turn
 
@@ -64,16 +64,13 @@ def test_draft_clears_with_matching_token(ruleset, _fixed_key: None) -> None:
 
     fake_model = FakeModelPort(["Your order is on track."])
 
-    try:
-        update = draft(state_dict, fake_model)
-    except NotImplementedError:
-        pytest.skip("draft not yet implemented")
+    update = draft(state_dict, fake_model)
 
     # Should have returned a draft
     assert "draft" in update
 
 
-def test_draft_refuses_non_english(ruleset, _fixed_key: None) -> None:
+def test_draft_refuses_non_english(ruleset: Ruleset, _fixed_key: None) -> None:
     """AC5: draft returns routing_reason='language' for non-English without drafting."""
     from clinicloop.agents.triage.state import Turn
 
@@ -94,10 +91,7 @@ def test_draft_refuses_non_english(ruleset, _fixed_key: None) -> None:
     # Fake model should not be called
     fake_model = FakeModelPort([])  # No responses - would fail if called
 
-    try:
-        update = draft(state_dict, fake_model)
-    except NotImplementedError:
-        pytest.skip("draft not yet implemented")
+    update = draft(state_dict, fake_model)
 
     # Should return routing_reason='language', not a draft
     assert update.get("routing_reason") == "language", (
@@ -106,7 +100,7 @@ def test_draft_refuses_non_english(ruleset, _fixed_key: None) -> None:
     assert update.get("draft") is None, "Should not produce draft for non-English"
 
 
-def test_token_mismatch_raises(ruleset, _fixed_key: None) -> None:
+def test_token_mismatch_raises(ruleset: Ruleset, _fixed_key: None) -> None:
     """AC5: draft raises if token's hash doesn't match the thread."""
     from clinicloop.agents.triage.state import Turn
 
@@ -128,4 +122,4 @@ def test_token_mismatch_raises(ruleset, _fixed_key: None) -> None:
 
     # Should raise because token hash doesn't match thread
     with pytest.raises(EscalationRequired):
-        update = draft(state_dict, fake_model)
+        draft(state_dict, fake_model)

@@ -1,12 +1,14 @@
 """Ingest node: redact PII and detect language."""
 
+from typing import Any
+
 from clinicloop.agents.triage.language import detect_language
 from clinicloop.agents.triage.prompts import build_data_block
 from clinicloop.agents.triage.state import Turn
 from clinicloop.compliance.redaction import redact_with_pseudonyms
 
 
-def ingest(state: dict, raw_message: str, run_key: str) -> dict:
+def ingest(state: dict[str, Any], raw_message: str, run_key: str) -> dict[str, Any]:
     """Redact PII from raw patient message and detect language.
 
     Args:

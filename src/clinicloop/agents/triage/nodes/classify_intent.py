@@ -2,12 +2,13 @@
 
 import json
 import re
+from typing import Any
 
 from clinicloop.agents.triage.intents import Intent
 from clinicloop.agents.triage.prompts import build_classify_prompt
 
 
-def classify_intent(state: dict, model) -> dict:  # type: ignore[no-untyped-def]
+def classify_intent(state: dict[str, Any], model) -> dict[str, Any]:  # type: ignore[no-untyped-def]
     """Classify inbound message intent.
 
     Args:

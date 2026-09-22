@@ -1,9 +1,11 @@
 """Guard final node: re-check post-edit text after human approval."""
 
+from typing import Any
+
 from clinicloop.compliance.guard.core import check
 
 
-def guard_final(state: dict, ruleset) -> dict:  # type: ignore[no-untyped-def]
+def guard_final(state: dict[str, Any], ruleset) -> dict[str, Any]:  # type: ignore[no-untyped-def]
     """Re-check the exact post-edit text from human_decision.
 
     Args:
@@ -11,7 +13,8 @@ def guard_final(state: dict, ruleset) -> dict:  # type: ignore[no-untyped-def]
         ruleset: Ruleset object with jurisdiction, version, and rules.
 
     Returns:
-        State update dict with final guard_verdict (and possibly routing_reason and routing_rule_ids).
+        State update dict with final guard_verdict (and possibly routing_reason
+        and routing_rule_ids).
 
     Raises:
         ValueError: If human_decision is None.
@@ -42,15 +45,7 @@ def guard_final(state: dict, ruleset) -> dict:  # type: ignore[no-untyped-def]
     if not isinstance(guard_verdicts, list):
         guard_verdicts = [guard_verdicts]
 
-    # Convert verdict to dict
-    verdict_dict = {
-        "allowed": verdict.allowed,
-        "rule_ids": verdict.rule_ids,
-        "jurisdiction": verdict.jurisdiction,
-        "ruleset_version": verdict.ruleset_version,
-        "text_sha256": verdict.text_sha256,
-    }
-    guard_verdicts.append(verdict_dict)
+    guard_verdicts.append(verdict)
 
     update: dict[str, object] = {"guard_verdicts": guard_verdicts}
 

@@ -16,7 +16,7 @@ from clinicloop.agents.triage.prompts import build_data_block
 
 
 @pytest.fixture
-def fixture_threads() -> list[dict]:
+def fixture_threads() -> list[dict[str, str]]:
     """Load intent fixture threads."""
     fixture_path = Path(__file__).parent / "fixtures" / "intent_threads.jsonl"
     threads = []
@@ -40,7 +40,7 @@ def _fixed_key(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_intent_matches_label_for_every_fixture_thread(
-    fixture_threads: list[dict],
+    fixture_threads: list[dict[str, str]],
     cassette_paths: list[Path],
     _fixed_key: None,
 ) -> None:
@@ -67,10 +67,7 @@ def test_intent_matches_label_for_every_fixture_thread(
         }
 
         # Run classify_intent
-        try:
-            update = classify_intent(state_dict, model)
-        except NotImplementedError:
-            pytest.skip("classify_intent not yet implemented")
+        update = classify_intent(state_dict, model)
 
         # Check the result
         actual_intent = update.get("intent")
@@ -128,7 +125,7 @@ def test_cassette_miss_raises(cassette_paths: list[Path], _fixed_key: None) -> N
 
     # Should raise CassetteMiss when trying to classify
     with pytest.raises(CassetteMiss):
-        update = classify_intent(state_dict, model)
+        classify_intent(state_dict, model)
 
 
 def test_out_of_enum_response_becomes_unknown(_fixed_key: None) -> None:
@@ -147,10 +144,7 @@ def test_out_of_enum_response_becomes_unknown(_fixed_key: None) -> None:
         "patient_data_block": build_data_block("What is my order?"),
     }
 
-    try:
-        update = classify_intent(state_dict, fake_model)
-    except NotImplementedError:
-        pytest.skip("classify_intent not yet implemented")
+    update = classify_intent(state_dict, fake_model)
 
     # Should return unknown intent
     assert update.get("intent") == Intent.unknown or str(update.get("intent")) == "unknown"

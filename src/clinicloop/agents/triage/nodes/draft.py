@@ -1,5 +1,7 @@
 """Draft node: generate reply with escalation check and language check."""
 
+from typing import Any
+
 from clinicloop.compliance.escalation.gate import require_clear
 
 DRAFT_PROMPT = """Based on the patient message and any tools results, draft a brief, polite reply.
@@ -14,7 +16,7 @@ Rules:
 Provide the draft text only, no JSON."""
 
 
-def draft(state: dict, model) -> dict:  # type: ignore[no-untyped-def]
+def draft(state: dict[str, Any], model) -> dict[str, Any]:  # type: ignore[no-untyped-def]
     """Generate a draft reply with escalation and language checks.
 
     Args:

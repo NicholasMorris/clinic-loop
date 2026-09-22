@@ -94,7 +94,8 @@ class EscalationClear:
         expected_mac = hmac.new(_key(), self.text_sha256.encode(), hashlib.sha256).hexdigest()
         if self.mac != expected_mac:
             raise EscalationClearForbidden(
-                f"EscalationClear MAC mismatch: expected {expected_mac[:16]}..., got {self.mac[:16]}..."
+                f"EscalationClear MAC mismatch: expected {expected_mac[:16]}..., "
+                f"got {self.mac[:16]}..."
             )
 
 

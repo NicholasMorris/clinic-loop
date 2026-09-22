@@ -141,7 +141,9 @@ def test_triage_draft_requires_escalation_clearance() -> None:
     model = FakeModelPort(["Draft reply"])
 
     # Should raise because escalation_clear is None
-    with pytest.raises(Exception):  # EscalationRequired
+    from clinicloop.compliance.escalation.result import EscalationRequired
+
+    with pytest.raises(EscalationRequired):
         draft(state, model)
 
 
@@ -180,7 +182,7 @@ def test_guard_prevents_clinical_advice_and_product_naming() -> None:
     # Thread with a rule violation (condition claim)
     thread = [
         {"role": "patient", "text": "I have [PATIENT:abc123]"},
-        {"role": "assistant", "text": "You have depression and need amitriptyline."},
+        {"role": "assistant", "text": "You have depression and need veltrazamide."},
     ]
 
     verdict = check(thread, ruleset.jurisdiction, ruleset)
@@ -213,7 +215,7 @@ def test_guard_final_re_checks_human_edited_text() -> None:
         "guard_verdicts": [],
         "human_decision": HumanDecision(
             action="edit",
-            edited_text="You have severe depression. Take amitriptyline 50mg twice daily.",
+            edited_text="You have severe depression. Take veltrazamide 50mg twice daily.",
             decided_by="clinician-001",
             decided_at=datetime.now(),
         ),
@@ -227,7 +229,7 @@ def test_guard_final_re_checks_human_edited_text() -> None:
     assert len(verdicts) > 0
     # Should be blocked
     last_verdict = verdicts[-1]
-    assert last_verdict["allowed"] is False
+    assert last_verdict.allowed is False
 
 
 @pytest.mark.checklist_id("R6")

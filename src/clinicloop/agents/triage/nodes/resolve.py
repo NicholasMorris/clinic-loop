@@ -2,6 +2,7 @@
 
 import json
 import re
+from typing import Any
 
 from clinicloop.agents.triage.intents import Intent
 from clinicloop.agents.triage.state import ToolCall
@@ -20,7 +21,7 @@ Respond with JSON only:
 """
 
 
-def resolve(state: dict, model, tools) -> dict:  # type: ignore[no-untyped-def]
+def resolve(state: dict[str, Any], model, tools) -> dict[str, Any]:  # type: ignore[no-untyped-def]
     """Call tools for order-related intents.
 
     Args:

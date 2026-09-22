@@ -15,6 +15,7 @@ from pydantic import ValidationError
 from clinicloop.agents.triage.intents import Intent
 from clinicloop.agents.triage.state import ToolCall, TriageState, Turn
 from clinicloop.compliance.escalation.detector import detect
+from clinicloop.compliance.guard.verdict import GuardVerdict
 from clinicloop.compliance.rulesets import load_ruleset
 from clinicloop.hitl.decision import HumanDecision
 
@@ -74,13 +75,13 @@ def test_state_full_round_trip_serialization(_fixed_key: None) -> None:
     )
 
     verdict_data = [
-        {
-            "allowed": True,
-            "rule_ids": (),
-            "jurisdiction": "au",
-            "ruleset_version": "1.0",
-            "text_sha256": "a" * 64,
-        }
+        GuardVerdict(
+            allowed=True,
+            rule_ids=(),
+            jurisdiction="au",
+            ruleset_version="1.0",
+            text_sha256="a" * 64,
+        )
     ]
 
     state = TriageState(
@@ -119,6 +120,7 @@ def test_state_full_round_trip_serialization(_fixed_key: None) -> None:
     assert restored.intent == state.intent
     assert restored.escalation_category == state.escalation_category
     assert restored.escalation_clear is not None
+    assert state.escalation_clear is not None
     assert restored.escalation_clear.text_sha256 == state.escalation_clear.text_sha256
     assert len(restored.tool_calls) == 1
     assert restored.tool_calls[0].name == "get_order_status"
@@ -151,7 +153,7 @@ def test_escalation_clear_survives_rebuild(_fixed_key: None) -> None:
 
     # Serialize and rebuild (as would happen in checkpointing)
     token_dict = dataclasses.asdict(token)
-    rebuilt = escalation_result.clear.__class__(**token_dict)
+    rebuilt = token.__class__(**token_dict)
 
     # Should be identical
     assert rebuilt.text_sha256 == token.text_sha256

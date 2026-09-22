@@ -1,6 +1,7 @@
 """PII redaction with nine identifier classes and checksum validators."""
 
 import re
+from typing import Callable
 
 from clinicloop.compliance.pseudonymise import pseudonymise
 
@@ -337,7 +338,7 @@ def redact_with_pseudonyms(text: str, run_key: str) -> str:
     result = re.sub(r"\b\d{10}\b", replace_nhs, result)
 
     # 9. Roster names (given names and surnames)
-    def replace_name(name_to_replace: str) -> str:
+    def replace_name(name_to_replace: str) -> Callable[[re.Match[str]], str]:
         def replacer(match: re.Match[str]) -> str:
             name = match.group(0)
             token = pseudonymise(name, run_key)
